@@ -22,8 +22,8 @@ html, body {
 
 #root {
   min-height: 100%;
-  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-  color: #ffffff;
+  background: #f9fafb;
+  color: #1f2937;
 }
 
 body {
@@ -32,8 +32,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-  color: #ffffff;
+  background: #f9fafb;
+  color: #1f2937;
   line-height: 1.6;
 }
 
@@ -69,13 +69,13 @@ code {
 
 /* Selection Styles */
 ::selection {
-  background: rgba(167, 85, 247, 0.3);
-  color: #ffffff;
+  background: rgba(111, 45, 168, 0.2);
+  color: #1f2937;
 }
 
 ::-moz-selection {
-  background: rgba(167, 85, 247, 0.3);
-  color: #ffffff;
+  background: rgba(111, 45, 168, 0.2);
+  color: #1f2937;
 }
 
 /* Focus Styles */
