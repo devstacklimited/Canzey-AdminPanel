@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Users, LayoutDashboard, Settings, Activity } from 'lucide-react';
+import './Dashboard.css';
 
 // Components
-import Header from '../components/common/Header';
-import Sidebar from '../components/common/Sidebar';
-import StatsCard from '../components/dashboard/StatsCard';
-import UsersTable from '../components/dashboard/UsersTable';
-import AddUserModal from '../components/dashboard/AddUserModal';
+import Header from '../../components/header/Header';
+import Sidebar from '../../components/sidebar/Sidebar';
+import StatsCard from './components/StatsCard';
+import UsersTable from './components/UsersTable';
+import AddUserModal from './components/AddUserModal';
 
 const Dashboard = () => {
   const [users, setUsers] = useState([]);
@@ -70,11 +71,11 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="dashboard">
       {/* Mobile menu overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="dashboard-mobile-overlay lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -83,7 +84,7 @@ const Dashboard = () => {
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
+      <div className={`dashboard-main-content ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
         {/* Header */}
         <Header 
           sidebarOpen={sidebarOpen} 
@@ -92,18 +93,18 @@ const Dashboard = () => {
         />
 
         {/* Page Content */}
-        <main className="pt-20">
-          <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <main className="dashboard-content">
+          <div className="dashboard-container">
             {/* Page Title */}
-            <div className="mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="mt-2 text-sm text-gray-600">
+            <div className="dashboard-page-header">
+              <h1 className="dashboard-page-title">Dashboard</h1>
+              <p className="dashboard-page-subtitle">
                 Welcome to Canzey Admin Panel - Manage your users and system
               </p>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <div className="dashboard-stats-grid">
               <StatsCard
                 title="Total Users"
                 value={users.length}
@@ -131,12 +132,12 @@ const Dashboard = () => {
             </div>
 
             {/* Users Management Section */}
-            <div className="mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-xl font-bold text-gray-900">Users Management</h2>
+            <div className="dashboard-users-section">
+              <div className="dashboard-users-header">
+                <h2 className="dashboard-users-title">Users Management</h2>
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                  className="dashboard-add-user-btn"
                 >
                   <Plus size={20} />
                   Add User

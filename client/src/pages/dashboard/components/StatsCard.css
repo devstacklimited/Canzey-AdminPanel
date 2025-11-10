@@ -1,0 +1,90 @@
+/* StatsCard Component Styles */
+.stats-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.stats-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stats-card-info {
+  flex: 1;
+}
+
+.stats-card-title {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.stats-card-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.stats-card-icon-wrapper {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Color Variants */
+.stats-card-primary .stats-card-icon-wrapper {
+  background-color: #e0f2fe;
+}
+
+.stats-card-primary .stats-card-icon {
+  color: #0284c7;
+}
+
+.stats-card-green .stats-card-icon-wrapper {
+  background-color: #dcfce7;
+}
+
+.stats-card-green .stats-card-icon {
+  color: #16a34a;
+}
+
+.stats-card-purple .stats-card-icon-wrapper {
+  background-color: #f3e8ff;
+}
+
+.stats-card-purple .stats-card-icon {
+  color: #9333ea;
+}
+
+.stats-card-red .stats-card-icon-wrapper {
+  background-color: #fee2e2;
+}
+
+.stats-card-red .stats-card-icon {
+  color: #dc2626;
+}
+
+/* Hover Effects */
+.stats-card:hover .stats-card-icon-wrapper {
+  transform: scale(1.05);
+}
+
+/* Responsive Grid */
+@media (max-width: 640px) {
+  .stats-card-value {
+    font-size: 1.5rem;
+  }
+  
+  .stats-card {
+    padding: 1rem;
+  }
+}

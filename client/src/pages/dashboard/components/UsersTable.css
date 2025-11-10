@@ -1,0 +1,237 @@
+/* UsersTable Component Styles */
+.users-table-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.users-table-loading {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.users-table-loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #0284c7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.users-table-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.users-table-empty-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.users-table-empty-text {
+  font-size: 0.875rem;
+}
+
+.users-table-wrapper {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+}
+
+.users-table thead {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.users-table th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.users-table tbody {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.users-table tr {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.users-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.users-table td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+.users-table-id {
+  color: #1f2937;
+}
+
+.users-table-user-cell {
+  display: flex;
+  align-items: center;
+}
+
+.users-table-avatar {
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.users-table-avatar-placeholder {
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 50%;
+  background-color: #e0f2fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.users-table-avatar-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0284c7;
+}
+
+.users-table-user-info {
+  margin-left: 1rem;
+}
+
+.users-table-user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.users-table-email {
+  color: #6b7280;
+}
+
+.users-table-role-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.users-table-role-admin {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.users-table-role-moderator {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.users-table-role-user {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.users-table-status-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.users-table-actions {
+  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.users-table-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.users-table-action-btn {
+  padding: 0.25rem;
+  transition: all 0.2s ease-in-out;
+  border-radius: 0.25rem;
+}
+
+.users-table-action-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.users-table-edit-btn {
+  color: #0284c7;
+}
+
+.users-table-edit-btn:hover {
+  color: #075985;
+}
+
+.users-table-delete-btn {
+  color: #dc2626;
+}
+
+.users-table-delete-btn:hover {
+  color: #b91c1c;
+}
+
+.users-table-more-btn {
+  color: #9ca3af;
+}
+
+.users-table-more-btn:hover {
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .users-table th,
+  .users-table td {
+    padding: 0.75rem 1rem;
+  }
+  
+  .users-table-actions {
+    padding-right: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .users-table th,
+  .users-table td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .users-table-user-name,
+  .users-table-email {
+    font-size: 0.75rem;
+  }
+}

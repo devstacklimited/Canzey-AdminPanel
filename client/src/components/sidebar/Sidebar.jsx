@@ -1,5 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, Users, Settings, Menu, X, Home, FileText, HelpCircle } from 'lucide-react';
+import './Sidebar.css';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const menuItems = [
@@ -13,38 +14,32 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   return (
     <aside
-      className={`${
-        sidebarOpen ? 'w-64' : 'w-20'
-      } bg-gradient-to-b from-primary-600 to-primary-800 text-white transition-all duration-300 ease-in-out fixed left-0 top-0 bottom-0 z-50 lg:relative lg:translate-x-0`}
+      className={`sidebar ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'} ${sidebarOpen ? 'mobile-open' : ''}`}
     >
-      <div className="p-4 h-full flex flex-col">
+      <div className="sidebar-content">
         {/* Logo and Toggle */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className={`font-bold text-xl transition-opacity duration-300 ${!sidebarOpen && 'lg:opacity-0 lg:hidden'}`}>
+        <div className="sidebar-header">
+          <h1 className="sidebar-logo">
             Canzey Admin
           </h1>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-primary-700 transition-colors"
+            className="sidebar-toggle-btn"
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-2">
+        <nav className="sidebar-nav">
           {menuItems.map((item, index) => (
             <a
               key={index}
               href="#"
-              className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
-                item.active 
-                  ? 'bg-primary-700 text-white shadow-lg' 
-                  : 'hover:bg-primary-700 text-primary-100 hover:text-white'
-              }`}
+              className={`sidebar-nav-item ${item.active ? 'active' : ''}`}
             >
-              <item.icon size={20} className="flex-shrink-0" />
-              <span className={`${!sidebarOpen && 'lg:hidden'} transition-all duration-300`}>
+              <item.icon size={20} className="sidebar-nav-icon" />
+              <span className="sidebar-nav-text">
                 {item.label}
               </span>
             </a>
@@ -52,8 +47,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto pt-4 border-t border-primary-700">
-          <div className={`text-xs text-primary-200 ${!sidebarOpen && 'lg:hidden'}`}>
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-text">
             <p>Version 1.0.0</p>
             <p>© 2024 Canzey</p>
           </div>

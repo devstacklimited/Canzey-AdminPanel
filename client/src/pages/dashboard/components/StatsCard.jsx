@@ -1,4 +1,5 @@
 import React from 'react';
+import './StatsCard.css';
 
 const StatsCard = ({ title, value, icon: Icon, color = 'primary' }) => {
   const colorClasses = {
@@ -27,14 +28,14 @@ const StatsCard = ({ title, value, icon: Icon, color = 'primary' }) => {
   const colors = colorClasses[color] || colorClasses.primary;
 
   return (
-    <div className={`bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg ${colors.hover}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-gray-500 text-sm font-medium mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-800">{value}</p>
+    <div className={`stats-card stats-card-${color}`}>
+      <div className="stats-card-content">
+        <div className="stats-card-info">
+          <p className="stats-card-title">{title}</p>
+          <p className="stats-card-value">{value}</p>
         </div>
-        <div className={`${colors.bg} p-3 rounded-lg transition-all duration-300`}>
-          <Icon className={colors.text} size={24} />
+        <div className="stats-card-icon-wrapper">
+          <Icon className={`stats-card-icon stats-card-${color}-icon`} size={24} />
         </div>
       </div>
     </div>
