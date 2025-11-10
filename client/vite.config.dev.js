@@ -15,10 +15,19 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'axios', 'lucide-react']
+    include: ['react', 'react-dom', 'axios', 'lucide-react'],
+    force: true
   },
   build: {
     minify: 'esbuild',
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
+  },
+  esbuild: {
+    target: 'esnext'
   }
 })

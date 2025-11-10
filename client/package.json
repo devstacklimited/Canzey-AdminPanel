@@ -17,7 +17,8 @@
     "postcss": "^8.4.29"
   },
   "scripts": {
-    "dev": "vite",
+    "start": "vite --host --open",
+    "dev": "vite --host --open",
     "build": "vite build",
     "preview": "vite preview"
   }
