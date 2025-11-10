@@ -1,6 +1,6 @@
 /* Sidebar Component Styles */
 .sidebar {
-  background: linear-gradient(to bottom, #0284c7, #075985);
+  background: linear-gradient(to bottom, #6F2DA8, #5a2387);
   color: white;
   transition: all 0.3s ease-in-out;
   position: fixed;
@@ -67,14 +67,16 @@
 }
 
 .sidebar-nav-item:hover {
-  background-color: #0369a1;
-  color: #f0f9ff;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .sidebar-nav-item.active {
-  background-color: #0369a1;
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #a855f7;
+  font-weight: 600;
 }
 
 .sidebar-nav-icon {

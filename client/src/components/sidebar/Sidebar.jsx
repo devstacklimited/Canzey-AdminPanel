@@ -1,15 +1,17 @@
 import React from 'react';
-import { LayoutDashboard, Users, Settings, Menu, X, Home, FileText, HelpCircle } from 'lucide-react';
+import { Home, Package, Settings, User, Menu, X, ShoppingCart } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+  const location = useLocation();
+  
   const menuItems = [
-    { icon: Home, label: 'Home', active: true },
-    { icon: LayoutDashboard, label: 'Dashboard', active: false },
-    { icon: Users, label: 'Users', active: false },
-    { icon: FileText, label: 'Reports', active: false },
-    { icon: Settings, label: 'Settings', active: false },
-    { icon: HelpCircle, label: 'Help', active: false },
+    { icon: Home, label: 'Home', path: '/home' },
+    { icon: ShoppingCart, label: 'Orders', path: '/orders' },
+    { icon: Package, label: 'Inventory', path: '/inventory' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: User, label: 'Profile', path: '/profile' },
   ];
 
   return (
@@ -33,16 +35,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Navigation */}
         <nav className="sidebar-nav">
           {menuItems.map((item, index) => (
-            <a
+            <Link
               key={index}
-              href="#"
-              className={`sidebar-nav-item ${item.active ? 'active' : ''}`}
+              to={item.path}
+              className={`sidebar-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+              onClick={() => {
+                // Close sidebar on mobile after navigation
+                if (window.innerWidth < 1024) {
+                  setSidebarOpen(false);
+                }
+              }}
             >
               <item.icon size={20} className="sidebar-nav-icon" />
               <span className="sidebar-nav-text">
                 {item.label}
               </span>
-            </a>
+            </Link>
           ))}
         </nav>
 

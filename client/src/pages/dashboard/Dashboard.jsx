@@ -4,8 +4,7 @@ import { Plus, Users, LayoutDashboard, Settings, Activity } from 'lucide-react';
 import './Dashboard.css';
 
 // Components
-import Header from '../../components/header/Header';
-import Sidebar from '../../components/sidebar/Sidebar';
+import Layout from '../../components/layout/Layout';
 import StatsCard from './components/StatsCard';
 import UsersTable from './components/UsersTable';
 import AddUserModal from './components/AddUserModal';
@@ -13,7 +12,6 @@ import AddUserModal from './components/AddUserModal';
 const Dashboard = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'user' });
@@ -71,29 +69,9 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="dashboard">
-      {/* Mobile menu overlay */}
-      {sidebarOpen && (
-        <div 
-          className="dashboard-mobile-overlay lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-
-      {/* Main Content */}
-      <div className={`dashboard-main-content ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
-        {/* Header */}
-        <Header 
-          sidebarOpen={sidebarOpen} 
-          searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
-        />
-
-        {/* Page Content */}
-        <main className="dashboard-content">
+    <Layout>
+      {/* Page Content */}
+      <main className="dashboard-content">
           <div className="dashboard-container">
             {/* Page Title */}
             <div className="dashboard-page-header">
@@ -149,22 +127,11 @@ const Dashboard = () => {
             <UsersTable
               users={filteredUsers}
               loading={loading}
-              onEdit={handleEditUser}
-              onDelete={handleDeleteUser}
+              searchTerm={searchTerm}
             />
           </div>
         </main>
-      </div>
-
-      {/* Add User Modal */}
-      <AddUserModal
-        show={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSubmit={handleAddUser}
-        newUser={newUser}
-        setNewUser={setNewUser}
-      />
-    </div>
+    </Layout>
   );
 };
 

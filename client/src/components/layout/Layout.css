@@ -1,0 +1,36 @@
+/* Layout Component Styles */
+.layout {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.layout-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+.layout-main-content {
+  transition: all 0.3s ease-in-out;
+}
+
+.layout-main-content.sidebar-expanded {
+  margin-left: 16rem;
+}
+
+.layout-main-content.sidebar-collapsed {
+  margin-left: 5rem;
+}
+
+.layout-content {
+  padding-top: 5rem; /* Header height + spacing */
+}
+
+/* Mobile Responsive */
+@media (max-width: 1023px) {
+  .layout-main-content.sidebar-expanded,
+  .layout-main-content.sidebar-collapsed {
+    margin-left: 0;
+  }
+}

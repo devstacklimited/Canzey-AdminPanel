@@ -1,0 +1,288 @@
+/* Orders Page Styles */
+.orders {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.orders-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Page Header */
+.orders-header {
+  margin-bottom: 2rem;
+}
+
+.orders-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.orders-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+/* Search and Filter Controls */
+.orders-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.orders-search {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.orders-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.orders-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.orders-search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.orders-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+}
+
+.orders-filter-icon {
+  color: #9ca3af;
+}
+
+.orders-filter-select {
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  color: #374151;
+  background: transparent;
+}
+
+.orders-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.orders-add-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Orders Table */
+.orders-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.orders-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.orders-table-row:hover {
+  background: #f9fafb;
+}
+
+.orders-order-id {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.orders-customer {
+  color: #111827;
+  font-weight: 500;
+}
+
+.orders-product {
+  color: #374151;
+}
+
+.orders-status-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orders-status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.orders-status-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.orders-status-pending {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.orders-status-processing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.orders-status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-icon-completed {
+  color: #10b981;
+}
+
+.status-icon-pending {
+  color: #f59e0b;
+}
+
+.status-icon-processing {
+  color: #3b82f6;
+}
+
+.status-icon-cancelled {
+  color: #ef4444;
+}
+
+.orders-date {
+  color: #6b7280;
+}
+
+.orders-amount {
+  font-weight: 600;
+  color: #111827;
+}
+
+.orders-actions {
+  padding: 0.5rem;
+}
+
+.orders-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.orders-action-btn {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orders-view-btn {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.orders-view-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.orders-edit-btn {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.orders-edit-btn:hover {
+  background: #bfdbfe;
+  color: #2563eb;
+}
+
+.orders-delete-btn {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.orders-delete-btn:hover {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .orders-container {
+    padding: 1rem;
+  }
+  
+  .orders-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .orders-search {
+    max-width: none;
+  }
+  
+  .orders-table-container {
+    overflow-x: auto;
+  }
+  
+  .orders-table {
+    min-width: 600px;
+  }
+}
