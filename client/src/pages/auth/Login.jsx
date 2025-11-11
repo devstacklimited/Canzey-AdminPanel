@@ -1,0 +1,163 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import './Auth.css';
+
+const Login = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store token and user data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      setError('Server error. Please try again later.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        {/* Logo/Header */}
+        <div className="auth-header">
+          <div className="auth-logo">
+            <div className="logo-icon">
+              <LogIn size={32} />
+            </div>
+            <h1>Canzey Admin</h1>
+          </div>
+          <p className="auth-subtitle">Sign in to manage your dashboard</p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="auth-form">
+          {error && (
+            <div className="error-message">
+              <AlertCircle size={18} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Email Input */}
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <div className="input-wrapper">
+              <Mail className="input-icon" size={20} />
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="admin@canzey.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Password Input */}
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <div className="input-wrapper">
+              <Lock className="input-icon" size={20} />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Remember Me & Forgot Password */}
+          <div className="form-options">
+            <label className="checkbox-label">
+              <input type="checkbox" />
+              <span>Remember me</span>
+            </label>
+            <Link to="/forgot-password" className="forgot-link">
+              Forgot password?
+            </Link>
+          </div>
+
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            className="auth-btn"
+            disabled={loading}
+          >
+            {loading ? (
+              <span>Signing in...</span>
+            ) : (
+              <>
+                <LogIn size={20} />
+                <span>Sign In</span>
+              </>
+            )}
+          </button>
+
+          {/* Sign Up Link */}
+          <div className="auth-footer">
+            <p>
+              Don't have an account?{' '}
+              <Link to="/signup" className="auth-link">
+                Sign up
+              </Link>
+            </p>
+          </div>
+        </form>
+      </div>
+
+      {/* Background Design */}
+      <div className="auth-bg">
+        <div className="bg-circle bg-circle-1"></div>
+        <div className="bg-circle bg-circle-2"></div>
+        <div className="bg-circle bg-circle-3"></div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
