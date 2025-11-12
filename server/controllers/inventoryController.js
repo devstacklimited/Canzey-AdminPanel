@@ -159,41 +159,6 @@ exports.updateInventory = async (req, res) => {
   }
 };
 
-// Update stock quantity
-exports.updateStock = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { quantity, reason } = req.body;
-    
-    if (quantity === undefined || quantity < 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid quantity is required'
-      });
-    }
-    
-    const updatedItem = await Inventory.updateStock(
-      id, 
-      parseInt(quantity), 
-      req.user?.id, 
-      reason || 'Manual stock adjustment'
-    );
-    
-    res.json({
-      success: true,
-      message: 'Stock updated successfully',
-      data: updatedItem
-    });
-  } catch (error) {
-    console.error('Error updating stock:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating stock',
-      error: error.message
-    });
-  }
-};
-
 // Delete inventory item
 exports.deleteInventory = async (req, res) => {
   try {
@@ -261,27 +226,7 @@ exports.getLowStock = async (req, res) => {
   }
 };
 
-// Get stock movements
-exports.getStockMovements = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { limit } = req.query;
-    
-    const movements = await Inventory.getStockMovements(id, limit ? parseInt(limit) : 50);
-    
-    res.json({
-      success: true,
-      data: movements
-    });
-  } catch (error) {
-    console.error('Error fetching stock movements:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching stock movements',
-      error: error.message
-    });
-  }
-};
+// Stock movements method removed - table not needed
 
 // Get inventory statistics
 exports.getInventoryStats = async (req, res) => {

@@ -21,8 +21,7 @@ router.get('/low-stock', requireRole(['admin', 'manager']), inventoryController.
 // Get inventory item by ID
 router.get('/:id', requireRole(['admin', 'manager', 'staff']), inventoryController.getInventoryById);
 
-// Get stock movements for an item
-router.get('/:id/movements', requireRole(['admin', 'manager']), inventoryController.getStockMovements);
+// Stock movements route removed - table not needed
 
 // Create new inventory item
 router.post('/', requireRole(['admin', 'manager']), inventoryController.createInventory);
@@ -30,8 +29,7 @@ router.post('/', requireRole(['admin', 'manager']), inventoryController.createIn
 // Update inventory item
 router.put('/:id', requireRole(['admin', 'manager']), inventoryController.updateInventory);
 
-// Update stock quantity
-router.patch('/:id/stock', requireRole(['admin', 'manager', 'staff']), inventoryController.updateStock);
+// Stock update route removed - using regular update instead
 
 // Delete inventory item (soft delete)
 router.delete('/:id', requireRole(['admin']), inventoryController.deleteInventory);

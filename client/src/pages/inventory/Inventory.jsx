@@ -288,105 +288,106 @@ const Inventory = () => {
             </div>
           ) : (
             <div className="inventory-grid">
-              {inventory.map((item) => (
-                <div key={item.id} className="inventory-card">
-                  <div className="inventory-card-header">
-                    <div className="inventory-card-avatar">
-                      {item.thumbnail_url ? (
+              {inventory.map((item) => {
+                // Debug: log image data
+                console.log('Item:', item.name, 'Thumbnail:', item.thumbnail_url ? item.thumbnail_url.substring(0, 50) + '...' : 'none');
+                return (
+                <div key={item.id} className="inventory-tile">
+                  <div className="inventory-tile-content">
+                    <div className="inventory-tile-avatar">
+                      {item.thumbnail_url && item.thumbnail_url.startsWith('data:') ? (
+                        <img src={item.thumbnail_url} alt={item.name} />
+                      ) : item.thumbnail_url && item.thumbnail_url.startsWith('http') ? (
                         <img src={item.thumbnail_url} alt={item.name} />
                       ) : (
-                        <div className="avatar-placeholder">👕</div>
-                      )}
-                    </div>
-                    <div className="inventory-card-info">
-                      <h3 className="inventory-card-title">{item.name}</h3>
-                      {item.style && <span className="inventory-card-style">{item.style}</span>}
-                      <p className="inventory-card-sku">SKU: {item.sku}</p>
-                    </div>
-                    <div className="inventory-card-status">
-                      <span className={getStatusBadge(item)}>
-                        {getStatusText(item)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="inventory-card-body">
-                    <div className="inventory-details">
-                      {item.brand && (
-                        <div className="detail-item">
-                          <span className="detail-label">Brand:</span>
-                          <span className="detail-value">{item.brand}</span>
-                        </div>
-                      )}
-                      {item.category && (
-                        <div className="detail-item">
-                          <span className="detail-label">Category:</span>
-                          <span className="detail-value">{item.category}</span>
-                        </div>
-                      )}
-                      {item.material && (
-                        <div className="detail-item">
-                          <span className="detail-label">Material:</span>
-                          <span className="detail-value">{item.material}</span>
-                        </div>
-                      )}
-                      {item.fit_type && (
-                        <div className="detail-item">
-                          <span className="detail-label">Fit:</span>
-                          <span className="detail-value capitalize">{item.fit_type}</span>
+                        // Test with a simple colored placeholder
+                        <div style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '24px',
+                          fontWeight: 'bold'
+                        }}>
+                          👕
                         </div>
                       )}
                     </div>
-
-                    <div className="inventory-metrics">
-                      <div className="metric-item">
-                        <div className="metric-label">Stock</div>
-                        <div className={`metric-value stock-badge ${
-                          item.available_quantity === 0 ? 'stock-zero' : 
-                          item.available_quantity <= item.minimum_stock_level ? 'stock-low' : 'stock-normal'
-                        }`}>
-                          {item.available_quantity}
+                    
+                    <div className="inventory-tile-info">
+                      <div className="inventory-tile-main">
+                        <div className="inventory-tile-title">
+                          {item.name}
+                          {item.style && <span className="inventory-tile-style">{item.style}</span>}
                         </div>
+                        <p className="inventory-tile-sku">SKU: {item.sku}</p>
                       </div>
-                      <div className="metric-item">
-                        <div className="metric-label">Price</div>
-                        <div className="metric-value price-value">${item.selling_price}</div>
+                      
+                      <div className="inventory-tile-details">
+                        <div className="tile-detail-item">
+                          <div className="tile-detail-label">Stock</div>
+                          <div className={`tile-detail-value stock-badge ${
+                            item.available_quantity === 0 ? 'stock-zero' : 
+                            item.available_quantity <= item.minimum_stock_level ? 'stock-low' : 'stock-normal'
+                          }`}>
+                            {item.available_quantity}
+                          </div>
+                        </div>
+                        <div className="tile-detail-item">
+                          <div className="tile-detail-label">Price</div>
+                          <div className="tile-detail-value price-value">${item.selling_price}</div>
+                        </div>
+                        {item.brand && (
+                          <div className="tile-detail-item">
+                            <div className="tile-detail-label">Brand</div>
+                            <div className="tile-detail-value">{item.brand}</div>
+                          </div>
+                        )}
+                        {item.category && (
+                          <div className="tile-detail-item">
+                            <div className="tile-detail-label">Category</div>
+                            <div className="tile-detail-value">{item.category}</div>
+                          </div>
+                        )}
                       </div>
-                      <div className="metric-item">
-                        <div className="metric-label">Min Stock</div>
-                        <div className="metric-value">{item.minimum_stock_level}</div>
+                      
+                      <div className="inventory-tile-status">
+                        <span className={getStatusBadge(item)}>
+                          {getStatusText(item)}
+                        </span>
+                      </div>
+                      
+                      <div className="inventory-tile-actions">
+                        <button 
+                          className="tile-action-btn tile-stock-btn"
+                          onClick={() => handleUpdateStock(item)}
+                          title="Update Stock"
+                        >
+                          <Package size={14} />
+                        </button>
+                        <button 
+                          className="tile-action-btn tile-edit-btn"
+                          onClick={() => handleEditItem(item)}
+                          title="Edit T-Shirt"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button 
+                          className="tile-action-btn tile-delete-btn"
+                          onClick={() => handleDeleteItem(item.id)}
+                          title="Delete T-Shirt"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="inventory-card-footer">
-                    <button 
-                      className="card-action-btn stock-btn"
-                      onClick={() => handleUpdateStock(item)}
-                      title="Update Stock"
-                    >
-                      <Package size={16} />
-                      Stock
-                    </button>
-                    <button 
-                      className="card-action-btn edit-btn"
-                      onClick={() => handleEditItem(item)}
-                      title="Edit T-Shirt"
-                    >
-                      <Edit size={16} />
-                      Edit
-                    </button>
-                    <button 
-                      className="card-action-btn delete-btn"
-                      onClick={() => handleDeleteItem(item.id)}
-                      title="Delete T-Shirt"
-                    >
-                      <Trash2 size={16} />
-                      Delete
-                    </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

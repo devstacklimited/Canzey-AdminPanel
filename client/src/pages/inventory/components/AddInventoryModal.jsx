@@ -3,6 +3,16 @@ import { X, Package, DollarSign, Hash, Tag } from 'lucide-react';
 import './Modal.css';
 
 const AddInventoryModal = ({ onClose, categories }) => {
+  // Default categories if none are loaded
+  const defaultCategories = [
+    { id: 1, name: 'T-Shirts' },
+    { id: 2, name: 'Men T-Shirts' },
+    { id: 3, name: 'Women T-Shirts' },
+    { id: 4, name: 'Kids T-Shirts' },
+    { id: 5, name: 'Promotional' }
+  ];
+  
+  const categoriesList = categories && categories.length > 0 ? categories : defaultCategories;
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -11,17 +21,21 @@ const AddInventoryModal = ({ onClose, categories }) => {
     style: '',
     material: '',
     fit_type: 'regular',
-    category: '',
     cost_price: '',
     selling_price: '',
-    total_quantity: '',
-    minimum_stock_level: '5',
+    discount_price: '',
+    total_quantity: 0,
+    minimum_stock_level: 5,
     status: 'active',
     is_featured: false,
     is_visible: true,
-    tags: []
+    category: '',
+    tags: [],
+    images: [],
+    thumbnail_url: ''
   });
 
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
@@ -29,6 +43,46 @@ const AddInventoryModal = ({ onClose, categories }) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageUrl = event.target.result;
+          setImagePreviews(prev => [...prev, imageUrl]);
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, imageUrl],
+            thumbnail_url: prev.thumbnail_url || imageUrl
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const removeImage = (index) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setFormData(prev => {
+      const newImages = prev.images.filter((_, i) => i !== index);
+      const newThumbnail = newImages.length > 0 ? newImages[0] : '';
+      return {
+        ...prev,
+        images: newImages,
+        thumbnail_url: prev.thumbnail_url === prev.images[index] ? newThumbnail : prev.thumbnail_url
+      };
+    });
+  };
+
+  const setAsThumbnail = (imageUrl) => {
+    setFormData(prev => ({
+      ...prev,
+      thumbnail_url: imageUrl
     }));
   };
 
@@ -99,6 +153,60 @@ const AddInventoryModal = ({ onClose, categories }) => {
             {/* Basic Information */}
             <div className="form-section">
               <h3>Basic Information</h3>
+              
+              {/* Image Upload */}
+              <div className="form-group">
+                <label>Product Images</label>
+                <div className="image-upload-area">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="image-input"
+                    id="image-upload"
+                  />
+                  <label htmlFor="image-upload" className="image-upload-label">
+                    <div className="upload-icon">📷</div>
+                    <div className="upload-text">
+                      <p>Click to upload images</p>
+                      <span>PNG, JPG, GIF up to 10MB</span>
+                    </div>
+                  </label>
+                </div>
+                
+                {/* Image Previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="image-previews">
+                    <div className="previews-header">
+                      <span>Images ({imagePreviews.length})</span>
+                      <small>Click an image to set as thumbnail</small>
+                    </div>
+                    <div className="previews-grid">
+                      {imagePreviews.map((image, index) => (
+                        <div key={index} className="image-preview-item">
+                          <img 
+                            src={image} 
+                            alt={`Preview ${index + 1}`}
+                            className={`preview-image ${formData.thumbnail_url === image ? 'is-thumbnail' : ''}`}
+                            onClick={() => setAsThumbnail(image)}
+                          />
+                          {formData.thumbnail_url === image && (
+                            <div className="thumbnail-badge">⭐ Thumbnail</div>
+                          )}
+                          <button 
+                            type="button"
+                            className="remove-image-btn"
+                            onClick={() => removeImage(index)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               
               <div className="form-group">
                 <label>
@@ -197,7 +305,7 @@ const AddInventoryModal = ({ onClose, categories }) => {
                   onChange={(e) => handleInputChange('category', e.target.value)}
                 >
                   <option value="">Select Category</option>
-                  {categories.map(cat => (
+                  {categoriesList.map(cat => (
                     <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
