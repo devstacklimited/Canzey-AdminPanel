@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, Mail, Lock, User, AlertCircle, Shield } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, Shield, Phone } from 'lucide-react';
 import './Auth.css';
 
 const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    phone: '',
     role: '',
     password: '',
     confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPendingApproval, setShowPendingApproval] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -47,24 +50,30 @@ const Signup = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          name: formData.name,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           email: formData.email,
+          phone: formData.phone,
           password: formData.password,
-          role: 'admin' // Default role
+          confirmPassword: formData.confirmPassword,
+          role: formData.role
         })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Store token and user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Redirect to dashboard
-        navigate('/dashboard');
+        if (data.requiresApproval) {
+          // Show pending approval page
+          setShowPendingApproval(true);
+        } else {
+          // Store token and user data (if approved immediately)
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          navigate('/dashboard');
+        }
       } else {
-        setError(data.error || 'Registration failed');
+        setError(data.message || 'Registration failed');
       }
     } catch (err) {
       setError('Server error. Please try again later.');
@@ -73,6 +82,65 @@ const Signup = () => {
       setLoading(false);
     }
   };
+
+  // Show pending approval page if registration is pending
+  if (showPendingApproval) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-header">
+            <div className="auth-logo">
+              <div className="logo-icon" style={{ background: '#f59e0b' }}>
+                <AlertCircle size={32} />
+              </div>
+              <h1>Account Pending Approval</h1>
+            </div>
+            <p className="auth-subtitle">Your registration has been submitted</p>
+          </div>
+
+          <div className="pending-approval-content">
+            <div className="pending-message">
+              <h3>🎉 Registration Successful!</h3>
+              <p>
+                Thank you for registering with Canzey Admin Dashboard. 
+                Your account has been created and is currently pending approval by an administrator.
+              </p>
+              
+              <div className="pending-info">
+                <h4>What happens next?</h4>
+                <ul>
+                  <li>✅ Your account has been created</li>
+                  <li>⏳ An administrator will review your registration</li>
+                  <li>📧 You'll receive an email once approved</li>
+                  <li>🚀 Then you can sign in and access the dashboard</li>
+                </ul>
+              </div>
+
+              <div className="pending-actions">
+                <button 
+                  onClick={() => navigate('/signin')} 
+                  className="auth-btn"
+                  style={{ marginTop: '1rem' }}
+                >
+                  Go to Sign In
+                </button>
+                <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                  Already approved? <Link to="/signin" className="auth-link">Sign in here</Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Background Design */}
+        <div className="auth-bg">
+          <div className="bg-circle bg-circle-1"></div>
+          <div className="bg-circle bg-circle-2"></div>
+          <div className="bg-circle bg-circle-3"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
@@ -97,18 +165,35 @@ const Signup = () => {
             </div>
           )}
 
-          {/* Name Input */}
+          {/* First Name Input */}
           <div className="form-group">
-            <label htmlFor="name">Full Name *</label>
+            <label htmlFor="firstName">First Name *</label>
             <div className="input-wrapper">
               <User className="input-icon" size={20} />
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
-                placeholder="Enter your full name"
+                placeholder="Enter your first name"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Last Name Input */}
+          <div className="form-group">
+            <label htmlFor="lastName">Last Name *</label>
+            <div className="input-wrapper">
+              <User className="input-icon" size={20} />
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Enter your last name"
                 required
               />
             </div>
@@ -127,6 +212,22 @@ const Signup = () => {
                 onChange={handleChange}
                 placeholder="Enter your email"
                 required
+              />
+            </div>
+          </div>
+
+          {/* Phone Input */}
+          <div className="form-group">
+            <label htmlFor="phone">Phone Number</label>
+            <div className="input-wrapper">
+              <Phone className="input-icon" size={20} />
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Enter your phone number"
               />
             </div>
           </div>
@@ -154,6 +255,7 @@ const Signup = () => {
                 }}
               >
                 <option value="">Select your role</option>
+                <option value="user">User</option>
                 <option value="staff">Staff Member</option>
                 <option value="manager">Manager</option>
               </select>

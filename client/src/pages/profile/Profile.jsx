@@ -1,38 +1,216 @@
-import React, { useState } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Edit, Camera, Save, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
+import { useUser } from '../../context/UserContext';
+import ProfileTabs from './components/ProfileTabs';
+import ProfileInfo from './components/ProfileInfo';
+import UserManagement from './components/UserManagement';
 import './Profile.css';
 
 const Profile = () => {
+  const { user, updateUser, logout } = useUser();
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    bio: 'System administrator and developer with 5+ years of experience in web technologies and cloud infrastructure.',
-    location: 'San Francisco, CA',
-    website: 'https://johndoe.dev',
-    linkedin: 'linkedin.com/in/johndoe',
-    github: 'github.com/johndoe',
+  const [allUsers, setAllUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
+  
+  // Get user initials for avatar
+  const getUserInitials = (name) => {
+    if (user?.first_name || user?.last_name) {
+      const initials = [user.first_name?.[0], user.last_name?.[0]].filter(Boolean).join('');
+      return initials.toUpperCase() || 'U';
+    }
+    if (name) {
+      return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return 'U';
+  };
+
+  const [tempData, setTempData] = useState({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    bio: user?.bio || '',
+    location: user?.location || '',
+    website: user?.website || '',
+    company: user?.company || '',
+    job_title: user?.job_title || '',
   });
 
-  const [tempData, setTempData] = useState({ ...profileData });
+  // Fetch all users for admin
+  const fetchAllUsers = async () => {
+    console.log('🔄 fetchAllUsers called');
+    setLoadingUsers(true);
+    try {
+      const token = localStorage.getItem('token');
+      console.log('🔑 Token exists:', !!token);
+      
+      const response = await fetch('http://localhost:5000/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('📥 Fetch users response status:', response.status);
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('📥 Users API response:', result);
+        
+        // Handle both old format (array) and new format (object with data property)
+        const users = result.data || result;
+        console.log('👥 Processed users:', users);
+        console.log('👥 Users count:', Array.isArray(users) ? users.length : 'NOT_ARRAY');
+        
+        if (Array.isArray(users)) {
+          users.forEach((user, index) => {
+            console.log(`👤 User ${index + 1}:`, {
+              id: user.id,
+              name: user.display_name || [user.first_name, user.last_name].filter(Boolean).join(' '),
+              status: user.status,
+              role: user.role
+            });
+          });
+        }
+        
+        setAllUsers(Array.isArray(users) ? users : []);
+        console.log('✅ Users state updated');
+      } else {
+        console.error('❌ Failed to fetch users:', response.status, response.statusText);
+        setAllUsers([]);
+      }
+    } catch (error) {
+      console.error('💥 Error fetching users:', error);
+      setAllUsers([]);
+    } finally {
+      setLoadingUsers(false);
+      console.log('🏁 fetchAllUsers completed');
+    }
+  };
+
+  // Handle user status changes
+  const handleUserAction = async (userId, newStatus) => {
+    console.log('🔥 handleUserAction called in Profile.jsx:', { userId, newStatus });
+    
+    try {
+      const token = localStorage.getItem('token');
+      console.log('🔑 Token exists:', !!token);
+      
+      const requestBody = { status: newStatus };
+      console.log('📤 Request details:', {
+        url: `http://localhost:5000/api/users/${userId}`,
+        method: 'PUT',
+        body: requestBody,
+        headers: {
+          'Authorization': token ? 'Bearer [TOKEN_EXISTS]' : 'NO_TOKEN',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Use the general update endpoint to change status
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('📥 Response status:', response.status, response.statusText);
+      
+      const result = await response.json();
+      console.log('📥 Response body:', result);
+      
+      if (response.ok) {
+        console.log('✅ Status updated successfully, refreshing users...');
+        // Small delay to ensure database update is complete
+        setTimeout(() => {
+          fetchAllUsers(); // Refresh users list
+        }, 500);
+      } else {
+        console.error('❌ Failed to update status:', result);
+        alert(`Failed to update user status: ${result.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('💥 Error updating user status:', error);
+      alert('Error updating user status. Please try again.');
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'admin' && activeTab === 'users') {
+      fetchAllUsers();
+    }
+  }, [activeTab, user?.role]);
 
   const handleEdit = () => {
-    setTempData({ ...profileData });
+    setTempData({
+      first_name: user?.first_name || '',
+      last_name: user?.last_name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      bio: user?.bio || '',
+      location: user?.location || '',
+      website: user?.website || '',
+      company: user?.company || '',
+      job_title: user?.job_title || '',
+    });
     setIsEditing(true);
   };
 
   const handleCancel = () => {
-    setTempData({ ...profileData });
     setIsEditing(false);
   };
 
-  const handleSave = () => {
-    setProfileData({ ...tempData });
-    setIsEditing(false);
-    // Add save logic here
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('No token found');
+        alert('Please login again');
+        return;
+      }
+
+      console.log('Saving profile data:', tempData);
+      
+      // Update profile in database
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          first_name: tempData.first_name,
+          last_name: tempData.last_name,
+          phone: tempData.phone,
+          location: tempData.location,
+          bio: tempData.bio,
+          website: tempData.website,
+          company: tempData.company,
+          job_title: tempData.job_title
+        })
+      });
+
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (data.success) {
+        // Update user context with new data
+        updateUser(data.user);
+        setIsEditing(false);
+        alert('Profile updated successfully!');
+      } else {
+        console.error('Error updating profile:', data.message);
+        alert('Error updating profile: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Error updating profile: ' + error.message);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -42,269 +220,40 @@ const Profile = () => {
   return (
     <Layout>
       <div className="profile-container">
-        {/* Page Header */}
-        <div className="profile-header">
-          <h1 className="profile-title">My Profile</h1>
-          <p className="profile-subtitle">Manage your personal information</p>
-        </div>
+      
 
-        <div className="profile-content">
-          {/* Profile Card */}
-          <div className="profile-card">
-            <div className="profile-avatar-section">
-              <div className="profile-avatar-container">
-                <div className="profile-avatar">
-                  <img
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=150&h=150&q=80"
-                    alt="Profile"
-                    className="profile-avatar-img"
-                  />
-                  {isEditing && (
-                    <button className="profile-avatar-edit">
-                      <Camera size={20} />
-                    </button>
-                  )}
-                </div>
-                <div className="profile-avatar-info">
-                  <h2 className="profile-name">{profileData.firstName} {profileData.lastName}</h2>
-                  <p className="profile-role">Administrator</p>
-                  <div className="profile-status">
-                    <span className="profile-status-indicator"></span>
-                    <span>Active</span>
-                  </div>
-                </div>
-              </div>
+        {/* Tabs */}
+        <ProfileTabs 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          userRole={user?.role}
+        />
 
-              {/* Actions */}
-              <div className="profile-actions">
-                {!isEditing ? (
-                  <button onClick={handleEdit} className="profile-btn profile-btn-primary">
-                    <Edit size={20} />
-                    Edit Profile
-                  </button>
-                ) : (
-                  <div className="profile-edit-actions">
-                    <button onClick={handleSave} className="profile-btn profile-btn-success">
-                      <Save size={20} />
-                      Save
-                    </button>
-                    <button onClick={handleCancel} className="profile-btn profile-btn-secondary">
-                      <X size={20} />
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Profile Form */}
-            <div className="profile-form">
-              <div className="profile-form-section">
-                <h3 className="profile-form-title">Basic Information</h3>
-                
-                <div className="profile-form-grid">
-                  <div className="profile-form-group">
-                    <label className="profile-label">
-                      <User size={16} />
-                      First Name
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={tempData.firstName}
-                        onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">{profileData.firstName}</div>
-                    )}
-                  </div>
-
-                  <div className="profile-form-group">
-                    <label className="profile-label">
-                      <User size={16} />
-                      Last Name
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={tempData.lastName}
-                        onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">{profileData.lastName}</div>
-                    )}
-                  </div>
-
-                  <div className="profile-form-group">
-                    <label className="profile-label">
-                      <Mail size={16} />
-                      Email Address
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        value={tempData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">{profileData.email}</div>
-                    )}
-                  </div>
-
-                  <div className="profile-form-group">
-                    <label className="profile-label">
-                      <Phone size={16} />
-                      Phone Number
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        value={tempData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">{profileData.phone}</div>
-                    )}
-                  </div>
-
-                  <div className="profile-form-group">
-                    <label className="profile-label">
-                      <MapPin size={16} />
-                      Location
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={tempData.location}
-                        onChange={(e) => handleInputChange('location', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">{profileData.location}</div>
-                    )}
-                  </div>
-
-                  <div className="profile-form-group">
-                    <label className="profile-label">
-                      <Calendar size={16} />
-                      Member Since
-                    </label>
-                    <div className="profile-value">January 15, 2024</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="profile-form-section">
-                <h3 className="profile-form-title">About</h3>
-                
-                <div className="profile-form-group">
-                  <label className="profile-label">Bio</label>
-                  {isEditing ? (
-                    <textarea
-                      rows={4}
-                      value={tempData.bio}
-                      onChange={(e) => handleInputChange('bio', e.target.value)}
-                      className="profile-textarea"
-                    />
-                  ) : (
-                    <div className="profile-value profile-bio">{profileData.bio}</div>
-                  )}
-                </div>
-              </div>
-
-              <div className="profile-form-section">
-                <h3 className="profile-form-title">Social Links</h3>
-                
-                <div className="profile-form-grid">
-                  <div className="profile-form-group">
-                    <label className="profile-label">Website</label>
-                    {isEditing ? (
-                      <input
-                        type="url"
-                        value={tempData.website}
-                        onChange={(e) => handleInputChange('website', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">
-                        <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="profile-link">
-                          {profileData.website}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="profile-form-group">
-                    <label className="profile-label">LinkedIn</label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={tempData.linkedin}
-                        onChange={(e) => handleInputChange('linkedin', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">
-                        <a href={`https://${profileData.linkedin}`} target="_blank" rel="noopener noreferrer" className="profile-link">
-                          {profileData.linkedin}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="profile-form-group">
-                    <label className="profile-label">GitHub</label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={tempData.github}
-                        onChange={(e) => handleInputChange('github', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <div className="profile-value">
-                        <a href={`https://${profileData.github}`} target="_blank" rel="noopener noreferrer" className="profile-link">
-                          {profileData.github}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Card */}
-          <div className="profile-stats-card">
-            <h3 className="profile-stats-title">Activity Stats</h3>
-            
-            <div className="profile-stats-grid">
-              <div className="profile-stat-item">
-                <div className="profile-stat-value">247</div>
-                <div className="profile-stat-label">Total Orders</div>
-              </div>
-              
-              <div className="profile-stat-item">
-                <div className="profile-stat-value">89</div>
-                <div className="profile-stat-label">Products Managed</div>
-              </div>
-              
-              <div className="profile-stat-item">
-                <div className="profile-stat-value">156</div>
-                <div className="profile-stat-label">Support Tickets</div>
-              </div>
-              
-              <div className="profile-stat-item">
-                <div className="profile-stat-value">98%</div>
-                <div className="profile-stat-label">Satisfaction Rate</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Tab Content */}
+        {activeTab === 'profile' && (
+          <ProfileInfo
+            user={user}
+            isEditing={isEditing}
+            tempData={tempData}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onLogout={logout}
+            onInputChange={handleInputChange}
+            getUserInitials={getUserInitials}
+          />
+        )}
+          
+        {/* User Management Tab */}
+        {activeTab === 'users' && user?.role === 'admin' && (
+          <UserManagement
+            allUsers={allUsers}
+            loadingUsers={loadingUsers}
+            onUserAction={handleUserAction}
+            getUserInitials={getUserInitials}
+            onRefreshUsers={fetchAllUsers}
+          />
+        )}
       </div>
     </Layout>
   );

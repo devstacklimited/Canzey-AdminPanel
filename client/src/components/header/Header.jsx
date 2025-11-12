@@ -1,56 +1,119 @@
-import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User, LogOut, Users, Shield, Menu, X, Bell, Search } from 'lucide-react';
 import './Header.css';
 
-const Header = ({ sidebarOpen, searchTerm, setSearchTerm }) => {
+const Header = ({ sidebarOpen, searchTerm, setSearchTerm, user, onLogout }) => {
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Get user initials for avatar placeholder
+  const getUserInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  const handleLogout = () => {
+    onLogout();
+  };
+
   return (
-    <header className="header"
-            style={{ 
-              marginLeft: sidebarOpen ? '16rem' : '5rem',
-              width: sidebarOpen ? 'calc(100% - 16rem)' : 'calc(100% - 5rem)'
-            }}>
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between">
-          {/* Search Bar */}
-          <div className="flex-1 max-w-lg">
+    <>
+      <header className="admin-header"
+              style={{ 
+                marginLeft: sidebarOpen ? '16rem' : '5rem',
+                width: sidebarOpen ? 'calc(100% - 16rem)' : 'calc(100% - 5rem)'
+              }}>
+        <div className="header-container">
+          {/* Left side - Logo and mobile menu */}
+          <div className="header-left">
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+            <div className="header-logo">
+              <h1>Canzey Admin</h1>
+            </div>
+          </div>
+
+          {/* Center - Search Bar */}
+          <div className="header-center">
             <div className="header-search">
               <Search className="header-search-icon" size={20} />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search products, orders, users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Right side - Notifications and Profile */}
-          <div className="flex items-center gap-4 ml-4">
-            {/* Notifications */}
-            <button className="header-notification-btn">
-              <Bell size={20} />
-              <span className="header-notification-indicator"></span>
-            </button>
+          {/* Right side - User info and actions */}
+          <div className="header-right">
+            <div className="header-actions">
+              {/* Notifications */}
+              <button className="header-notification-btn">
+                <Bell size={20} />
+                <span className="header-notification-indicator"></span>
+              </button>
+            </div>
 
-            {/* Profile */}
-            <div className="header-profile">
-              <div className="header-profile-info hidden sm:block">
-                <p className="header-profile-name">John Doe</p>
-                <p className="header-profile-role">Administrator</p>
-              </div>
-              <div className="header-profile-avatar">
-                <img
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=150&h=150&q=80"
-                  alt="Profile"
-                  className="header-profile-img"
-                />
-                <span className="header-status-indicator"></span>
+            <div className="user-section">
+              <div className="user-info clickable" onClick={handleProfileClick}>
+                <div className="user-avatar">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="User Avatar" />
+                  ) : (
+                    <div className="avatar-placeholder">
+                      {getUserInitials(user?.name)}
+                    </div>
+                  )}
+                </div>
+                <div className="user-details">
+                  <span className="user-name">{user?.name || 'User'}</span>
+                  <span className="user-role">{user?.role || 'Staff'}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </header>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="mobile-menu">
+            <button className="mobile-menu-item" onClick={handleProfileClick}>
+              <User size={20} />
+              <span>Profile</span>
+            </button>
+            
+            {user?.role === 'admin' && (
+              <>
+                <button className="mobile-menu-item">
+                  <Users size={20} />
+                  <span>User Management</span>
+                </button>
+                <button className="mobile-menu-item">
+                  <Shield size={20} />
+                  <span>System Settings</span>
+                </button>
+              </>
+            )}
+            
+            <button className="mobile-menu-item logout" onClick={handleLogout}>
+              <LogOut size={20} />
+              <span>Logout</span>
+            </button>
+          </div>
+        )}
+      </header>
+    </>
   );
 };
 

@@ -1,5 +1,54 @@
 /* Authentication Pages Styles */
 
+/* Pending Approval Styles */
+.pending-approval-content {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.pending-message h3 {
+  color: #059669;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.pending-message p {
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.pending-info {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.pending-info h4 {
+  color: #1f2937;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.pending-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pending-info li {
+  padding: 0.5rem 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.pending-actions {
+  margin-top: 2rem;
+}
+
 .auth-container {
   min-height: 100vh;
   display: flex;

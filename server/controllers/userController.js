@@ -1,15 +1,43 @@
-const db = require('../config/database');
+const User = require('../models/User');
 
 // Get all users
 exports.getAllUsers = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM users');
+    console.log('🔥 getAllUsers controller called');
+    const { role, status, search, limit, offset } = req.query;
+    
+    const filters = {};
+    if (role) filters.role = role;
+    if (status) filters.status = status;
+    if (search) filters.search = search;
+    if (limit) filters.limit = parseInt(limit);
+    if (offset) filters.offset = parseInt(offset);
+
+    console.log('🔍 Filters applied:', filters);
+
+    const users = await User.findAll(filters);
+    
+    console.log('👥 Found users count:', users.length);
+    users.forEach((user, index) => {
+      console.log(`👤 User ${index + 1}:`, {
+        id: user.id,
+        email: user.email,
+        name: user.display_name || [user.first_name, user.last_name].filter(Boolean).join(' '),
+        role: user.role,
+        status: user.status,
+        rawStatus: user.status // Show what we're actually returning
+      });
+    });
+
     res.json({
       success: true,
-      data: rows
+      data: users,
+      count: users.length
     });
+    
+    console.log('✅ getAllUsers response sent');
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('💥 Error fetching users:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching users',
@@ -22,9 +50,9 @@ exports.getAllUsers = async (req, res) => {
 exports.getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+    const user = await User.findById(id);
     
-    if (rows.length === 0) {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -33,7 +61,7 @@ exports.getUserById = async (req, res) => {
     
     res.json({
       success: true,
-      data: rows[0]
+      data: user
     });
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -74,30 +102,53 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Update user
+// Update user status/role (admin only)
 exports.updateUser = async (req, res) => {
   try {
+    console.log('🔥 updateUser controller called');
+    console.log('📋 Request params:', req.params);
+    console.log('📋 Request body:', req.body);
+    console.log('👤 Request user:', req.user ? { id: req.user.id, role: req.user.role } : 'NO_USER');
+    
     const { id } = req.params;
-    const { name, email, role } = req.body;
+    const { role, status } = req.body;
     
-    const [result] = await db.query(
-      'UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?',
-      [name, email, role, id]
-    );
+    console.log('🔍 Extracted data:', { userId: id, role, status });
     
-    if (result.affectedRows === 0) {
+    const updates = {};
+    if (role) updates.role = role;
+    if (status) updates.status = status;
+    
+    console.log('📝 Updates to apply:', updates);
+    
+    if (Object.keys(updates).length === 0) {
+      console.log('⚠️ No valid updates provided');
+      return res.status(400).json({
+        success: false,
+        message: 'No valid updates provided'
+      });
+    }
+    
+    console.log('🔄 Calling User.updateStatus...');
+    const updatedUser = await User.updateStatus(id, updates);
+    console.log('✅ User.updateStatus completed:', updatedUser ? 'SUCCESS' : 'FAILED');
+    
+    if (!updatedUser) {
+      console.log('❌ User not found');
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
     
+    console.log('🎉 Sending success response');
     res.json({
       success: true,
-      message: 'User updated successfully'
+      message: 'User updated successfully',
+      data: updatedUser
     });
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('💥 Error updating user:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating user',
@@ -106,13 +157,97 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Delete user
+// Approve user (set status to approved)
+exports.approveUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedUser = await User.updateStatus(id, { status: 'approved' });
+    
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'User approved successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('Error approving user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error approving user',
+      error: error.message
+    });
+  }
+};
+
+// Put user on hold
+exports.rejectUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedUser = await User.updateStatus(id, { status: 'hold' });
+    
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'User put on hold successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('Error putting user on hold:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error putting user on hold',
+      error: error.message
+    });
+  }
+};
+
+// Set user to pending status
+exports.deactivateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedUser = await User.updateStatus(id, { status: 'pending' });
+    
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'User set to pending successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('Error setting user to pending:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error setting user to pending',
+      error: error.message
+    });
+  }
+};
+
+// Soft delete user
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await db.query('DELETE FROM users WHERE id = ?', [id]);
+    const deleted = await User.delete(id);
     
-    if (result.affectedRows === 0) {
+    if (!deleted) {
       return res.status(404).json({
         success: false,
         message: 'User not found'

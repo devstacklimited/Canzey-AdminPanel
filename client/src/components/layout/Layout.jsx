@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import Header from '../header/Header';
 import Sidebar from '../sidebar/Sidebar';
+import { useUser } from '../../context/UserContext';
 import './Layout.css';
 
 const Layout = ({ children }) => {
+  const { user, logout } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -26,7 +28,9 @@ const Layout = ({ children }) => {
         <Header 
           sidebarOpen={sidebarOpen} 
           searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
+          setSearchTerm={setSearchTerm}
+          user={user}
+          onLogout={logout}
         />
 
         {/* Page Content */}
