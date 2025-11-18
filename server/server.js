@@ -1,34 +1,29 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { setupDatabase } from './database/setup.js';
+import adminAuthRoutes from './routes/admin_auth.js';
+import customerAuthRoutes from './routes/customer_auth.js';
 
-const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/auth');
-const userManagementRoutes = require('./routes/users');
-const inventoryRoutes = require('./routes/inventory');
-const { promisePool } = require('./config/database');
-const { createDatabase } = require('./config/database');
-const { setupDatabase } = require('./config/setupDatabase');
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api', userRoutes);
-app.use('/api/users', userManagementRoutes);
-app.use('/api/inventory', inventoryRoutes);
-
-// Health check route
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
-});
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
+app.use('/api/admin', adminAuthRoutes);
+app.use('/api/customer', customerAuthRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -48,14 +43,30 @@ app.use((err, req, res, next) => {
   });
 });
 
-
 // Start server
-app.listen(PORT, async () => {
-  console.log(`✓ Server is running on port ${PORT}`);
-  console.log(`🌐 API: http://localhost:${PORT}`);
-  console.log(`🏥 Health: http://localhost:${PORT}/health`);
-  
-  // Setup database and create admin user
-  await createDatabase();
-  await setupDatabase();
-});
+async function start() {
+  try {
+    await setupDatabase();
+    app.listen(PORT, () => {
+      // console.log(`✅ Server running on http://localhost:${PORT}`);
+      // console.log('\n📝 Admin API Endpoints:');
+      // console.log('   POST   /api/admin/signin     - Admin sign in');
+      // console.log('   POST   /api/admin/signup     - Create new admin (admin only)');
+      // console.log('   GET    /api/admin/userinfo   - Get admin info');
+      // console.log('   POST   /api/admin/logout     - Admin logout');
+      // console.log('\n📝 Customer API Endpoints:');
+      // console.log('   POST   /api/customer/signin  - Customer sign in');
+      // console.log('   POST   /api/customer/signup  - Customer sign up');
+      // console.log('   GET    /api/customer/info    - Get customer info');
+      // console.log('   PUT    /api/customer/edit    - Update customer info');
+      // console.log('   POST   /api/customer/logout  - Customer logout');
+      // console.log('\n📝 Other:');
+      // console.log('   GET    /api/health           - Health check');
+    });
+  } catch (err) {
+    console.error('❌ Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+start();

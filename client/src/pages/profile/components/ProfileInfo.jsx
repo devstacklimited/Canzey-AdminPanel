@@ -131,63 +131,12 @@ const ProfileInfo = ({
                 {isEditing ? (
                   <input
                     type="tel"
-                    value={tempData.phone}
-                    onChange={(e) => onInputChange('phone', e.target.value)}
+                    value={tempData.phone_number}
+                    onChange={(e) => onInputChange('phone_number', e.target.value)}
                     className="profile-input"
                   />
                 ) : (
-                  <div className="profile-value">{user?.phone || 'Not provided'}</div>
-                )}
-              </div>
-
-              <div className="profile-form-group">
-                <label className="profile-label">
-                  <MapPin size={16} />
-                  Location
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={tempData.location}
-                    onChange={(e) => onInputChange('location', e.target.value)}
-                    className="profile-input"
-                  />
-                ) : (
-                  <div className="profile-value">{user?.location || 'Not provided'}</div>
-                )}
-              </div>
-
-              <div className="profile-form-group">
-                <label className="profile-label">
-                  <Building size={16} />
-                  Company
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={tempData.company}
-                    onChange={(e) => onInputChange('company', e.target.value)}
-                    className="profile-input"
-                  />
-                ) : (
-                  <div className="profile-value">{user?.company || 'Not provided'}</div>
-                )}
-              </div>
-
-              <div className="profile-form-group">
-                <label className="profile-label">
-                  <Briefcase size={16} />
-                  Job Title
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={tempData.job_title}
-                    onChange={(e) => onInputChange('job_title', e.target.value)}
-                    className="profile-input"
-                  />
-                ) : (
-                  <div className="profile-value">{user?.job_title || 'Not provided'}</div>
+                  <div className="profile-value">{user?.phone_number || 'Not provided'}</div>
                 )}
               </div>
 
@@ -207,57 +156,12 @@ const ProfileInfo = ({
                   Last Login
                 </label>
                 <div className="profile-value">
-                  {user?.last_login_at ? new Date(user.last_login_at).toLocaleString() : 'Never'}
+                  {user?.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="profile-form-section">
-            <h3 className="profile-form-title">About</h3>
-            
-            <div className="profile-form-group">
-              <label className="profile-label">Bio</label>
-              {isEditing ? (
-                <textarea
-                  rows={4}
-                  value={tempData.bio}
-                  onChange={(e) => onInputChange('bio', e.target.value)}
-                  className="profile-textarea"
-                />
-              ) : (
-                <div className="profile-value profile-bio">{user?.bio || 'No bio provided'}</div>
-              )}
-            </div>
-          </div>
-
-          <div className="profile-form-section">
-            <h3 className="profile-form-title">Social Links</h3>
-            
-            <div className="profile-form-grid">
-              <div className="profile-form-group">
-                <label className="profile-label">Website</label>
-                {isEditing ? (
-                  <input
-                    type="url"
-                    value={tempData.website}
-                    onChange={(e) => onInputChange('website', e.target.value)}
-                    className="profile-input"
-                  />
-                ) : (
-                  <div className="profile-value">
-                    {user?.website ? (
-                      <a href={user.website} target="_blank" rel="noopener noreferrer" className="profile-link">
-                        {user.website}
-                      </a>
-                    ) : (
-                      'Not provided'
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

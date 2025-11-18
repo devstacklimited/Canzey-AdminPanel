@@ -1,11 +1,11 @@
-const jwt = require('jsonwebtoken');
+import { verifyToken } from '../controllers/adminController.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'canzey_dashboard_secret_key_2024';
-
-// Authenticate token middleware
-const authenticateToken = (req, res, next) => {
+/**
+ * Authenticate JWT token middleware
+ */
+export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({
@@ -14,22 +14,36 @@ const authenticateToken = (req, res, next) => {
     });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({
-        success: false,
-        message: 'Invalid or expired token'
-      });
-    }
-    
-    req.user = user;
-    next();
-  });
+  const user = verifyToken(token);
+  if (!user) {
+    return res.status(403).json({
+      success: false,
+      message: 'Invalid or expired token'
+    });
+  }
+
+  req.user = user;
+  next();
 };
 
-// Require admin role middleware
-const requireAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
+/**
+ * Require super admin role middleware
+ */
+export const requireSuperAdmin = (req, res, next) => {
+  if (req.user.role !== 'super_admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Super admin access required'
+    });
+  }
+  next();
+};
+
+/**
+ * Require admin role middleware
+ */
+export const requireAdmin = (req, res, next) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
     return res.status(403).json({
       success: false,
       message: 'Admin access required'
@@ -38,8 +52,10 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// Require specific roles middleware
-const requireRole = (allowedRoles) => {
+/**
+ * Require specific roles middleware
+ */
+export const requireRole = (allowedRoles) => {
   return (req, res, next) => {
     if (!req.user || !allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
@@ -49,10 +65,4 @@ const requireRole = (allowedRoles) => {
     }
     next();
   };
-};
-
-module.exports = {
-  authenticateToken,
-  requireAdmin,
-  requireRole
 };

@@ -37,9 +37,9 @@ const Header = ({ sidebarOpen, searchTerm, setSearchTerm, user, onLogout }) => {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div className="header-logo">
+            {/* <div className="header-logo">
               <h1>Canzey Admin</h1>
-            </div>
+            </div> */}
           </div>
 
           {/* Center - Search Bar */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import './Auth.css';
@@ -8,8 +8,8 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useUser();
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: 'admin@canzey.com',
+    password: 'Admin@123456'
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/admin/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -38,19 +38,19 @@ const Login = () => {
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Use context to login
-        login(data.user, data.token);
-        
-        // Redirect to dashboard
-        navigate('/dashboard');
-      } else {
-        setError(data.error || 'Login failed');
+      if (!data.success) {
+        setError(data.message || 'Sign in failed');
+        setLoading(false);
+        return;
       }
+
+      // Login with actual user data and token
+      login(data.user, data.token);
+      
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (err) {
-      setError('Server error. Please try again later.');
-      console.error('Login error:', err);
-    } finally {
+      setError('Connection error. Please check if server is running.');
       setLoading(false);
     }
   };
@@ -112,15 +112,12 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Remember Me & Forgot Password */}
+          {/* Remember Me */}
           <div className="form-options">
             <label className="checkbox-label">
               <input type="checkbox" />
               <span>Remember me</span>
             </label>
-            <Link to="/forgot-password" className="forgot-link">
-              Forgot password?
-            </Link>
           </div>
 
           {/* Submit Button */}
@@ -138,16 +135,6 @@ const Login = () => {
               </>
             )}
           </button>
-
-          {/* Sign Up Link */}
-          <div className="auth-footer">
-            <p>
-              Don't have an account?{' '}
-              <Link to="/signup" className="auth-link">
-                Sign up
-              </Link>
-            </p>
-          </div>
         </form>
       </div>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Package, Settings, User, Menu, X, ShoppingCart } from 'lucide-react';
+import { Home, Package, Settings, User, Menu, X, ShoppingCart, Ticket, Users } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
@@ -9,27 +9,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const menuItems = [
     { icon: Home, label: 'Home', path: '/home' },
     { icon: ShoppingCart, label: 'Orders', path: '/orders' },
+    { icon: Ticket, label: 'Raffles', path: '/raffles' },
     { icon: Package, label: 'Inventory', path: '/inventory' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: Users, label: 'Users', path: '/users' },
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
   return (
     <aside
-      className={`sidebar ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'} ${sidebarOpen ? 'mobile-open' : ''}`}
+      className="sidebar sidebar-expanded"
     >
       <div className="sidebar-content">
-        {/* Logo and Toggle */}
+        
         <div className="sidebar-header">
           <h1 className="sidebar-logo">
             Canzey Admin
           </h1>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="sidebar-toggle-btn"
-          >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
         </div>
 
         {/* Navigation */}

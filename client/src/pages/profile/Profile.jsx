@@ -29,12 +29,8 @@ const Profile = () => {
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
     email: user?.email || '',
-    phone: user?.phone || '',
-    bio: user?.bio || '',
-    location: user?.location || '',
-    website: user?.website || '',
-    company: user?.company || '',
-    job_title: user?.job_title || '',
+    phone_number: user?.phone_number || '',
+    profile_url: user?.profile_url || '',
   });
 
   // Fetch all users for admin
@@ -149,12 +145,8 @@ const Profile = () => {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
       email: user?.email || '',
-      phone: user?.phone || '',
-      bio: user?.bio || '',
-      location: user?.location || '',
-      website: user?.website || '',
-      company: user?.company || '',
-      job_title: user?.job_title || '',
+      phone_number: user?.phone_number || '',
+      profile_url: user?.profile_url || '',
     });
     setIsEditing(true);
   };
@@ -174,9 +166,18 @@ const Profile = () => {
       }
 
       console.log('Saving profile data:', tempData);
+      console.log('User role:', user?.role);
+      
+      // Determine endpoint based on user role (admin or super_admin = admin endpoint)
+      const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+      const endpoint = isAdmin
+        ? 'http://localhost:5000/api/admin/edit'
+        : 'http://localhost:5000/api/customer/edit';
+      
+      console.log('Using endpoint:', endpoint);
       
       // Update profile in database
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,12 +186,8 @@ const Profile = () => {
         body: JSON.stringify({
           first_name: tempData.first_name,
           last_name: tempData.last_name,
-          phone: tempData.phone,
-          location: tempData.location,
-          bio: tempData.bio,
-          website: tempData.website,
-          company: tempData.company,
-          job_title: tempData.job_title
+          phone_number: tempData.phone,
+          profile_url: tempData.profile_url
         })
       });
 

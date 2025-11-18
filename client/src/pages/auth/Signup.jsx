@@ -243,16 +243,6 @@ const Signup = () => {
                 value={formData.role}
                 onChange={handleChange}
                 required
-                style={{
-                  width: '100%',
-                  padding: '0.875rem 1rem',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  color: '#1f2937',
-                  backgroundColor: '#f9fafb',
-                  transition: 'all 0.2s ease'
-                }}
               >
                 <option value="">Select your role</option>
                 <option value="user">User</option>

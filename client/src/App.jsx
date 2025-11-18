@@ -8,7 +8,8 @@ import Dashboard from './pages/dashboard/Dashboard'
 import Home from './pages/home/Home'
 import Orders from './pages/orders/Orders'
 import Inventory from './pages/inventory/Inventory'
-import Settings from './pages/settings/Settings'
+import Raffles from './pages/raffels/raffels'
+import Users from './pages/users/Users'
 import Profile from './pages/profile/Profile'
 
 // Protected Route Component
@@ -55,9 +56,14 @@ function App() {
                 <Inventory />
               </ProtectedRoute>
             } />
-            <Route path="/settings" element={
+            <Route path="/raffles" element={
               <ProtectedRoute>
-                <Settings />
+                <Raffles />
+              </ProtectedRoute>
+            } />
+            <Route path="/users" element={
+              <ProtectedRoute>
+                <Users />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
