@@ -11,7 +11,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { icon: ShoppingCart, label: 'Orders', path: '/orders' },
     { icon: Ticket, label: 'Raffles', path: '/raffles' },
     { icon: Trophy, label: 'Campaigns', path: '/campaigns' },
-    { icon: Package, label: 'Inventory', path: '/inventory' },
+    { icon: Package, label: 'Products', path: '/products' },
     { icon: Users, label: 'Canzey Customers', path: '/customers' },
     { icon: Users, label: 'Users', path: '/users' },
     { icon: User, label: 'Profile', path: '/profile' },

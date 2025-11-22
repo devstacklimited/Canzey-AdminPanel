@@ -7,12 +7,12 @@ import Signup from './pages/auth/Signup'
 import Dashboard from './pages/dashboard/Dashboard'
 import Home from './pages/home/Home'
 import Orders from './pages/orders/Orders'
-import Inventory from './pages/inventory/Inventory'
 import Raffles from './pages/raffels/raffels'
 import Users from './pages/users/Users'
 import Customers from './pages/customers/Customers'
 import Campaigns from './pages/campaigns/Campaigns'
 import Profile from './pages/profile/Profile'
+import Products from './pages/products/Products'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -53,11 +53,7 @@ function App() {
                 <Orders />
               </ProtectedRoute>
             } />
-            <Route path="/inventory" element={
-              <ProtectedRoute>
-                <Inventory />
-              </ProtectedRoute>
-            } />
+          
             <Route path="/raffles" element={
               <ProtectedRoute>
                 <Raffles />
@@ -76,6 +72,11 @@ function App() {
             <Route path="/campaigns" element={
               <ProtectedRoute>
                 <Campaigns />
+              </ProtectedRoute>
+            } />
+            <Route path="/products" element={
+              <ProtectedRoute>
+                <Products />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

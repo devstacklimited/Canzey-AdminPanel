@@ -124,7 +124,10 @@ export async function createProduct(productData) {
       sale_price,
       stock_quantity,
       status = 'active',
-      category_ids = [],
+      category = '',
+      sub_category = '',
+      for_gender = '',
+      is_customized = false,
       image_urls = [],
     } = productData;
 
@@ -136,8 +139,8 @@ export async function createProduct(productData) {
 
     const [result] = await connection.execute(
       `INSERT INTO products 
-       (name, slug, description, sku, price, sale_price, stock_quantity, main_image_url, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (name, slug, description, sku, price, sale_price, stock_quantity, category, sub_category, for_gender, is_customized, main_image_url, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         slug || null,
@@ -145,16 +148,17 @@ export async function createProduct(productData) {
         sku || null,
         price,
         sale_price || null,
-        stock_quantity || 0,
+        stock_quantity ||0,
+        category || null,
+        sub_category || null,
+        for_gender || null,
+        is_customized || false,
         image_urls[0] || null,
         status,
       ]
     );
 
     const productId = result.insertId;
-
-    // Categories
-    await upsertProductCategories(connection, productId, category_ids);
 
     // Images
     await upsertProductImages(connection, productId, image_urls);
@@ -163,11 +167,23 @@ export async function createProduct(productData) {
     connection.release();
 
     console.log('✅ [CREATE PRODUCT] Product created with ID', productId);
-    return { success: true, product_id: productId };
+    return { success: true, product_id: productId, message: 'Product created successfully' };
   } catch (error) {
     await connection.rollback();
     connection.release();
-    console.error('❌ [CREATE PRODUCT] Error:', error.message);
+    console.error('❌ [CREATE PRODUCT] Error:', error);
+
+    // Handle duplicate entry error
+    if (error.code === 'ER_DUP_ENTRY') {
+      if (error.message.includes('slug')) {
+        return { success: false, error: 'A product with this URL slug already exists. Please change the Name or Slug.' };
+      }
+      if (error.message.includes('sku')) {
+        return { success: false, error: 'A product with this SKU already exists.' };
+      }
+      return { success: false, error: 'This product already exists (duplicate entry).' };
+    }
+
     return { success: false, error: 'Server error while creating product' };
   }
 }
@@ -191,13 +207,9 @@ export async function getProductById(productId) {
 
     const product = products[0];
 
-    const [categories] = await connection.execute(
-      `SELECT c.id, c.name
-       FROM product_categories pc
-       JOIN categories c ON pc.category_id = c.id
-       WHERE pc.product_id = ?`,
-      [productId]
-    );
+    // We no longer use product_categories table, categories are in the product table
+    // But we keep the structure for compatibility if needed, or just return empty array
+    const categories = []; 
 
     const [images] = await connection.execute(
       `SELECT id, image_url, alt_text, is_primary, sort_order
@@ -243,7 +255,10 @@ export async function updateProduct(productId, productData) {
       sale_price,
       stock_quantity,
       status,
-      category_ids = [],
+      category = '',
+      sub_category = '',
+      for_gender = '',
+      is_customized = false,
       image_urls = [],
     } = productData;
 
@@ -252,7 +267,7 @@ export async function updateProduct(productId, productData) {
     await connection.execute(
       `UPDATE products
        SET name = ?, slug = ?, description = ?, sku = ?, price = ?, sale_price = ?,
-           stock_quantity = ?, main_image_url = ?, status = ?
+           stock_quantity = ?, category = ?, sub_category = ?, for_gender = ?, is_customized = ?, main_image_url = ?, status = ?
        WHERE id = ?`,
       [
         name,
@@ -262,14 +277,15 @@ export async function updateProduct(productId, productData) {
         price,
         sale_price || null,
         stock_quantity || 0,
+        category || null,
+        sub_category || null,
+        for_gender || null,
+        is_customized || false,
         image_urls[0] || null,
         status || 'active',
         productId,
       ]
     );
-
-    // Categories
-    await upsertProductCategories(connection, productId, category_ids);
 
     // Images
     await upsertProductImages(connection, productId, image_urls);
@@ -356,5 +372,27 @@ export async function createCategory(data) {
   } catch (error) {
     console.error('❌ [CREATE CATEGORY] Error:', error.message);
     return { success: false, error: 'Server error while creating category' };
+  }
+}
+
+/**
+ * Update product status only
+ */
+export async function updateProductStatus(productId, status) {
+  try {
+    const connection = await pool.getConnection();
+
+    await connection.execute(
+      `UPDATE products SET status = ? WHERE id = ?`,
+      [status, productId]
+    );
+
+    connection.release();
+
+    console.log(`✅ [UPDATE STATUS] Product ${productId} status set to ${status}`);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ [UPDATE STATUS] Error:', error.message);
+    return { success: false, error: 'Server error while updating product status' };
   }
 }

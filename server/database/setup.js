@@ -147,26 +147,6 @@ export async function setupDatabase() {
     `);
     console.log('✅ customer_credits table ready');
 
-    // Create categories table
-    await connection.execute(`
-      CREATE TABLE IF NOT EXISTS categories (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) UNIQUE,
-        parent_id INT DEFAULT NULL,
-        description TEXT,
-        status ENUM('active', 'inactive') DEFAULT 'active',
-        sort_order INT DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL,
-        INDEX idx_parent_id (parent_id),
-        INDEX idx_status (status),
-        INDEX idx_slug (slug)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `);
-    console.log('✅ categories table ready');
-
     // Create products table
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS products (
@@ -178,6 +158,10 @@ export async function setupDatabase() {
         price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
         sale_price DECIMAL(10,2) DEFAULT NULL,
         stock_quantity INT NOT NULL DEFAULT 0,
+        category VARCHAR(100) DEFAULT NULL,
+        sub_category VARCHAR(100) DEFAULT NULL,
+        for_gender VARCHAR(20) DEFAULT NULL,
+        is_customized BOOLEAN DEFAULT FALSE,
         main_image_url VARCHAR(500),
         status ENUM('active', 'inactive', 'draft') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -185,7 +169,8 @@ export async function setupDatabase() {
         INDEX idx_sku (sku),
         INDEX idx_status (status),
         INDEX idx_slug (slug),
-        INDEX idx_stock (stock_quantity)
+        INDEX idx_stock (stock_quantity),
+        INDEX idx_category (category)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     console.log('✅ products table ready');
@@ -206,18 +191,6 @@ export async function setupDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     console.log('✅ product_images table ready');
-
-    // Create product_categories table (many-to-many)
-    await connection.execute(`
-      CREATE TABLE IF NOT EXISTS product_categories (
-        product_id INT NOT NULL,
-        category_id INT NOT NULL,
-        PRIMARY KEY (product_id, category_id),
-        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `);
-    console.log('✅ product_categories table ready');
 
     // Create sessions table
     await connection.execute(`

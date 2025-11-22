@@ -1,5 +1,6 @@
 import express from 'express';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
+import productUpload from '../middleware/productUpload.js';
 import {
   listProducts,
   createProduct,
@@ -8,6 +9,7 @@ import {
   deleteProduct,
   listCategories,
   createCategory,
+  updateProductStatus,
 } from '../controllers/productController.js';
 
 const router = express.Router();
@@ -47,36 +49,113 @@ router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
  * Body expects JSON with:
  *  - name, slug, description, sku, price, sale_price, stock_quantity, status
  *  - category_ids: number[]
- *  - image_urls: string[]
+ *  - images: files (up to 10)
  */
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
-  const result = await createProduct(req.body);
+router.post('/', authenticateToken, requireAdmin, productUpload.array('images', 10), async (req, res) => {
+  try {
+    const productData = req.body;
+    
+    // Handle uploaded images
+    if (req.files && req.files.length > 0) {
+      productData.image_urls = req.files.map(file => `/uploads/products/${file.filename}`);
+    } else {
+      productData.image_urls = [];
+    }
+    
+    // Parse category_ids if sent as string
+    if (typeof productData.category_ids === 'string') {
+      productData.category_ids = JSON.parse(productData.category_ids);
+    }
+    
+    const result = await createProduct(productData);
 
-  if (!result.success) {
-    return res.status(400).json({ success: false, message: result.error });
+    if (!result.success) {
+      return res.status(400).json({ success: false, message: result.error });
+    }
+
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error creating product:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
-
-  res.status(201).json(result);
 });
 
 /**
  * PUT /api/admin/products/:id
  * Update product (admin)
  */
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
-  const productId = parseInt(req.params.id);
-  const result = await updateProduct(productId, req.body);
+router.put('/:id', authenticateToken, requireAdmin, productUpload.array('images', 10), async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const productData = req.body;
+    
+    // Handle uploaded images (new images)
+    if (req.files && req.files.length > 0) {
+      const newImageUrls = req.files.map(file => `/uploads/products/${file.filename}`);
+      
+      // If there are existing images, combine them
+      if (productData.existing_images) {
+        const existingImages = typeof productData.existing_images === 'string' 
+          ? JSON.parse(productData.existing_images) 
+          : productData.existing_images;
+        productData.image_urls = [...existingImages, ...newImageUrls];
+      } else {
+        productData.image_urls = newImageUrls;
+      }
+    } else if (productData.existing_images) {
+      // No new images, keep existing ones
+      productData.image_urls = typeof productData.existing_images === 'string'
+        ? JSON.parse(productData.existing_images)
+        : productData.existing_images;
+    }
+    
+    // Parse category_ids if sent as string
+    if (typeof productData.category_ids === 'string') {
+      productData.category_ids = JSON.parse(productData.category_ids);
+    }
+    
+    const result = await updateProduct(productId, productData);
 
-  if (!result.success) {
-    return res.status(400).json({ success: false, message: result.error });
+    if (!result.success) {
+      return res.status(400).json({ success: false, message: result.error });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
+});
 
-  res.json(result);
+/**
+ * PATCH /api/admin/products/:id/status
+ * Update product status only (admin)
+ */
+router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const { status } = req.body;
+
+    if (!status || !['active', 'inactive'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const result = await updateProductStatus(productId, status);
+
+    if (!result.success) {
+      return res.status(500).json({ success: false, message: result.error });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating product status:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 /**
  * DELETE /api/admin/products/:id
- * Soft delete product (set inactive)
+ * Soft delete product (admin)
  */
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   const productId = parseInt(req.params.id);
