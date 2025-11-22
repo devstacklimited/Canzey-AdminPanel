@@ -81,6 +81,23 @@ export async function getAdminByToken(userId) {
 }
 
 /**
+ * List all customers (for admin panel)
+ */
+export async function listAllCustomers() {
+  try {
+    const connection = await pool.getConnection();
+    const [customers] = await connection.execute(
+      'SELECT id, first_name, last_name, email, phone_number, profile_url, status, firebase_uid, created_at, updated_at FROM customers ORDER BY id ASC'
+    );
+    connection.release();
+    return { success: true, customers };
+  } catch (error) {
+    console.error('List customers error:', error);
+    return { success: false, error: 'Server error while fetching customers' };
+  }
+}
+
+/**
  * Update admin info
  */
 export async function updateAdminInfo(userId, updateData) {

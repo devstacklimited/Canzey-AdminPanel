@@ -10,6 +10,7 @@ import Orders from './pages/orders/Orders'
 import Inventory from './pages/inventory/Inventory'
 import Raffles from './pages/raffels/raffels'
 import Users from './pages/users/Users'
+import Customers from './pages/customers/Customers'
 import Profile from './pages/profile/Profile'
 
 // Protected Route Component
@@ -64,6 +65,11 @@ function App() {
             <Route path="/users" element={
               <ProtectedRoute>
                 <Users />
+              </ProtectedRoute>
+            } />
+            <Route path="/customers" element={
+              <ProtectedRoute>
+                <Customers />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

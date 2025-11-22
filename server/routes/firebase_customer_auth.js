@@ -1,0 +1,141 @@
+import express from 'express';
+import { firebaseCustomerSignUp, firebaseCustomerSignIn } from '../controllers/firebaseCustomerController.js';
+import { updateCustomerInfo } from '../controllers/customerController.js';
+import { authenticateToken } from '../middleware/auth.js';
+import pool from '../database/connection.js';
+
+const router = express.Router();
+
+/**
+ * POST /api/firebase/customer/signup
+ * Firebase customer sign up
+ * Body: { email, password, first_name, last_name, phone_number? }
+ */
+router.post('/signup', async (req, res) => {
+  const { email, password, first_name, last_name, phone_number } = req.body;
+
+  console.log('📨 [FIREBASE SIGNUP API] Request received');
+
+  const result = await firebaseCustomerSignUp({
+    email,
+    password,
+    first_name,
+    last_name,
+    phone_number,
+  });
+
+  if (!result.success) {
+    console.log('❌ [FIREBASE SIGNUP API] Failed:', result.error);
+    return res.status(400).json({
+      success: false,
+      message: result.error,
+    });
+  }
+
+  console.log('✅ [FIREBASE SIGNUP API] Success');
+  res.status(201).json(result);
+});
+
+/**
+ * POST /api/firebase/customer/signin
+ * Firebase customer sign in
+ * Body: { firebase_token }
+ */
+router.post('/signin', async (req, res) => {
+  const { firebase_token } = req.body;
+
+  console.log('📨 [FIREBASE SIGNIN API] Request received');
+
+  if (!firebase_token) {
+    console.log('❌ [FIREBASE SIGNIN API] No token provided');
+    return res.status(400).json({
+      success: false,
+      message: 'Firebase token is required',
+    });
+  }
+
+  const result = await firebaseCustomerSignIn(firebase_token);
+
+  if (!result.success) {
+    console.log('❌ [FIREBASE SIGNIN API] Failed:', result.error);
+    return res.status(400).json({
+      success: false,
+      message: result.error,
+    });
+  }
+
+  console.log('✅ [FIREBASE SIGNIN API] Success');
+  res.json(result);
+});
+
+/**
+ * PUT /api/firebase/customer/edit
+ * Update current customer's profile info in MySQL (requires our JWT token)
+ * Body: { first_name?, last_name?, phone_number?, profile_url? }
+ */
+router.put('/edit', authenticateToken, async (req, res) => {
+  try {
+    console.log('📨 [FIREBASE CUSTOMER EDIT API] Request received');
+    console.log('   User ID:', req.user.userId);
+    console.log('   Payload:', req.body);
+
+    const result = await updateCustomerInfo(req.user.userId, req.body);
+
+    if (!result.success) {
+      console.log('❌ [FIREBASE CUSTOMER EDIT API] Failed:', result.error);
+      return res.status(400).json({
+        success: false,
+        message: result.error,
+      });
+    }
+
+    console.log('✅ [FIREBASE CUSTOMER EDIT API] Success');
+    res.json(result);
+  } catch (error) {
+    console.error('❌ [FIREBASE CUSTOMER EDIT API] Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during update',
+    });
+  }
+});
+
+/**
+ * GET /api/firebase/customer/info
+ * Get current customer info (requires our JWT token)
+ */
+router.get('/info', authenticateToken, async (req, res) => {
+  try {
+    console.log('📨 [FIREBASE CUSTOMER INFO API] Request received');
+    console.log('   User ID:', req.user.userId);
+
+    const connection = await pool.getConnection();
+    const [customers] = await connection.execute(
+      'SELECT id, first_name, last_name, email, phone_number, profile_url, status, firebase_uid, created_at, updated_at FROM customers WHERE id = ?',
+      [req.user.userId]
+    );
+    connection.release();
+
+    if (customers.length === 0) {
+      console.log('❌ [FIREBASE CUSTOMER INFO API] Customer not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Customer not found',
+      });
+    }
+
+    console.log('✅ [FIREBASE CUSTOMER INFO API] Customer info retrieved');
+    res.json({
+      success: true,
+      user: customers[0],
+    });
+  } catch (error) {
+    console.error('❌ [FIREBASE CUSTOMER INFO API] Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+});
+
+export default router;

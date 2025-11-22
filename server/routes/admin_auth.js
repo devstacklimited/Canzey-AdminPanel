@@ -1,6 +1,6 @@
 import express from 'express';
-import { adminSignIn, adminSignUp, getAdminByToken, updateAdminInfo, verifyToken } from '../controllers/adminController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { adminSignIn, adminSignUp, getAdminByToken, updateAdminInfo, verifyToken, listAllCustomers } from '../controllers/adminController.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -64,6 +64,26 @@ router.get('/userinfo', authenticateToken, async (req, res) => {
   res.json({
     success: true,
     user
+  });
+});
+
+/**
+ * GET /api/admin/customers
+ * Get list of all customers (admin only)
+ */
+router.get('/customers', authenticateToken, requireAdmin, async (req, res) => {
+  const result = await listAllCustomers();
+
+  if (!result.success) {
+    return res.status(500).json({
+      success: false,
+      message: result.error,
+    });
+  }
+
+  res.json({
+    success: true,
+    customers: result.customers,
   });
 });
 
