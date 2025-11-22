@@ -226,80 +226,281 @@ Note: edits go only to **MySQL**.
 
 ---
 
-## Database: `customers` table
 
-```sql
-CREATE TABLE customers (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  phone_number VARCHAR(20),
-  password_hash VARCHAR(255),
-  profile_url VARCHAR(500),
-  status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
-  address VARCHAR(500),
-  city VARCHAR(100),
-  country VARCHAR(100),
-  postal_code VARCHAR(20),
-  firebase_uid VARCHAR(255) UNIQUE,
-  firebase_email VARCHAR(255),
-  auth_method ENUM('local', 'firebase') DEFAULT 'local',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_email (email),
-  INDEX idx_firebase_uid (firebase_uid),
-  INDEX idx_status (status)
-);
+
+# Campaign & Ticket APIs – Simple Guide
+
+These APIs are for the **Flutter app** so customers can:
+
+- See active campaigns
+- Buy tickets (participate in a campaign)
+- See their tickets
+- See and use their credit balance (credits expire after 6 months)
+
+## Base URL (Normal APIs)
+
+```bash
+http://localhost:5000/api
+```
+
+All these endpoints use **our backend JWT** in the header (same token returned by
+`POST /api/firebase/customer/signin`).
+
+Header example:
+
+```http
+Authorization: Bearer <your-jwt-token>
+Content-Type: application/json
 ```
 
 ---
 
-## Environment Variables (Required)
+## 1. List Active Campaigns (for Flutter)
 
-```env
-# Firebase Admin SDK
-FIREBASE_TYPE=service_account
-FIREBASE_PROJECT_ID=canzey-2ba6a
-FIREBASE_PRIVATE_KEY_ID=xxx
-FIREBASE_PRIVATE_KEY=xxx
-FIREBASE_CLIENT_EMAIL=xxx
-FIREBASE_CLIENT_ID=xxx
-FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
-FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
-FIREBASE_AUTH_PROVIDER_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
-FIREBASE_CLIENT_CERT_URL=xxx
+**When?**  
+Show a list of campaigns in the app (home screen).
 
-# Firebase Web
-FIREBASE_WEB_API_KEY=...
-FIREBASE_WEB_AUTH_DOMAIN=...
-FIREBASE_WEB_PROJECT_ID=...
-FIREBASE_WEB_STORAGE_BUCKET=...
-FIREBASE_WEB_MESSAGING_SENDER_ID=...
-FIREBASE_WEB_APP_ID=...
-FIREBASE_WEB_MEASUREMENT_ID=...
+**URL**  
+`GET http://localhost:5000/api/campaigns`
 
-# Email
-EMAIL_USER=your-gmail@gmail.com
-EMAIL_PASS=your-app-password
+**Headers**  
+No auth required (public listing):
 
-# JWT
-JWT_SECRET=your-secret-key
-
-# Database
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=root
-DB_PASS=
-DB_NAME=canzey-app-db
+```http
+Content-Type: application/json
 ```
+
+**You receive (example)**
+
+```json
+[
+  {
+    "id": 1,
+    "title": "iPhone 16 Giveaway",
+    "description": "Win a brand new iPhone 16",
+    "image_url": "/uploads/campaigns/campaign-123.jpg",
+    "ticket_price": 10.0,
+    "credits_per_ticket": 50,
+    "max_tickets_per_user": 5,
+    "status": "active",
+    "start_at": "2025-11-01T00:00:00.000Z",
+    "end_at": "2025-11-30T23:59:59.000Z"
+  }
+]
+```
+
+Use this data to show **title, image, price, credits per ticket, dates** in Flutter.
 
 ---
 
-## Notes
+## 2. Participate in Campaign (Buy Ticket)
 
-- Timestamps are in UTC.
-- Firebase hashes and stores passwords.
-- Email verification and password reset are handled by Firebase.
-- Our JWT tokens expire in 24 hours.
-- Customer status can be: `active`, `inactive`, `suspended`.
+**When?**  
+User taps **"Participate" / "Buy Ticket"** in Flutter.
+
+**What happens?**
+
+- Backend checks campaign is **active** and within **start/end date**
+- Checks **max tickets per user** limit
+- Creates a **ticket** row for this user and campaign
+- Calculates credits and stores them with **6‑month expiry**
+
+### 2.1 Endpoint
+
+- **URL**  
+  `POST http://localhost:5000/api/campaigns/:id/participate`
+
+  `:id` = campaign id (e.g. `1`)
+
+- **Headers**
+
+  ```http
+  Authorization: Bearer <your-jwt-token>
+  Content-Type: application/json
+  ```
+
+- **Body**
+
+  ```json
+  {
+    "quantity": 1
+  }
+  ```
+
+  - `quantity` is optional, default = `1`, allowed: `1` to `10`.
+
+### 2.2 Response (success)
+
+```json
+{
+  "success": true,
+  "message": "Successfully participated in campaign",
+  "ticket": {
+    "id": 3,
+    "ticket_number": "TKT-MB3GJ4-AB12C",
+    "campaign_title": "iPhone 16 Giveaway",
+    "quantity": 1,
+    "total_price": 10.0,
+    "credits_earned": 50,
+    "expires_at": "2026-05-22T10:00:00.000Z"
+  }
+}
+```
+
+**Flutter usage**: show `ticket_number` and `credits_earned` on a success screen.
+
+### 2.3 How the database stores this
+
+1. **campaign_tickets** (user has this ticket for this campaign)
+
+   ```sql
+   INSERT INTO campaign_tickets (
+     campaign_id,
+     customer_id,
+     ticket_number,
+     quantity,
+     total_price,
+     credits_earned
+   ) VALUES (...);
+   ```
+
+   Example row:
+
+   | id | campaign_id | customer_id | ticket_number        | quantity | total_price | credits_earned | status | created_at |
+   |----|-------------|-------------|----------------------|----------|------------:|----------------|--------|-----------|
+   | 3  | 1           | 5           | TKT-MB3GJ4-AB12C     | 1        | 10.00       | 50             | active | ...       |
+
+2. **customer_credits** (wallet entry – credits for this ticket)
+
+   ```sql
+   INSERT INTO customer_credits (
+     customer_id,
+     ticket_id,
+     credits,
+     type,
+     description,
+     expires_at
+   ) VALUES (..., 'earned', 'Earned from campaign: iPhone 16', expires_at);
+   ```
+
+   Example row:
+
+   | id | customer_id | ticket_id | credits | type    | description                         | expires_at           |
+   |----|-------------|----------:|--------:|---------|-------------------------------------|----------------------|
+   | 7  | 5           | 3         | 50      | earned  | Earned from campaign: iPhone 16     | 2026‑05‑22 10:00:00 |
+
+Credits expire automatically by **date logic**: we only count rows where
+`expires_at > NOW()`.
+
+---
+
+## 3. Get Customer Credit Balance (Wallet)
+
+**When?**  
+Wallet screen / profile screen needs to show available credits.
+
+- **URL**  
+  `GET http://localhost:5000/api/customer/credits`
+
+- **Headers**
+
+  ```http
+  Authorization: Bearer <your-jwt-token>
+  Content-Type: application/json
+  ```
+
+- **Body**  
+  None
+
+**Response (example)**
+
+```json
+{
+  "success": true,
+  "balance": {
+    "available": 120,
+    "total_earned": 150,
+    "total_spent": 30
+  }
+}
+```
+
+- `available` = credits user can use now (earned & not expired – spent).
+
+---
+
+## 4. Get Customer Tickets (My Tickets Screen)
+
+**When?**  
+User opens **"My Tickets"** screen in the app.
+
+- **URL**  
+  `GET http://localhost:5000/api/customer/tickets`
+
+- **Headers**
+
+  ```http
+  Authorization: Bearer <your-jwt-token>
+  Content-Type: application/json
+  ```
+
+**Response (example)**
+
+```json
+{
+  "success": true,
+  "tickets": [
+    {
+      "id": 3,
+      "ticket_number": "TKT-MB3GJ4-AB12C",
+      "quantity": 1,
+      "total_price": 10.0,
+      "credits_earned": 50,
+      "status": "active",
+      "created_at": "2025-11-22T10:00:00.000Z",
+      "campaign_title": "iPhone 16 Giveaway",
+      "campaign_image": "/uploads/campaigns/campaign-123.jpg"
+    }
+  ]
+}
+```
+
+Use this list directly to render a **ticket history** in Flutter.
+
+---
+
+## 5. Get Customer Credit History (Optional)
+
+**When?**  
+Show detailed wallet history: where credits came from / where they were spent.
+
+- **URL**  
+  `GET http://localhost:5000/api/customer/credits/history`
+
+- **Headers**
+
+  ```http
+  Authorization: Bearer <your-jwt-token>
+  Content-Type: application/json
+  ```
+
+**Response (example)**
+
+```json
+{
+  "success": true,
+  "history": [
+    {
+      "id": 7,
+      "credits": 50,
+      "type": "earned",
+      "description": "Earned from campaign: iPhone 16 Giveaway",
+      "expires_at": "2026-05-22T10:00:00.000Z",
+      "created_at": "2025-11-22T10:00:00.000Z",
+      "ticket_number": "TKT-MB3GJ4-AB12C"
+    }
+  ]
+}
+```
+
+You can use `type` + `description` to show a nice wallet timeline in Flutter.

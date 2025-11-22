@@ -5,8 +5,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { setupDatabase } from './database/setup.js';
 import adminAuthRoutes from './routes/admin_auth.js';
-// import customerAuthRoutes from './routes/customer_auth.js';
+import adminCampaignsRoutes from './routes/admin_campaigns.js';
+import adminProductsRoutes from './routes/admin_products.js';
 import firebaseCustomerAuthRoutes from './routes/firebase_customer_auth.js';
+import campaignsRoutes from './routes/campaigns.js';
+import campaignParticipationRoutes from './routes/campaign_participation.js';
 
 dotenv.config();
 
@@ -24,8 +27,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/admin', adminAuthRoutes);
-// app.use('/api/customer', customerAuthRoutes);
+app.use('/api/admin/campaigns', adminCampaignsRoutes);
+app.use('/api/admin/products', adminProductsRoutes);
 app.use('/api/firebase/customer', firebaseCustomerAuthRoutes);
+app.use('/api/campaigns', campaignsRoutes);
+app.use('/api', campaignParticipationRoutes);
+
 
 // 404 handler
 app.use((req, res) => {

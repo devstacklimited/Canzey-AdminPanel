@@ -83,6 +83,26 @@ async function migrate() {
       console.log('⏭️  Index on firebase_uid already exists');
     }
 
+    // Add image_url column to campaigns table if it doesn't exist
+    const [campaignColumns] = await connection.execute(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'campaigns' AND TABLE_SCHEMA = ?
+    `, [process.env.DB_NAME]);
+
+    const campaignColumnNames = campaignColumns.map(col => col.COLUMN_NAME);
+
+    if (!campaignColumnNames.includes('image_url')) {
+      console.log('📝 Adding image_url column to campaigns table...');
+      await connection.execute(`
+        ALTER TABLE campaigns 
+        ADD COLUMN image_url VARCHAR(500) AFTER description
+      `);
+      console.log('✅ image_url column added to campaigns table');
+    } else {
+      console.log('⏭️  image_url column already exists in campaigns table');
+    }
+
     console.log('✅ ALTER migration completed successfully!');
   } catch (error) {
     console.error('❌ Migration error:', error.message);

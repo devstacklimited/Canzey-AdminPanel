@@ -34,98 +34,44 @@ const Inventory = () => {
   const fetchInventory = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('token');
       
-      // Mock inventory data - bypass server
-      const mockInventory = [
-        {
-          id: 1,
-          name: 'Classic Cotton T-Shirt',
-          sku: 'TSH-001',
-          brand: 'Canzey',
-          category: 'T-Shirts',
-          material: '100% Cotton',
-          fit_type: 'regular',
-          style: 'Crew Neck',
-          selling_price: 25.99,
-          cost_price: 12.50,
-          total_quantity: 100,
-          available_quantity: 85,
-          minimum_stock_level: 10,
-          status: 'active',
-          is_featured: true,
-          is_visible: true,
-          thumbnail_url: '',
-          images: [],
-          tags: ['cotton', 'basic', 'unisex'],
-          created_at: '2024-01-15T10:30:00Z'
-        },
-        {
-          id: 2,
-          name: 'Premium V-Neck Tee',
-          sku: 'TSH-002',
-          brand: 'Canzey',
-          category: 'Men T-Shirts',
-          material: 'Cotton Blend',
-          fit_type: 'slim',
-          style: 'V-Neck',
-          selling_price: 32.99,
-          cost_price: 16.00,
-          total_quantity: 75,
-          available_quantity: 45,
-          minimum_stock_level: 15,
-          status: 'active',
-          is_featured: false,
-          is_visible: true,
-          thumbnail_url: '',
-          images: [],
-          tags: ['premium', 'v-neck', 'men'],
-          created_at: '2024-01-20T14:15:00Z'
-        },
-        {
-          id: 3,
-          name: 'Oversized Graphic Tee',
-          sku: 'TSH-003',
-          brand: 'Canzey',
-          category: 'Women T-Shirts',
-          material: '95% Cotton, 5% Spandex',
-          fit_type: 'oversized',
-          style: 'Graphic',
-          selling_price: 28.99,
-          cost_price: 14.50,
-          total_quantity: 60,
-          available_quantity: 8,
-          minimum_stock_level: 10,
-          status: 'active',
-          is_featured: true,
-          is_visible: true,
-          thumbnail_url: '',
-          images: [],
-          tags: ['graphic', 'oversized', 'women'],
-          created_at: '2024-01-25T09:45:00Z'
+      const response = await fetch('/api/admin/products', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      ];
-      
-      // Filter mock data based on search/filters
-      let filteredData = mockInventory;
-      
-      if (searchTerm) {
-        filteredData = filteredData.filter(item => 
-          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        let products = data.products || [];
+        
+        // Apply client-side filters
+        if (searchTerm) {
+          products = products.filter(item => 
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (item.sku && item.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+          );
+        }
+        
+        if (selectedCategory) {
+          products = products.filter(item => 
+            item.categories.some(cat => cat.name === selectedCategory)
+          );
+        }
+        
+        if (selectedStatus) {
+          products = products.filter(item => item.status === selectedStatus);
+        }
+        
+        setInventory(products);
+      } else {
+        console.error('Failed to fetch products');
+        setInventory([]);
       }
-      
-      if (selectedCategory) {
-        filteredData = filteredData.filter(item => item.category === selectedCategory);
-      }
-      
-      if (selectedStatus) {
-        filteredData = filteredData.filter(item => item.status === selectedStatus);
-      }
-      
-      setInventory(filteredData);
     } catch (error) {
-      console.error('Error loading mock inventory:', error);
+      console.error('Error loading inventory:', error);
       setInventory([]);
     } finally {
       setLoading(false);
@@ -134,17 +80,24 @@ const Inventory = () => {
 
   const fetchCategories = async () => {
     try {
-      // Mock categories data - bypass server
-      const mockCategories = [
-        { id: 1, name: 'T-Shirts' },
-        { id: 2, name: 'Men T-Shirts' },
-        { id: 3, name: 'Women T-Shirts' },
-        { id: 4, name: 'Kids T-Shirts' },
-        { id: 5, name: 'Promotional' }
-      ];
-      setCategories(mockCategories);
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/products/categories/list/all', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories || []);
+      } else {
+        console.error('Failed to fetch categories');
+        setCategories([]);
+      }
     } catch (error) {
-      console.error('Error loading mock categories:', error);
+      console.error('Error loading categories:', error);
+      setCategories([]);
     }
   };
 
@@ -181,7 +134,7 @@ const Inventory = () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/inventory/${id}`, {
+        const response = await fetch(`/api/admin/products/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`

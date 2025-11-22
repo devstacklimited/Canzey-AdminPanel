@@ -85,6 +85,140 @@ export async function setupDatabase() {
     `);
     console.log('✅ customers table ready');
 
+    // Create campaigns table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS campaigns (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        image_url VARCHAR(500),
+        ticket_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        credits_per_ticket INT NOT NULL DEFAULT 0,
+        max_tickets_per_user INT DEFAULT NULL,
+        status ENUM('active', 'inactive', 'closed') DEFAULT 'active',
+        start_at TIMESTAMP NULL,
+        end_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_status (status),
+        INDEX idx_dates (start_at, end_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ campaigns table ready');
+
+    // Create campaign_tickets table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS campaign_tickets (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        campaign_id INT NOT NULL,
+        customer_id INT NOT NULL,
+        ticket_number VARCHAR(50) UNIQUE NOT NULL,
+        quantity INT NOT NULL DEFAULT 1,
+        total_price DECIMAL(10,2) NOT NULL,
+        credits_earned INT NOT NULL,
+        status ENUM('active', 'used', 'expired') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+        INDEX idx_customer_id (customer_id),
+        INDEX idx_campaign_id (campaign_id),
+        INDEX idx_ticket_number (ticket_number)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ campaign_tickets table ready');
+
+    // Create customer_credits table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS customer_credits (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        customer_id INT NOT NULL,
+        ticket_id INT,
+        credits INT NOT NULL,
+        type ENUM('earned', 'spent', 'expired') DEFAULT 'earned',
+        description VARCHAR(255),
+        expires_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+        FOREIGN KEY (ticket_id) REFERENCES campaign_tickets(id) ON DELETE SET NULL,
+        INDEX idx_customer_id (customer_id),
+        INDEX idx_expires_at (expires_at),
+        INDEX idx_type (type)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ customer_credits table ready');
+
+    // Create categories table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE,
+        parent_id INT DEFAULT NULL,
+        description TEXT,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL,
+        INDEX idx_parent_id (parent_id),
+        INDEX idx_status (status),
+        INDEX idx_slug (slug)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ categories table ready');
+
+    // Create products table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE,
+        description TEXT,
+        sku VARCHAR(100) UNIQUE,
+        price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        sale_price DECIMAL(10,2) DEFAULT NULL,
+        stock_quantity INT NOT NULL DEFAULT 0,
+        main_image_url VARCHAR(500),
+        status ENUM('active', 'inactive', 'draft') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_sku (sku),
+        INDEX idx_status (status),
+        INDEX idx_slug (slug),
+        INDEX idx_stock (stock_quantity)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ products table ready');
+
+    // Create product_images table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS product_images (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        product_id INT NOT NULL,
+        image_url VARCHAR(500) NOT NULL,
+        alt_text VARCHAR(255),
+        is_primary BOOLEAN DEFAULT FALSE,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        INDEX idx_product_id (product_id),
+        INDEX idx_is_primary (is_primary)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ product_images table ready');
+
+    // Create product_categories table (many-to-many)
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS product_categories (
+        product_id INT NOT NULL,
+        category_id INT NOT NULL,
+        PRIMARY KEY (product_id, category_id),
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ product_categories table ready');
+
     // Create sessions table
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS sessions (

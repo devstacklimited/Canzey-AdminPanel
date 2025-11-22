@@ -11,6 +11,7 @@ import Inventory from './pages/inventory/Inventory'
 import Raffles from './pages/raffels/raffels'
 import Users from './pages/users/Users'
 import Customers from './pages/customers/Customers'
+import Campaigns from './pages/campaigns/Campaigns'
 import Profile from './pages/profile/Profile'
 
 // Protected Route Component
@@ -70,6 +71,11 @@ function App() {
             <Route path="/customers" element={
               <ProtectedRoute>
                 <Customers />
+              </ProtectedRoute>
+            } />
+            <Route path="/campaigns" element={
+              <ProtectedRoute>
+                <Campaigns />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
