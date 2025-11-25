@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
+import { API_ENDPOINTS } from '../../config/api';
 import './Auth.css';
 
 const Login = () => {
@@ -28,7 +29,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/signin', {
+      const response = await fetch(API_ENDPOINTS.AUTH.SIGNIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

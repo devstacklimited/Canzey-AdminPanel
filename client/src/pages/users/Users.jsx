@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
 import { useUser } from '../../context/UserContext';
+import { API_ENDPOINTS, getAuthHeaders } from '../../config/api';
 import { Search, Filter, Eye, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import './Users.css';
 
@@ -19,16 +20,15 @@ const Users = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       
       // Fetch admins
-      const adminRes = await fetch('http://localhost:5000/api/admin/userinfo', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const adminRes = await fetch(API_ENDPOINTS.AUTH.USER_INFO, {
+        headers: getAuthHeaders()
       });
       
       // Fetch customers
-      const customerRes = await fetch('http://localhost:5000/api/customer/info', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const customerRes = await fetch(API_ENDPOINTS.CUSTOMER.INFO, {
+        headers: getAuthHeaders()
       });
 
       const allUsers = [];

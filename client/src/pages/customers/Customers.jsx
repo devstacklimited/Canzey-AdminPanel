@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../../components/layout/Layout';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { API_ENDPOINTS, getAuthHeaders } from '../../config/api';
 import './Customers.css';
 
 const Customers = () => {
@@ -13,11 +14,8 @@ const Customers = () => {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/admin/customers', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const res = await fetch(API_ENDPOINTS.ADMIN.CUSTOMERS, {
+        headers: getAuthHeaders(),
       });
 
       if (!res.ok) {

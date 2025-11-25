@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
 import { useUser } from '../../context/UserContext';
+import { API_ENDPOINTS, getAuthHeaders, getJsonHeaders } from '../../config/api';
 import ProfileTabs from './components/ProfileTabs';
 import ProfileInfo from './components/ProfileInfo';
 import UserManagement from './components/UserManagement';
@@ -38,13 +39,9 @@ const Profile = () => {
     console.log('🔄 fetchAllUsers called');
     setLoadingUsers(true);
     try {
-      const token = localStorage.getItem('token');
-      console.log('🔑 Token exists:', !!token);
       
-      const response = await fetch('http://localhost:5000/api/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch(API_ENDPOINTS.USERS.LIST, {
+        headers: getAuthHeaders()
       });
       
       console.log('📥 Fetch users response status:', response.status);
@@ -94,22 +91,20 @@ const Profile = () => {
       
       const requestBody = { status: newStatus };
       console.log('📤 Request details:', {
-        url: `http://localhost:5000/api/users/${userId}`,
+        url: API_ENDPOINTS.USERS.UPDATE(userId),
         method: 'PUT',
         body: requestBody,
         headers: {
-          'Authorization': token ? 'Bearer [TOKEN_EXISTS]' : 'NO_TOKEN',
+          'Authorization': 'Bearer [TOKEN_EXISTS]',
           'Content-Type': 'application/json'
         }
       });
       
+      
       // Use the general update endpoint to change status
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(API_ENDPOINTS.USERS.UPDATE(userId), {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: getJsonHeaders(),
         body: JSON.stringify(requestBody)
       });
       
@@ -171,8 +166,8 @@ const Profile = () => {
       // Determine endpoint based on user role (admin or super_admin = admin endpoint)
       const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
       const endpoint = isAdmin
-        ? 'http://localhost:5000/api/admin/edit'
-        : 'http://localhost:5000/api/customer/edit';
+        ? API_ENDPOINTS.ADMIN.EDIT
+        : API_ENDPOINTS.CUSTOMER.EDIT;
       
       console.log('Using endpoint:', endpoint);
       

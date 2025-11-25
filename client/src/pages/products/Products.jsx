@@ -3,6 +3,7 @@ import { Plus, Edit, Package, Search } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import ProductModal from './components/ProductModal';
 import Toast from '../../components/ui/Toast';
+import { API_ENDPOINTS, getAuthHeaders, getImageUrl } from '../../config/api';
 import '../../components/ui/ToggleSwitch.css';
 import './Products.css';
 
@@ -38,11 +39,8 @@ const Products = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/products', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST, {
+        headers: getAuthHeaders()
       });
       const data = await response.json();
       if (data.success) {
@@ -102,8 +100,8 @@ const Products = () => {
     try {
       const token = localStorage.getItem('token');
       const url = editingProduct 
-        ? `http://localhost:5000/api/admin/products/${editingProduct.id}`
-        : 'http://localhost:5000/api/admin/products';
+        ? API_ENDPOINTS.PRODUCTS.UPDATE(editingProduct.id)
+        : API_ENDPOINTS.PRODUCTS.CREATE;
       
       const method = editingProduct ? 'PUT' : 'POST';
 
@@ -204,7 +202,7 @@ const Products = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/products/${id}/status`, {
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.UPDATE_STATUS(id), {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -250,11 +248,9 @@ const Products = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/products/${editingProduct.id}`, {
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.DELETE(editingProduct.id), {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: getAuthHeaders()
       });
 
       const data = await response.json();
@@ -363,7 +359,7 @@ const Products = () => {
                   <tr key={product.id}>
                     <td>
                       {product.main_image_url ? (
-                        <img src={`http://localhost:5000${product.main_image_url}`} alt={product.name} className="product-image" />
+                        <img src={getImageUrl(product.main_image_url)} alt={product.name} className="product-image" />
                       ) : (
                         <div className="product-image-placeholder">
                           <Package size={20} />

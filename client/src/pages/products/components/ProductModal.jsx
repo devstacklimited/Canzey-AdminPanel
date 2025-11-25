@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Package, Trash2 } from 'lucide-react';
+import { getImageUrl } from '../../../config/api';
 import './ProductModal.css';
 
 const ProductModal = ({
@@ -241,7 +242,7 @@ const ProductModal = ({
                 <div className="image-previews-grid">
                   {existingImages.map((imageUrl, index) => (
                     <div key={index} className="image-preview-item">
-                      <img src={`http://localhost:5000${imageUrl}`} alt={`Existing ${index + 1}`} />
+                      <img src={getImageUrl(imageUrl)} alt={`Existing ${index + 1}`} />
                       <button
                         type="button"
                         className="remove-image-btn"

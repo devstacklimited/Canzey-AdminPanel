@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, Building, Briefcase, Calendar, Shield, Globe } from 'lucide-react';
+import { API_ENDPOINTS, getJsonHeaders } from '../../../config/api';
 import './UserDetailsModal.css';
 
 const UserDetailsModal = ({ user, isOpen, onClose, onUpdateUser }) => {
@@ -47,15 +48,11 @@ const UserDetailsModal = ({ user, isOpen, onClose, onUpdateUser }) => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       
       // Update profile data
-      const profileResponse = await fetch(`http://localhost:5000/api/auth/profile`, {
+      const profileResponse = await fetch(API_ENDPOINTS.PROFILE.GET, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: getJsonHeaders(),
         body: JSON.stringify({
           first_name: formData.first_name,
           last_name: formData.last_name,
@@ -70,12 +67,9 @@ const UserDetailsModal = ({ user, isOpen, onClose, onUpdateUser }) => {
 
       // Update role/status if changed
       if (formData.role !== user.role || formData.status !== user.status) {
-        const statusResponse = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+        const statusResponse = await fetch(API_ENDPOINTS.USERS.UPDATE(user.id), {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: getJsonHeaders(),
           body: JSON.stringify({
             role: formData.role,
             status: formData.status

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Users, LayoutDashboard, Settings, Activity } from 'lucide-react';
+import { API_ENDPOINTS } from '../../config/api';
 import './Dashboard.css';
 
 // Components
@@ -22,7 +23,7 @@ const Dashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users');
+      const response = await axios.get(API_ENDPOINTS.USERS.LIST);
       if (response.data.success) {
         setUsers(response.data.data);
       }
@@ -36,7 +37,7 @@ const Dashboard = () => {
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/users', newUser);
+      const response = await axios.post(API_ENDPOINTS.USERS.LIST, newUser);
       if (response.data.success) {
         fetchUsers();
         setShowAddModal(false);
@@ -55,7 +56,7 @@ const Dashboard = () => {
   const handleDeleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${id}`);
+        await axios.delete(API_ENDPOINTS.USERS.DELETE(id));
         fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
