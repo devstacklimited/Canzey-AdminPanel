@@ -1,5 +1,14 @@
 import express from 'express';
-import { adminSignIn, adminSignUp, getAdminByToken, updateAdminInfo, verifyToken, listAllCustomers } from '../controllers/adminController.js';
+import { 
+  adminSignIn, 
+  adminSignUp, 
+  getAdminByToken, 
+  updateAdminInfo, 
+  verifyToken, 
+  listAllCustomers,
+  updateCustomer,
+  updateCustomerStatus
+} from '../controllers/adminController.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -113,6 +122,41 @@ router.post('/logout', authenticateToken, (req, res) => {
     success: true,
     message: 'Logged out successfully'
   });
+});
+
+/**
+ * PUT /api/admin/customers/:id
+ * Update customer info (admin only)
+ */
+router.put('/customers/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const result = await updateCustomer(req.params.id, req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+      success: false,
+      message: result.error
+    });
+  }
+
+  res.json(result);
+});
+
+/**
+ * PATCH /api/admin/customers/:id/status
+ * Update customer status (admin only)
+ */
+router.patch('/customers/:id/status', authenticateToken, requireAdmin, async (req, res) => {
+  const { status } = req.body;
+  const result = await updateCustomerStatus(req.params.id, status);
+
+  if (!result.success) {
+    return res.status(400).json({
+      success: false,
+      message: result.error
+    });
+  }
+
+  res.json(result);
 });
 
 export default router;

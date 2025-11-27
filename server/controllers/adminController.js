@@ -143,3 +143,41 @@ export function verifyToken(token) {
     return null;
   }
 }
+
+/**
+ * Update customer info (Admin)
+ */
+export async function updateCustomer(customerId, updateData) {
+  try {
+    const { first_name, last_name, phone_number, status } = updateData;
+    const connection = await pool.getConnection();
+    
+    await connection.execute(
+      'UPDATE customers SET first_name = ?, last_name = ?, phone_number = ?, status = ? WHERE id = ?',
+      [first_name, last_name, phone_number, status, customerId]
+    );
+    
+    const [customers] = await connection.execute('SELECT * FROM customers WHERE id = ?', [customerId]);
+    connection.release();
+    
+    return { success: true, customer: customers[0], message: 'Customer updated successfully' };
+  } catch (error) {
+    console.error('Update customer error:', error);
+    return { success: false, error: 'Server error while updating customer' };
+  }
+}
+
+/**
+ * Update customer status (Admin)
+ */
+export async function updateCustomerStatus(customerId, status) {
+  try {
+    const connection = await pool.getConnection();
+    await connection.execute('UPDATE customers SET status = ? WHERE id = ?', [status, customerId]);
+    connection.release();
+    return { success: true, message: 'Customer status updated successfully' };
+  } catch (error) {
+    console.error('Update customer status error:', error);
+    return { success: false, error: 'Server error while updating status' };
+  }
+}

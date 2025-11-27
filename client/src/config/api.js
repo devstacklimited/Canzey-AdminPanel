@@ -24,6 +24,8 @@ export const API_ENDPOINTS = {
   ADMIN: {
     EDIT: `${API_BASE_URL}/api/admin/edit`,
     CUSTOMERS: `${API_BASE_URL}/api/admin/customers`,
+    UPDATE_CUSTOMER: (id) => `${API_BASE_URL}/api/admin/customers/${id}`,
+    UPDATE_CUSTOMER_STATUS: (id) => `${API_BASE_URL}/api/admin/customers/${id}/status`,
   },
   
   // Products endpoints

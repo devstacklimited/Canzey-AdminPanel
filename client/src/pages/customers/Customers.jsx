@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../../components/layout/Layout';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Search, Filter, Eye } from 'lucide-react';
 import { API_ENDPOINTS, getAuthHeaders } from '../../config/api';
+import CustomerModal from './components/CustomerModal';
 import './Customers.css';
 
 const Customers = () => {
@@ -10,6 +11,16 @@ const Customers = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  useEffect(() => {
+    applyFilters(customers, searchTerm, statusFilter);
+  }, [customers, searchTerm, statusFilter]);
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -28,7 +39,6 @@ const Customers = () => {
       const data = await res.json();
       const list = data.customers || [];
       setCustomers(list);
-      applyFilters(list, searchTerm, statusFilter);
     } catch (err) {
       console.error('Error fetching customers:', err);
     } finally {
@@ -48,33 +58,20 @@ const Customers = () => {
       result = result.filter(c =>
         c.first_name?.toLowerCase().includes(lower) ||
         c.last_name?.toLowerCase().includes(lower) ||
-        c.email?.toLowerCase().includes(lower) ||
-        c.id?.toString().includes(lower)
+        c.email?.toLowerCase().includes(lower)
       );
     }
 
     setFiltered(result);
   };
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
+  const handleViewDetails = (customer) => {
+    setSelectedCustomer(customer);
+    setShowModal(true);
+  };
 
-  useEffect(() => {
-    applyFilters(customers, searchTerm, statusFilter);
-  }, [customers, searchTerm, statusFilter]);
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active':
-        return 'status-active';
-      case 'inactive':
-        return 'status-inactive';
-      case 'suspended':
-        return 'status-suspended';
-      default:
-        return '';
-    }
+  const handleUpdateCustomer = (updatedCustomer) => {
+    setCustomers(prev => prev.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
   };
 
   return (
@@ -82,25 +79,25 @@ const Customers = () => {
       <div className="customers-container">
         <div className="customers-header">
           <h1>Canzey Customers</h1>
-          <p>View and manage all customer accounts</p>
+          <p>Manage your customer base</p>
         </div>
 
         <div className="customers-filters">
           <div className="search-box">
+            <Search size={20} />
             <input
               type="text"
-              placeholder="Search by name, email, or ID..."
+              placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
             />
           </div>
-
+          
           <div className="filter-group">
-            <select
-              value={statusFilter}
+            <Filter size={20} />
+            <select 
+              value={statusFilter} 
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -112,38 +109,53 @@ const Customers = () => {
 
         <div className="customers-table-container">
           {loading ? (
-            <div className="loading">Loading customers...</div>
+            <div className="loading-state">Loading customers...</div>
           ) : filtered.length === 0 ? (
-            <div className="no-customers">No customers found</div>
+            <div className="empty-state">No customers found</div>
           ) : (
             <table className="customers-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
+                  <th>Customer</th>
                   <th>Email</th>
                   <th>Phone</th>
                   <th>Status</th>
-                  <th>Joined</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((c) => (
-                  <tr key={c.id}>
-                    <td className="customer-id">#{c.id}</td>
-                    <td className="customer-name">{c.first_name} {c.last_name}</td>
-                    <td className="customer-email">{c.email}</td>
-                    <td className="customer-phone">{c.phone_number || 'N/A'}</td>
+                {filtered.map((customer) => (
+                  <tr key={customer.id}>
                     <td>
-                      <span className={`badge ${getStatusColor(c.status)}`}>
-                        {c.status === 'active' && <CheckCircle size={14} />}
-                        {c.status === 'inactive' && <XCircle size={14} />}
-                        {c.status === 'suspended' && <XCircle size={14} />}
-                        {c.status}
+                      <div className="customer-cell">
+                        <div className="customer-avatar">
+                          {customer.profile_url ? (
+                            <img src={customer.profile_url} alt={customer.first_name} />
+                          ) : (
+                            <div className="avatar-placeholder">
+                              {customer.first_name?.[0]}{customer.last_name?.[0]}
+                            </div>
+                          )}
+                        </div>
+                        <span className="customer-name">
+                          {customer.first_name} {customer.last_name}
+                        </span>
+                      </div>
+                    </td>
+                    <td>{customer.email}</td>
+                    <td>{customer.phone_number || '-'}</td>
+                    <td>
+                      <span className={`c-status-badge c-status-${customer.status}`}>
+                        {customer.status}
                       </span>
                     </td>
-                    <td className="customer-joined">
-                      {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'N/A'}
+                    <td>
+                      <button 
+                        className="c-btn-details" 
+                        onClick={() => handleViewDetails(customer)}
+                      >
+                        Details
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -152,6 +164,14 @@ const Customers = () => {
           )}
         </div>
       </div>
+
+      {showModal && (
+        <CustomerModal 
+          customer={selectedCustomer} 
+          onClose={() => setShowModal(false)} 
+          onUpdate={handleUpdateCustomer}
+        />
+      )}
     </Layout>
   );
 };
