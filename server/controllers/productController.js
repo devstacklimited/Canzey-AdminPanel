@@ -40,17 +40,22 @@ export async function listProducts() {
       console.log('⚠️  [LIST PRODUCTS] NO PRODUCTS IN DATABASE!');
     }
 
-    // Fetch categories for all products in one query
-    const [productCategories] = await connection.execute(`
-      SELECT 
-        pc.product_id,
-        c.id as category_id,
-        c.name as category_name
-      FROM product_categories pc
-      JOIN categories c ON pc.category_id = c.id
-    `);
-
-    console.log('🏷️  [LIST PRODUCTS] Categories found:', productCategories.length);
+    // Fetch categories for all products in one query (optional - table may not exist)
+    let productCategories = [];
+    try {
+      const [categories] = await connection.execute(`
+        SELECT 
+          pc.product_id,
+          c.id as category_id,
+          c.name as category_name
+        FROM product_categories pc
+        JOIN categories c ON pc.category_id = c.id
+      `);
+      productCategories = categories;
+      console.log('🏷️  [LIST PRODUCTS] Categories found:', productCategories.length);
+    } catch (error) {
+      console.log('⚠️  [LIST PRODUCTS] product_categories table not found, skipping...');
+    }
 
     // Fetch images for all products in one query
     const [productImages] = await connection.execute(`
