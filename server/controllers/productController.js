@@ -5,9 +5,11 @@ import pool from '../database/connection.js';
  */
 export async function listProducts() {
   try {
-    console.log('🧾 [LIST PRODUCTS] Request received');
+    console.log('🧾 [LIST PRODUCTS] ========== START ==========');
+    console.log('🧾 [LIST PRODUCTS] Timestamp:', new Date().toISOString());
 
     const connection = await pool.getConnection();
+    console.log('✅ [LIST PRODUCTS] DB connection established');
 
     const [products] = await connection.execute(`
       SELECT 
@@ -27,6 +29,17 @@ export async function listProducts() {
       ORDER BY p.created_at DESC
     `);
 
+    console.log('📦 [LIST PRODUCTS] Products from DB:', products.length);
+    if (products.length > 0) {
+      console.log('📦 [LIST PRODUCTS] Sample product:', JSON.stringify({
+        id: products[0].id,
+        name: products[0].name,
+        status: products[0].status
+      }));
+    } else {
+      console.log('⚠️  [LIST PRODUCTS] NO PRODUCTS IN DATABASE!');
+    }
+
     // Fetch categories for all products in one query
     const [productCategories] = await connection.execute(`
       SELECT 
@@ -36,6 +49,29 @@ export async function listProducts() {
       FROM product_categories pc
       JOIN categories c ON pc.category_id = c.id
     `);
+
+    console.log('🏷️  [LIST PRODUCTS] Categories found:', productCategories.length);
+
+    // Fetch images for all products in one query
+    const [productImages] = await connection.execute(`
+      SELECT 
+        product_id,
+        id,
+        image_url,
+        alt_text,
+        is_primary,
+        sort_order
+      FROM product_images
+      ORDER BY product_id, sort_order ASC, id ASC
+    `);
+
+    console.log('🖼️  [LIST PRODUCTS] Images found:', productImages.length);
+    if (productImages.length > 0) {
+      console.log('🖼️  [LIST PRODUCTS] Sample image:', JSON.stringify({
+        product_id: productImages[0].product_id,
+        image_url: productImages[0].image_url
+      }));
+    }
 
     // Group categories by product
     const categoriesByProduct = {};
@@ -49,18 +85,46 @@ export async function listProducts() {
       });
     }
 
-    // Attach categories
+    // Group images by product
+    const imagesByProduct = {};
+    for (const img of productImages) {
+      if (!imagesByProduct[img.product_id]) {
+        imagesByProduct[img.product_id] = [];
+      }
+      imagesByProduct[img.product_id].push({
+        id: img.id,
+        image_url: img.image_url,
+        alt_text: img.alt_text,
+        is_primary: img.is_primary,
+        sort_order: img.sort_order,
+      });
+    }
+
+    // Attach categories and images
     const result = products.map((p) => ({
       ...p,
       categories: categoriesByProduct[p.id] || [],
+      images: imagesByProduct[p.id] || [],
     }));
 
-    connection.release();
+    console.log('📊 [LIST PRODUCTS] Final result:', result.length, 'products');
+    if (result.length > 0) {
+      console.log('📊 [LIST PRODUCTS] Sample result:', JSON.stringify({
+        id: result[0].id,
+        name: result[0].name,
+        categories: result[0].categories.length,
+        images: result[0].images.length
+      }));
+    }
 
-    console.log('✅ [LIST PRODUCTS] Found', result.length, 'products');
+    connection.release();
+    console.log('✅ [LIST PRODUCTS] ========== END ==========');
+    
     return { success: true, products: result };
   } catch (error) {
-    console.error('❌ [LIST PRODUCTS] Error:', error.message);
+    console.error('❌ [LIST PRODUCTS] ========== ERROR ==========');
+    console.error('❌ [LIST PRODUCTS] Message:', error.message);
+    console.error('❌ [LIST PRODUCTS] Stack:', error.stack);
     return { success: false, error: 'Server error while listing products' };
   }
 }
@@ -266,8 +330,8 @@ export async function updateProduct(productId, productData) {
 
     await connection.execute(
       `UPDATE products
-       SET name = ?, slug = ?, description = ?, sku = ?, price = ?, sale_price = ?,
-           stock_quantity = ?, category = ?, sub_category = ?, for_gender = ?, is_customized = ?, main_image_url = ?, status = ?
+       SET name = ?, slug = ?, description = ?, sku = ?, price = ?, sale_price = ?, 
+           stock_quantity = ?, status = ?, category = ?, sub_category = ?, for_gender = ?, is_customized = ?, main_image_url = ?
        WHERE id = ?`,
       [
         name,
@@ -277,12 +341,12 @@ export async function updateProduct(productId, productData) {
         price,
         sale_price || null,
         stock_quantity || 0,
+        status,
         category || null,
         sub_category || null,
         for_gender || null,
         is_customized || false,
         image_urls[0] || null,
-        status || 'active',
         productId,
       ]
     );
@@ -293,53 +357,96 @@ export async function updateProduct(productId, productData) {
     await connection.commit();
     connection.release();
 
-    console.log('✅ [UPDATE PRODUCT] Product updated');
-    return { success: true };
+    console.log('✅ [UPDATE PRODUCT] Product updated successfully');
+    return { success: true, message: 'Product updated successfully' };
   } catch (error) {
     await connection.rollback();
     connection.release();
-    console.error('❌ [UPDATE PRODUCT] Error:', error.message);
+    console.error('❌ [UPDATE PRODUCT] Error:', error);
+
+    // Handle duplicate entry error
+    if (error.code === 'ER_DUP_ENTRY') {
+      if (error.message.includes('slug')) {
+        return { success: false, error: 'A product with this URL slug already exists. Please change the Name or Slug.' };
+      }
+      if (error.message.includes('sku')) {
+        return { success: false, error: 'A product with this SKU already exists.' };
+      }
+      return { success: false, error: 'This product already exists (duplicate entry).' };
+    }
+
     return { success: false, error: 'Server error while updating product' };
   }
 }
 
 /**
- * Soft delete / deactivate product
+ * Delete product
  */
 export async function deleteProduct(productId) {
+  const connection = await pool.getConnection();
+
   try {
-    const connection = await pool.getConnection();
+    await connection.beginTransaction();
 
-    await connection.execute(
-      `UPDATE products SET status = 'inactive' WHERE id = ?`,
-      [productId]
-    );
+    // Delete product images
+    await connection.execute('DELETE FROM product_images WHERE product_id = ?', [productId]);
 
+    // Delete product categories
+    await connection.execute('DELETE FROM product_categories WHERE product_id = ?', [productId]);
+
+    // Delete product
+    await connection.execute('DELETE FROM products WHERE id = ?', [productId]);
+
+    await connection.commit();
     connection.release();
 
-    console.log('✅ [DELETE PRODUCT] Product set to inactive');
-    return { success: true };
+    console.log('✅ [DELETE PRODUCT] Product deleted successfully');
+    return { success: true, message: 'Product deleted successfully' };
   } catch (error) {
+    await connection.rollback();
+    connection.release();
     console.error('❌ [DELETE PRODUCT] Error:', error.message);
     return { success: false, error: 'Server error while deleting product' };
   }
 }
 
 /**
- * List categories for dropdowns
+ * Update product status
+ */
+export async function updateProductStatus(productId, status) {
+  try {
+    const connection = await pool.getConnection();
+
+    await connection.execute(
+      'UPDATE products SET status = ? WHERE id = ?',
+      [status, productId]
+    );
+
+    connection.release();
+
+    console.log('✅ [UPDATE STATUS] Product status updated');
+    return { success: true, message: 'Product status updated successfully' };
+    return { success: true, message: 'Product status updated successfully' };
+  } catch (error) {
+    console.error('❌ [UPDATE STATUS] Error:', error.message);
+    return { success: false, error: 'Server error while updating product status' };
+  }
+}
+
+/**
+ * List all categories
  */
 export async function listCategories() {
   try {
     const connection = await pool.getConnection();
 
     const [categories] = await connection.execute(
-      `SELECT id, name, slug, parent_id, status, sort_order
-       FROM categories
-       ORDER BY sort_order ASC, name ASC`
+      'SELECT id, name, slug, description, parent_id, created_at FROM categories ORDER BY name ASC'
     );
 
     connection.release();
 
+    console.log('✅ [LIST CATEGORIES] Found', categories.length, 'categories');
     return { success: true, categories };
   } catch (error) {
     console.error('❌ [LIST CATEGORIES] Error:', error.message);
@@ -348,51 +455,34 @@ export async function listCategories() {
 }
 
 /**
- * Create category
+ * Create a new category
  */
-export async function createCategory(data) {
+export async function createCategory(categoryData) {
   try {
     const connection = await pool.getConnection();
 
-    const { name, slug, parent_id = null, description = null, status = 'active', sort_order = 0 } = data;
+    const { name, slug, description, parent_id } = categoryData;
 
     if (!name) {
-      return { success: false, error: 'Name is required' };
+      return { success: false, error: 'Category name is required' };
     }
 
     const [result] = await connection.execute(
-      `INSERT INTO categories (name, slug, parent_id, description, status, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [name, slug || null, parent_id || null, description, status, sort_order]
+      'INSERT INTO categories (name, slug, description, parent_id) VALUES (?, ?, ?, ?)',
+      [name, slug || null, description || null, parent_id || null]
     );
 
     connection.release();
 
-    return { success: true, category_id: result.insertId };
+    console.log('✅ [CREATE CATEGORY] Category created with ID', result.insertId);
+    return { success: true, category_id: result.insertId, message: 'Category created successfully' };
   } catch (error) {
     console.error('❌ [CREATE CATEGORY] Error:', error.message);
+    
+    if (error.code === 'ER_DUP_ENTRY') {
+      return { success: false, error: 'A category with this name or slug already exists' };
+    }
+    
     return { success: false, error: 'Server error while creating category' };
-  }
-}
-
-/**
- * Update product status only
- */
-export async function updateProductStatus(productId, status) {
-  try {
-    const connection = await pool.getConnection();
-
-    await connection.execute(
-      `UPDATE products SET status = ? WHERE id = ?`,
-      [status, productId]
-    );
-
-    connection.release();
-
-    console.log(`✅ [UPDATE STATUS] Product ${productId} status set to ${status}`);
-    return { success: true };
-  } catch (error) {
-    console.error('❌ [UPDATE STATUS] Error:', error.message);
-    return { success: false, error: 'Server error while updating product status' };
   }
 }

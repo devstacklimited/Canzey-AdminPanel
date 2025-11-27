@@ -10,105 +10,9 @@ const Raffles = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const raffles = [
-    {
-      id: 1,
-      title: 'iPhone 15 Pro Max Giveaway',
-      prize: 'iPhone 15 Pro Max - 256GB',
-      totalTickets: 500,
-      soldTickets: 387,
-      ticketPrice: '$5',
-      drawDate: '2024-02-01',
-      status: 'active',
-      endTime: '2024-02-01 18:00:00'
-    },
-    {
-      id: 2,
-      title: 'MacBook Pro M3 Raffle',
-      prize: 'MacBook Pro 16" M3 Max',
-      totalTickets: 1000,
-      soldTickets: 856,
-      ticketPrice: '$10',
-      drawDate: '2024-02-15',
-      status: 'active',
-      endTime: '2024-02-15 20:00:00'
-    },
-    {
-      id: 3,
-      title: 'PlayStation 5 Bundle',
-      prize: 'PS5 + 3 Games + Controller',
-      totalTickets: 300,
-      soldTickets: 300,
-      ticketPrice: '$3',
-      drawDate: '2024-01-20',
-      status: 'completed',
-      winner: 'John Doe',
-      endTime: '2024-01-20 19:00:00'
-    }
-  ];
-
-  const tickets = [
-    {
-      id: 1,
-      raffleId: 1,
-      userId: 'USR-001',
-      userName: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '+1 (555) 123-4567',
-      location: 'New York, USA',
-      ticketNumbers: [23, 145, 289],
-      ticketCount: 3,
-      purchaseDate: '2024-01-10 14:32:00',
-      amount: '$15',
-      paymentMethod: 'Credit Card',
-      transactionId: 'TXN-ABC123'
-    },
-    {
-      id: 2,
-      raffleId: 1,
-      userId: 'USR-002',
-      userName: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      phone: '+1 (555) 234-5678',
-      location: 'Los Angeles, USA',
-      ticketNumbers: [45, 156],
-      ticketCount: 2,
-      purchaseDate: '2024-01-11 09:15:00',
-      amount: '$10',
-      paymentMethod: 'PayPal',
-      transactionId: 'TXN-DEF456'
-    },
-    {
-      id: 3,
-      raffleId: 1,
-      userId: 'USR-003',
-      userName: 'Bob Johnson',
-      email: 'bob.johnson@example.com',
-      phone: '+1 (555) 345-6789',
-      location: 'Chicago, USA',
-      ticketNumbers: [78, 199, 234, 456, 489],
-      ticketCount: 5,
-      purchaseDate: '2024-01-12 16:45:00',
-      amount: '$25',
-      paymentMethod: 'Credit Card',
-      transactionId: 'TXN-GHI789'
-    },
-    {
-      id: 4,
-      raffleId: 1,
-      userId: 'USR-004',
-      userName: 'Alice Brown',
-      email: 'alice.brown@example.com',
-      phone: '+1 (555) 456-7890',
-      location: 'Miami, USA',
-      ticketNumbers: [12],
-      ticketCount: 1,
-      purchaseDate: '2024-01-13 11:20:00',
-      amount: '$5',
-      paymentMethod: 'Apple Pay',
-      transactionId: 'TXN-JKL012'
-    }
-  ];
+  // No static data - empty arrays
+  const raffles = [];
+  const tickets = [];
 
   const handleRaffleClick = (raffle) => {
     setSelectedRaffle(raffle);
@@ -151,14 +55,14 @@ const Raffles = () => {
             </div>
           </div>
 
-          {/* Stats Grid */}
+          {/* Stats Grid - All zeros */}
           <div className="raffles-stats-grid">
             <div className="raffle-stat-card">
               <div className="raffle-stat-icon violet">
                 <Ticket size={24} />
               </div>
               <div className="raffle-stat-content">
-                <h3>3</h3>
+                <h3>0</h3>
                 <p>Active Raffles</p>
               </div>
             </div>
@@ -167,7 +71,7 @@ const Raffles = () => {
                 <Users size={24} />
               </div>
               <div className="raffle-stat-content">
-                <h3>1,543</h3>
+                <h3>0</h3>
                 <p>Total Participants</p>
               </div>
             </div>
@@ -176,7 +80,7 @@ const Raffles = () => {
                 <DollarSign size={24} />
               </div>
               <div className="raffle-stat-content">
-                <h3>$12,450</h3>
+                <h3>$0</h3>
                 <p>Total Revenue</p>
               </div>
             </div>
@@ -185,7 +89,7 @@ const Raffles = () => {
                 <Trophy size={24} />
               </div>
               <div className="raffle-stat-content">
-                <h3>15</h3>
+                <h3>0</h3>
                 <p>Completed Raffles</p>
               </div>
             </div>
@@ -195,60 +99,68 @@ const Raffles = () => {
           <div className="raffles-section">
             <h2 className="section-title">All Raffles</h2>
             <div className="raffles-grid">
-              {raffles.map((raffle) => (
-                <div 
-                  key={raffle.id} 
-                  className={`raffle-card ${selectedRaffle?.id === raffle.id ? 'selected' : ''} ${raffle.status}`}
-                  onClick={() => handleRaffleClick(raffle)}
-                >
-                  <div className="raffle-card-header">
-                    <div className="raffle-info">
-                      <h3>{raffle.title}</h3>
-                      <p className="raffle-prize">{raffle.prize}</p>
-                    </div>
-                    <span className={`raffle-status-badge ${raffle.status}`}>
-                      {raffle.status === 'active' ? 'Active' : 'Completed'}
-                    </span>
-                  </div>
-
-                  <div className="raffle-stats-row">
-                    <div className="raffle-stat-item">
-                      <Ticket size={18} />
-                      <span>{raffle.soldTickets}/{raffle.totalTickets}</span>
-                    </div>
-                    <div className="raffle-stat-item">
-                      <DollarSign size={18} />
-                      <span>{raffle.ticketPrice}</span>
-                    </div>
-                    <div className="raffle-stat-item">
-                      <Calendar size={18} />
-                      <span>{raffle.drawDate}</span>
-                    </div>
-                  </div>
-
-                  <div className="raffle-progress-section">
-                    <div className="progress-header">
-                      <span className="progress-label">Tickets Sold</span>
-                      <span className="progress-percentage">
-                        {Math.round(calculateProgress(raffle.soldTickets, raffle.totalTickets))}%
+              {raffles.length === 0 ? (
+                <div className="no-raffle-selected">
+                  <Ticket size={64} />
+                  <h3>No Raffles Available</h3>
+                  <p>There are currently no raffles to display</p>
+                </div>
+              ) : (
+                raffles.map((raffle) => (
+                  <div 
+                    key={raffle.id} 
+                    className={`raffle-card ${selectedRaffle?.id === raffle.id ? 'selected' : ''} ${raffle.status}`}
+                    onClick={() => handleRaffleClick(raffle)}
+                  >
+                    <div className="raffle-card-header">
+                      <div className="raffle-info">
+                        <h3>{raffle.title}</h3>
+                        <p className="raffle-prize">{raffle.prize}</p>
+                      </div>
+                      <span className={`raffle-status-badge ${raffle.status}`}>
+                        {raffle.status === 'active' ? 'Active' : 'Completed'}
                       </span>
                     </div>
-                    <div className="raffle-progress-bar">
-                      <div 
-                        className="raffle-progress-fill" 
-                        style={{ width: `${calculateProgress(raffle.soldTickets, raffle.totalTickets)}%` }}
-                      ></div>
-                    </div>
-                  </div>
 
-                  {raffle.status === 'completed' && raffle.winner && (
-                    <div className="raffle-winner">
-                      <Trophy size={16} />
-                      <span>Winner: {raffle.winner}</span>
+                    <div className="raffle-stats-row">
+                      <div className="raffle-stat-item">
+                        <Ticket size={18} />
+                        <span>{raffle.soldTickets}/{raffle.totalTickets}</span>
+                      </div>
+                      <div className="raffle-stat-item">
+                        <DollarSign size={18} />
+                        <span>{raffle.ticketPrice}</span>
+                      </div>
+                      <div className="raffle-stat-item">
+                        <Calendar size={18} />
+                        <span>{raffle.drawDate}</span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div className="raffle-progress-section">
+                      <div className="progress-header">
+                        <span className="progress-label">Tickets Sold</span>
+                        <span className="progress-percentage">
+                          {Math.round(calculateProgress(raffle.soldTickets, raffle.totalTickets))}%
+                        </span>
+                      </div>
+                      <div className="raffle-progress-bar">
+                        <div 
+                            className="raffle-progress-fill" 
+                            style={{ width: `${calculateProgress(raffle.soldTickets, raffle.totalTickets)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {raffle.status === 'completed' && raffle.winner && (
+                      <div className="raffle-winner">
+                        <Trophy size={16} />
+                        <span>Winner: {raffle.winner}</span>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -334,7 +246,7 @@ const Raffles = () => {
             </div>
           )}
 
-          {!selectedRaffle && (
+          {!selectedRaffle && raffles.length > 0 && (
             <div className="no-raffle-selected">
               <Ticket size={64} />
               <h3>Select a Raffle</h3>

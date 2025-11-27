@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:5000/api/firebase/customer
+https://admin.canzey.com/api/firebase/customer
 ```
 
 ---
@@ -38,7 +38,7 @@ New user creates an account.
 **Postman example**
 
 - **URL**  
-  `POST http://localhost:5000/api/firebase/customer/signup`
+  `POST https://admin.canzey.com/api/firebase/customer/signup`
 
 - **Headers**
   ```
@@ -99,7 +99,7 @@ Here:
 **Postman example**
 
 - **URL**  
-  `POST http://localhost:5000/api/firebase/customer/signin`
+  `POST https://admin.canzey.com/api/firebase/customer/signin`
 
 - **Headers**
   ```
@@ -148,7 +148,7 @@ Save `token` → this is **our JWT**.
 **Postman example**
 
 - **URL**  
-  `GET http://localhost:5000/api/firebase/customer/info`
+  `GET https://admin.canzey.com/api/firebase/customer/info`
 
 - **Headers**
   ```
@@ -176,7 +176,7 @@ Save `token` → this is **our JWT**.
 **Postman example**
 
 - **URL**  
-  `PUT http://localhost:5000/api/firebase/customer/edit`
+  `PUT https://admin.canzey.com/api/firebase/customer/edit`
 
 - **Headers**
   ```
@@ -240,7 +240,7 @@ These APIs are for the **Flutter app** so customers can:
 ## Base URL (Normal APIs)
 
 ```bash
-http://localhost:5000/api
+https://admin.canzey.com/api
 ```
 
 All these endpoints use **our backend JWT** in the header (same token returned by
@@ -261,7 +261,7 @@ Content-Type: application/json
 Show a list of campaigns in the app (home screen).
 
 **URL**  
-`GET http://localhost:5000/api/campaigns`
+`GET https://admin.canzey.com/api/campaigns`
 
 **Headers**  
 No auth required (public listing):
@@ -308,7 +308,7 @@ User taps **"Participate" / "Buy Ticket"** in Flutter.
 ### 2.1 Endpoint
 
 - **URL**  
-  `POST http://localhost:5000/api/campaigns/:id/participate`
+  `POST https://admin.canzey.com/api/campaigns/:id/participate`
 
   `:id` = campaign id (e.g. `1`)
 
@@ -400,7 +400,7 @@ Credits expire automatically by **date logic**: we only count rows where
 Wallet screen / profile screen needs to show available credits.
 
 - **URL**  
-  `GET http://localhost:5000/api/customer/credits`
+  `GET https://admin.canzey.com/api/customer/credits`
 
 - **Headers**
 
@@ -435,7 +435,7 @@ Wallet screen / profile screen needs to show available credits.
 User opens **"My Tickets"** screen in the app.
 
 - **URL**  
-  `GET http://localhost:5000/api/customer/tickets`
+  `GET https://admin.canzey.com/api/customer/tickets`
 
 - **Headers**
 
@@ -475,7 +475,7 @@ Use this list directly to render a **ticket history** in Flutter.
 Show detailed wallet history: where credits came from / where they were spent.
 
 - **URL**  
-  `GET http://localhost:5000/api/customer/credits/history`
+  `GET https://admin.canzey.com/api/customer/credits/history`
 
 - **Headers**
 
@@ -511,7 +511,7 @@ You can use `type` + `description` to show a nice wallet timeline in Flutter.
 
 ## Base URL
 ```
-http://localhost:5000/api/admin/products
+https://admin.canzey.com/api/admin/products
 ```
 
 **Authentication Required:** All product endpoints require admin authentication.
@@ -530,7 +530,7 @@ Content-Type: application/json (for JSON requests)
 
 To get an admin token:
 ```http
-POST http://localhost:5000/api/admin/signin
+POST https://admin.canzey.com/api/admin/signin
 Content-Type: application/json
 
 {
@@ -552,7 +552,7 @@ Get all products with images.
 ### Request Example (Postman)
 
 ```http
-GET http://localhost:5000/api/admin/products
+GET https://admin.canzey.com/api/admin/products
 Authorization: Bearer <your-admin-token>
 ```
 
@@ -608,7 +608,7 @@ Get detailed information about a specific product.
 ### Request Example
 
 ```http
-GET http://localhost:5000/api/admin/products/1
+GET https://admin.canzey.com/api/admin/products/1
 Authorization: Bearer <your-admin-token>
 ```
 
@@ -665,7 +665,7 @@ Create a new product with images uploaded from PC.
 ### Request Example (Postman)
 
 1. Select `POST` method
-2. URL: `http://localhost:5000/api/admin/products`
+2. URL: `https://admin.canzey.com/api/admin/products`
 3. Headers:
    ```
    Authorization: Bearer <your-admin-token>
@@ -717,7 +717,7 @@ Same as Create Product, plus:
 ### Request Example (Postman)
 
 1. Select `PUT` method
-2. URL: `http://localhost:5000/api/admin/products/5`
+2. URL: `https://admin.canzey.com/api/admin/products/5`
 3. Headers:
    ```
    Authorization: Bearer <your-admin-token>
@@ -752,7 +752,7 @@ Soft delete a product (sets status to 'inactive').
 ### Request Example
 
 ```http
-DELETE http://localhost:5000/api/admin/products/5
+DELETE https://admin.canzey.com/api/admin/products/5
 Authorization: Bearer <your-admin-token>
 ```
 
@@ -777,7 +777,7 @@ Get all available product categories.
 ### Request Example
 
 ```http
-GET http://localhost:5000/api/admin/products/categories/list/all
+GET https://admin.canzey.com/api/admin/products/categories/list/all
 Authorization: Bearer <your-admin-token>
 ```
 
@@ -837,7 +837,7 @@ When creating/updating products, you can use these category values:
 ### Accessing Images
 Images are served statically:
 ```
-http://localhost:5000/uploads/products/product-1234567890-123.jpg
+https://admin.canzey.com/uploads/products/product-1234567890-123.jpg
 ```
 
 ---
@@ -890,7 +890,7 @@ http://localhost:5000/uploads/products/product-1234567890-123.jpg
 
 ### 1. Login as Admin
 ```http
-POST http://localhost:5000/api/admin/signin
+POST https://admin.canzey.com/api/admin/signin
 Content-Type: application/json
 
 {
@@ -902,7 +902,7 @@ Content-Type: application/json
 
 ### 2. Create a Product with Images
 ```http
-POST http://localhost:5000/api/admin/products
+POST https://admin.canzey.com/api/admin/products
 Authorization: Bearer <your-token>
 Content-Type: multipart/form-data
 
@@ -919,13 +919,13 @@ Form Data:
 
 ### 3. View Created Product
 ```http
-GET http://localhost:5000/api/admin/products/6
+GET https://admin.canzey.com/api/admin/products/6
 Authorization: Bearer <your-token>
 ```
 
 ### 4. Update Product
 ```http
-PUT http://localhost:5000/api/admin/products/6
+PUT https://admin.canzey.com/api/admin/products/6
 Authorization: Bearer <your-token>
 Content-Type: multipart/form-data
 
@@ -936,7 +936,7 @@ Form Data:
 
 ### 5. Delete Product
 ```http
-DELETE http://localhost:5000/api/admin/products/6
+DELETE https://admin.canzey.com/api/admin/products/6
 Authorization: Bearer <your-token>
 ```
 

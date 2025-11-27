@@ -37,13 +37,19 @@ const Products = () => {
   }, []);
 
   const fetchProducts = async () => {
+    console.log('🔵 [FRONTEND] ========== FETCH PRODUCTS START ==========');
+    console.log('🔵 [FRONTEND] API URL:', API_ENDPOINTS.PRODUCTS.LIST);
     setLoading(true);
     try {
+      console.log('🔵 [FRONTEND] Sending request...');
       const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST, {
         headers: getAuthHeaders()
       });
       const data = await response.json();
+      console.log('🔵 [FRONTEND] Response:', data);
+      console.log('🔵 [FRONTEND] Products count:', data.products?.length || 0);
       if (data.success) {
+        console.log('✅ [FRONTEND] Setting', data.products.length, 'products');
         setProducts(data.products || []);
       }
     } catch (error) {
@@ -51,6 +57,7 @@ const Products = () => {
       setToast({ type: 'error', message: 'Failed to fetch products' });
     } finally {
       setLoading(false);
+      console.log('🔵 [FRONTEND] ========== FETCH PRODUCTS END ==========');
     }
   };
 

@@ -7,45 +7,41 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const orders = [
-    { id: '#1234', customer: 'John Doe', product: 'Laptop Pro', status: 'completed', date: '2024-01-15', amount: '$1,299' },
-    { id: '#1235', customer: 'Jane Smith', product: 'Wireless Mouse', status: 'pending', date: '2024-01-15', amount: '$49' },
-    { id: '#1236', customer: 'Bob Johnson', product: 'USB-C Hub', status: 'processing', date: '2024-01-14', amount: '$79' },
-    { id: '#1237', customer: 'Alice Brown', product: 'Mechanical Keyboard', status: 'completed', date: '2024-01-14', amount: '$159' },
-    { id: '#1238', customer: 'Charlie Wilson', product: 'Monitor Stand', status: 'cancelled', date: '2024-01-13', amount: '$89' },
-  ];
+  // No static data - empty array
+  const orders = [];
 
+  // No static data - all zeros
   const stats = [
     {
       icon: <DollarSign size={24} />,
       title: 'Total Revenue',
-      value: '$12,453',
-      change: '+12.5%',
+      value: '$0',
+      change: '+0%',
       isPositive: true,
       color: 'from-violet-500 to-purple-600'
     },
     {
       icon: <ShoppingCart size={24} />,
       title: 'Total Orders',
-      value: '156',
-      change: '+8.2%',
+      value: '0',
+      change: '+0%',
       isPositive: true,
       color: 'from-blue-500 to-cyan-600'
     },
     {
       icon: <Users size={24} />,
       title: 'Customers',
-      value: '89',
-      change: '+15.3%',
+      value: '0',
+      change: '+0%',
       isPositive: true,
       color: 'from-pink-500 to-rose-600'
     },
     {
       icon: <Calendar size={24} />,
       title: 'Pending',
-      value: '23',
-      change: '-3.1%',
-      isPositive: false,
+      value: '0',
+      change: '+0%',
+      isPositive: true,
       color: 'from-amber-500 to-orange-600'
     }
   ];
