@@ -6,8 +6,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// In production (live server), store files directly under the Apache public_html path
+// In development (local), keep using the existing ../public/uploads/products path
+const isProduction = process.env.NODE_ENV === 'production';
+const uploadDir = isProduction
+  ? '/home/canzey/public_html/admin.canzey.com/uploads/products/'
+  : path.join(__dirname, '../public/uploads/products/');
+
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../public/uploads/products/');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -15,7 +21,7 @@ if (!fs.existsSync(uploadDir)) {
 // Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../public/uploads/products/'));
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     // Generate unique filename: product-timestamp-random.ext
