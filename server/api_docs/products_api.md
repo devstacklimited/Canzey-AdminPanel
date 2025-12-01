@@ -5,7 +5,9 @@
 https://admin.canzey.com/api/admin/products
 ```
 
-**Authentication Required:** All product endpoints require admin authentication.
+**Authentication:**
+- `GET /api/admin/products` is **public** (no auth) so mobile apps can list products.
+- All **other product endpoints** (get single, create, update, delete, categories) require **admin authentication**.
 
 ---
 
@@ -34,11 +36,11 @@ Content-Type: application/json
 
 ## 1. List All Products
 
-Get all products with images, colors, sizes, tags, etc.
+Get all products with images, colors, sizes, tags, etc. This endpoint is **public**.
 
 - **Method:** `GET`
 - **URL:** `/api/admin/products`
-- **Auth:** Required (Admin)
+- **Auth:** Not required
 
 ### Request Example (Postman)
 
