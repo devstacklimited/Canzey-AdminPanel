@@ -52,14 +52,40 @@ New user creates an account.
     "password": "Test123!",
     "first_name": "John",
     "last_name": "Doe",
-    "phone_number": "+1-555-1234"
+    "phone_number": "+1-555-1234",
+    "date_of_birth": "1995-06-15",
+    "gender": "male"
   }
   ```
 
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | email | string | Yes | User email |
+  | password | string | Yes | Password (min 6 chars) |
+  | first_name | string | Yes | First name |
+  | last_name | string | Yes | Last name |
+  | phone_number | string | No | Phone number |
+  | date_of_birth | date | No | Format: YYYY-MM-DD |
+  | gender | enum | No | `male`, `female`, `other`, `prefer_not_to_say` |
+
 - **You receive**
-  - `success: true`
-  - MySQL customer data
-  - `firebase_uid`
+  ```json
+  {
+    "success": true,
+    "message": "Account created successfully",
+    "user": {
+      "id": 1,
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "user@example.com",
+      "phone_number": "+1-555-1234",
+      "date_of_birth": "1995-06-15",
+      "gender": "male",
+      "firebase_uid": "abc123xyz",
+      "status": "active"
+    }
+  }
+  ```
 
 ---
 
@@ -125,6 +151,8 @@ Here:
       "email": "customer@example.com",
       "phone_number": "+1-555-0123",
       "profile_url": null,
+      "date_of_birth": "1995-06-15",
+      "gender": "male",
       "status": "active",
       "firebase_uid": "ZiHYZ2jqEGZxlUkNNPcgYRmsyai2"
     }
@@ -189,9 +217,20 @@ Save `token` → this is **our JWT**.
   {
     "first_name": "NewName",
     "phone_number": "+1-999-9999",
-    "profile_url": "https://example.com/photo.png"
+    "profile_url": "https://example.com/photo.png",
+    "date_of_birth": "1995-06-15",
+    "gender": "female"
   }
   ```
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | first_name | string | No | First name |
+  | last_name | string | No | Last name |
+  | phone_number | string | No | Phone number |
+  | profile_url | string | No | Profile picture URL |
+  | date_of_birth | date | No | Format: YYYY-MM-DD |
+  | gender | enum | No | `male`, `female`, `other`, `prefer_not_to_say` |
 
 - **You receive**
   ```json
@@ -205,6 +244,8 @@ Save `token` → this is **our JWT**.
       "email": "customer@example.com",
       "phone_number": "+1-999-9999",
       "profile_url": "https://example.com/photo.png",
+      "date_of_birth": "1995-06-15",
+      "gender": "female",
       "status": "active"
     }
   }
@@ -572,6 +613,10 @@ Authorization: Bearer <your-admin-token>
       "sale_price": "899.00",
       "stock_quantity": 50,
       "category": "Electronics",
+      "sub_category": "Smartphones",
+      "for_gender": "Unisex",
+      "is_customized": false,
+      "tags": "New Arrival,Best Seller",
       "main_image_url": "/uploads/products/product-1234567890-123.jpg",
       "status": "active",
       "created_at": "2024-01-15T10:30:00.000Z",
@@ -582,12 +627,32 @@ Authorization: Bearer <your-admin-token>
           "image_url": "/uploads/products/product-1234567890-123.jpg",
           "is_primary": true,
           "sort_order": 0
+        }
+      ],
+      "colors": [
+        {
+          "id": 1,
+          "name": "Black",
+          "code": "#000000",
+          "stock_quantity": 25
         },
         {
           "id": 2,
-          "image_url": "/uploads/products/product-1234567890-456.jpg",
-          "is_primary": false,
-          "sort_order": 1
+          "name": "White",
+          "code": "#FFFFFF",
+          "stock_quantity": 25
+        }
+      ],
+      "sizes": [
+        {
+          "id": 1,
+          "size": "128GB",
+          "stock_quantity": 30
+        },
+        {
+          "id": 2,
+          "size": "256GB",
+          "stock_quantity": 20
         }
       ]
     }
@@ -659,8 +724,31 @@ Create a new product with images uploaded from PC.
 | sale_price | decimal | No | Discounted price |
 | stock_quantity | integer | No | Available quantity |
 | category | string | No | Product category |
+| sub_category | string | No | Product sub-category |
+| for_gender | enum | No | `Men`, `Women`, `Kids`, `Unisex` |
+| is_customized | boolean | No | Whether product is customizable |
+| tags | string | No | Comma-separated tags (e.g., "Summer,New Arrival") |
+| colors | JSON string | No | Array of color objects |
+| sizes | JSON string | No | Array of size objects |
 | status | enum | No | 'active', 'inactive', or 'draft' |
 | images | file[] | No | Up to 10 image files (5MB each) |
+
+### Colors Format (JSON string)
+```json
+[
+  {"name": "Black", "code": "#000000", "stock_quantity": 0},
+  {"name": "White", "code": "#FFFFFF", "stock_quantity": 0}
+]
+```
+
+### Sizes Format (JSON string)
+```json
+[
+  {"size": "S", "stock_quantity": 0},
+  {"size": "M", "stock_quantity": 0},
+  {"size": "L", "stock_quantity": 0}
+]
+```
 
 ### Request Example (Postman)
 
@@ -672,18 +760,23 @@ Create a new product with images uploaded from PC.
    ```
 4. Body → `form-data`:
    ```
-   name: "iPhone 15 Pro"
-   slug: "iphone-15-pro"
-   description: "Latest iPhone with A17 chip"
-   sku: "IP15PRO-001"
-   price: "999"
-   sale_price: "899"
-   stock_quantity: "50"
-   category: "Electronics"
+   name: "Summer T-Shirt"
+   slug: "summer-t-shirt"
+   description: "Comfortable cotton t-shirt"
+   sku: "TSH-001"
+   price: "29.99"
+   sale_price: "24.99"
+   stock_quantity: "100"
+   category: "Clothing"
+   sub_category: "T-Shirts"
+   for_gender: "Men"
+   is_customized: "0"
+   tags: "Summer,New Arrival,Best Seller"
+   colors: '[{"name":"Black","code":"#000000","stock_quantity":0},{"name":"White","code":"#FFFFFF","stock_quantity":0}]'
+   sizes: '[{"size":"S","stock_quantity":0},{"size":"M","stock_quantity":0},{"size":"L","stock_quantity":0}]'
    status: "active"
    images: [Select file 1]
    images: [Select file 2]
-   images: [Select file 3]
    ```
 
 ### Response Example
@@ -818,6 +911,85 @@ When creating/updating products, you can use these category values:
 - Health & Beauty
 - Food & Beverages
 - Other
+
+---
+
+## Product Sub-Categories (Static Options)
+
+**Clothing:**
+- T-Shirts, Shirts, Jeans, Trousers, Dresses, Skirts, Jackets, Sweaters, Shoes, Accessories
+
+**Electronics:**
+- Smartphones, Laptops, Tablets, Headphones, Cameras, Smart Watches
+
+**Home & Garden:**
+- Furniture, Decor, Kitchen, Bedding, Garden Tools
+
+**Sports:**
+- Gym Equipment, Outdoor Gear, Sports Apparel
+
+**Other:**
+- Books, Toys, Beauty, Food, Other
+
+---
+
+## Predefined Tags
+
+Available tags for products:
+- New Arrival
+- Summer
+- Winter
+- Spring
+- Fall
+- Best Seller
+- Trending
+- Sale
+- Limited Edition
+- Exclusive
+
+---
+
+## Predefined Colors
+
+| Color Name | Hex Code |
+|------------|----------|
+| Black | #000000 |
+| White | #FFFFFF |
+| Red | #EF4444 |
+| Blue | #3B82F6 |
+| Navy | #1E3A5F |
+| Green | #22C55E |
+| Yellow | #EAB308 |
+| Orange | #F97316 |
+| Pink | #EC4899 |
+| Purple | #A855F7 |
+| Gray | #6B7280 |
+| Brown | #92400E |
+| Beige | #D4A574 |
+| Maroon | #7F1D1D |
+| Teal | #14B8A6 |
+
+---
+
+## Predefined Sizes
+
+Available sizes for products:
+- XS
+- S
+- M
+- L
+- XL
+- XXL
+- 3XL
+
+---
+
+## Gender Options
+
+- Men
+- Women
+- Kids
+- Unisex
 
 ---
 

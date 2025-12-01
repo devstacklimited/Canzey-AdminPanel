@@ -29,66 +29,84 @@ const Products = () => {
     category: '',
     sub_category: '',
     for_gender: '',
-    is_customized: false
+    is_customized: false,
+    tags: '',
+    colors: [],
+    sizes: []
   });
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setProducts(data.products || []);
+      } else {
+        setToast({ type: 'error', message: 'Failed to fetch products' });
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setToast({ type: 'error', message: 'Error fetching products' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
-    console.log('🔵 [FRONTEND] ========== FETCH PRODUCTS START ==========');
-    console.log('🔵 [FRONTEND] API URL:', API_ENDPOINTS.PRODUCTS.LIST);
-    setLoading(true);
-    try {
-      console.log('🔵 [FRONTEND] Sending request...');
-      const response = await fetch(API_ENDPOINTS.PRODUCTS.LIST, {
-        headers: getAuthHeaders()
-      });
-      const data = await response.json();
-      console.log('🔵 [FRONTEND] Response:', data);
-      console.log('🔵 [FRONTEND] Products count:', data.products?.length || 0);
-      if (data.success) {
-        console.log('✅ [FRONTEND] Setting', data.products.length, 'products');
-        setProducts(data.products || []);
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setToast({ type: 'error', message: 'Failed to fetch products' });
-    } finally {
-      setLoading(false);
-      console.log('🔵 [FRONTEND] ========== FETCH PRODUCTS END ==========');
-    }
-  };
-
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleAddColor = (color) => {
+    setFormData(prev => ({
+      ...prev,
+      colors: [...prev.colors, color]
+    }));
+  };
+
+  const handleRemoveColor = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      colors: prev.colors.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddSize = (sizeData) => {
+    // Accept either string or object { size, stock_quantity }
+    const sizeObj = typeof sizeData === 'string' 
+      ? { size: sizeData, stock_quantity: 0 } 
+      : sizeData;
+    setFormData(prev => ({
+      ...prev,
+      sizes: [...prev.sizes, sizeObj]
+    }));
+  };
+
+  const handleRemoveSize = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter((_, i) => i !== index)
     }));
   };
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    
-    // Limit to 10 images total
-    const totalImages = existingImages.length + selectedImages.length + files.length;
-    if (totalImages > 10) {
-      setToast({ type: 'error', message: 'Maximum 10 images allowed' });
-      return;
-    }
-    
     setSelectedImages(prev => [...prev, ...files]);
-    
-    // Create previews
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviews(prev => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
   const removeNewImage = (index) => {
@@ -98,6 +116,65 @@ const Products = () => {
 
   const removeExistingImage = (index) => {
     setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleStatusToggle = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    setProducts(prev => prev.map(p => 
+      p.id === id ? { ...p, status: newStatus } : p
+    ));
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.UPDATE(id), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      const data = await response.json();
+      if (!data.success) {
+        setProducts(prev => prev.map(p => 
+          p.id === id ? { ...p, status: currentStatus } : p
+        ));
+        setToast({ type: 'error', message: 'Failed to update status' });
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      setProducts(prev => prev.map(p => 
+        p.id === id ? { ...p, status: currentStatus } : p
+      ));
+      setToast({ type: 'error', message: 'Error updating status' });
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.DELETE(id), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setToast({ type: 'success', message: 'Product deleted successfully' });
+        if (showModal) setShowModal(false);
+        fetchProducts();
+      } else {
+        setToast({ type: 'error', message: data.error || 'Failed to delete product' });
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      setToast({ type: 'error', message: 'Error deleting product' });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -128,6 +205,9 @@ const Products = () => {
       formDataToSend.append('sub_category', formData.sub_category || '');
       formDataToSend.append('for_gender', formData.for_gender || '');
       formDataToSend.append('is_customized', formData.is_customized ? '1' : '0');
+      formDataToSend.append('tags', formData.tags || '');
+      formDataToSend.append('colors', JSON.stringify(formData.colors || []));
+      formDataToSend.append('sizes', JSON.stringify(formData.sizes || []));
       
       // Add existing images if editing
       if (editingProduct && existingImages.length > 0) {
@@ -185,7 +265,10 @@ const Products = () => {
       category: product.category || '',
       sub_category: product.sub_category || '',
       for_gender: product.for_gender || '',
-      is_customized: product.is_customized === 1 || product.is_customized === true
+      is_customized: product.is_customized === 1 || product.is_customized === true,
+      tags: product.tags || '',
+      colors: product.colors || [],
+      sizes: product.sizes || []
     });
     
     // Set existing images
@@ -197,84 +280,6 @@ const Products = () => {
     setImagePreviews([]);
     
     setShowModal(true);
-  };
-
-  const handleStatusToggle = async (id, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    
-    // Optimistic update
-    setProducts(prev => prev.map(p => 
-      p.id === id ? { ...p, status: newStatus } : p
-    ));
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(API_ENDPOINTS.PRODUCTS.UPDATE_STATUS(id), {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setToast({
-          type: 'success',
-          message: `Product ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`
-        });
-      } else {
-        // Revert on failure
-        setProducts(prev => prev.map(p => 
-          p.id === id ? { ...p, status: currentStatus } : p
-        ));
-        setToast({
-          type: 'error',
-          message: data.message || 'Failed to update status'
-        });
-      }
-    } catch (error) {
-      console.error('Error updating status:', error);
-      // Revert on error
-      setProducts(prev => prev.map(p => 
-        p.id === id ? { ...p, status: currentStatus } : p
-      ));
-      setToast({
-        type: 'error',
-        message: 'Error updating status'
-      });
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!editingProduct) return;
-    if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
-
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(API_ENDPOINTS.PRODUCTS.DELETE(editingProduct.id), {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setToast({ type: 'success', message: 'Product deleted successfully!' });
-        setShowModal(false);
-        fetchProducts();
-      } else {
-        setToast({ type: 'error', message: data.message || 'Failed to delete product' });
-      }
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      setToast({ type: 'error', message: 'Error deleting product' });
-    } finally {
-      setLoading(false);
-    }
   };
 
   const resetForm = () => {
@@ -290,7 +295,10 @@ const Products = () => {
       category: '',
       sub_category: '',
       for_gender: '',
-      is_customized: false
+      is_customized: false,
+      tags: '',
+      colors: [],
+      sizes: []
     });
     setEditingProduct(null);
     setSelectedImages([]);
@@ -431,6 +439,10 @@ const Products = () => {
           loading={loading}
           isEditing={!!editingProduct}
           onDelete={handleDelete}
+          onAddColor={handleAddColor}
+          onRemoveColor={handleRemoveColor}
+          onAddSize={handleAddSize}
+          onRemoveSize={handleRemoveSize}
         />
       </div>
     </Layout>

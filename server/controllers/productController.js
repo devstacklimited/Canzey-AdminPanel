@@ -21,6 +21,11 @@ export async function listProducts() {
         p.price,
         p.sale_price,
         p.stock_quantity,
+        p.category,
+        p.sub_category,
+        p.for_gender,
+        p.is_customized,
+        p.tags,
         p.main_image_url,
         p.status,
         p.created_at,
@@ -71,12 +76,22 @@ export async function listProducts() {
     `);
 
     console.log('🖼️  [LIST PRODUCTS] Images found:', productImages.length);
-    if (productImages.length > 0) {
-      console.log('🖼️  [LIST PRODUCTS] Sample image:', JSON.stringify({
-        product_id: productImages[0].product_id,
-        image_url: productImages[0].image_url
-      }));
-    }
+
+    // Fetch colors for all products
+    const [productColors] = await connection.execute(`
+      SELECT product_id, id, color_name, color_code, stock_quantity
+      FROM product_colors
+      ORDER BY product_id, id ASC
+    `);
+    console.log('🎨 [LIST PRODUCTS] Colors found:', productColors.length);
+
+    // Fetch sizes for all products
+    const [productSizes] = await connection.execute(`
+      SELECT product_id, id, size, stock_quantity
+      FROM product_sizes
+      ORDER BY product_id, id ASC
+    `);
+    console.log('📏 [LIST PRODUCTS] Sizes found:', productSizes.length);
 
     // Group categories by product
     const categoriesByProduct = {};
@@ -105,11 +120,40 @@ export async function listProducts() {
       });
     }
 
-    // Attach categories and images
+    // Group colors by product
+    const colorsByProduct = {};
+    for (const color of productColors) {
+      if (!colorsByProduct[color.product_id]) {
+        colorsByProduct[color.product_id] = [];
+      }
+      colorsByProduct[color.product_id].push({
+        id: color.id,
+        name: color.color_name,
+        code: color.color_code,
+        stock_quantity: color.stock_quantity,
+      });
+    }
+
+    // Group sizes by product
+    const sizesByProduct = {};
+    for (const size of productSizes) {
+      if (!sizesByProduct[size.product_id]) {
+        sizesByProduct[size.product_id] = [];
+      }
+      sizesByProduct[size.product_id].push({
+        id: size.id,
+        size: size.size,
+        stock_quantity: size.stock_quantity,
+      });
+    }
+
+    // Attach categories, images, colors, sizes
     const result = products.map((p) => ({
       ...p,
       categories: categoriesByProduct[p.id] || [],
       images: imagesByProduct[p.id] || [],
+      colors: colorsByProduct[p.id] || [],
+      sizes: sizesByProduct[p.id] || [],
     }));
 
     console.log('📊 [LIST PRODUCTS] Final result:', result.length, 'products');
@@ -174,6 +218,41 @@ async function upsertProductImages(connection, productId, images = []) {
   );
 }
 
+async function upsertProductColors(connection, productId, colors = []) {
+  await connection.execute('DELETE FROM product_colors WHERE product_id = ?', [productId]);
+
+  if (!Array.isArray(colors) || colors.length === 0) return;
+
+  const values = colors.map((c) => [
+    productId,
+    c.name || c.color_name || null,
+    c.code || c.color_code || null,
+    c.stock_quantity || 0,
+  ]);
+
+  await connection.query(
+    'INSERT INTO product_colors (product_id, color_name, color_code, stock_quantity) VALUES ?;',
+    [values]
+  );
+}
+
+async function upsertProductSizes(connection, productId, sizes = []) {
+  await connection.execute('DELETE FROM product_sizes WHERE product_id = ?', [productId]);
+
+  if (!Array.isArray(sizes) || sizes.length === 0) return;
+
+  const values = sizes.map((s) => [
+    productId,
+    s.size || null,
+    s.stock_quantity || 0,
+  ]);
+
+  await connection.query(
+    'INSERT INTO product_sizes (product_id, size, stock_quantity) VALUES ?;',
+    [values]
+  );
+}
+
 /**
  * Create a new product with categories and images
  */
@@ -197,8 +276,23 @@ export async function createProduct(productData) {
       sub_category = '',
       for_gender = '',
       is_customized = false,
+      tags = [],
       image_urls = [],
     } = productData;
+
+    // Parse colors and sizes if they come as JSON strings (from FormData)
+    let colors = productData.colors || [];
+    let sizes = productData.sizes || [];
+    
+    if (typeof colors === 'string') {
+      try { colors = JSON.parse(colors); } catch (e) { colors = []; }
+    }
+    if (typeof sizes === 'string') {
+      try { sizes = JSON.parse(sizes); } catch (e) { sizes = []; }
+    }
+    
+    console.log('   Parsed colors:', colors);
+    console.log('   Parsed sizes:', sizes);
 
     if (!name || price === undefined) {
       return { success: false, error: 'Name and price are required' };
@@ -208,8 +302,8 @@ export async function createProduct(productData) {
 
     const [result] = await connection.execute(
       `INSERT INTO products 
-       (name, slug, description, sku, price, sale_price, stock_quantity, category, sub_category, for_gender, is_customized, main_image_url, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (name, slug, description, sku, price, sale_price, stock_quantity, category, sub_category, for_gender, is_customized, tags, main_image_url, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         slug || null,
@@ -217,11 +311,12 @@ export async function createProduct(productData) {
         sku || null,
         price,
         sale_price || null,
-        stock_quantity ||0,
+        stock_quantity || 0,
         category || null,
         sub_category || null,
         for_gender || null,
         is_customized || false,
+        Array.isArray(tags) && tags.length > 0 ? tags.join(',') : (tags || null),
         image_urls[0] || null,
         status,
       ]
@@ -231,6 +326,9 @@ export async function createProduct(productData) {
 
     // Images
     await upsertProductImages(connection, productId, image_urls);
+
+    await upsertProductColors(connection, productId, colors);
+    await upsertProductSizes(connection, productId, sizes);
 
     await connection.commit();
     connection.release();
@@ -275,10 +373,23 @@ export async function getProductById(productId) {
     }
 
     const product = products[0];
+    const categories = [];
 
-    // We no longer use product_categories table, categories are in the product table
-    // But we keep the structure for compatibility if needed, or just return empty array
-    const categories = []; 
+    const [colors] = await connection.execute(
+      `SELECT id, color_name, color_code, stock_quantity
+       FROM product_colors
+       WHERE product_id = ?
+       ORDER BY id ASC`,
+      [productId]
+    );
+
+    const [sizes] = await connection.execute(
+      `SELECT id, size, stock_quantity
+       FROM product_sizes
+       WHERE product_id = ?
+       ORDER BY id ASC`,
+      [productId]
+    );
 
     const [images] = await connection.execute(
       `SELECT id, image_url, alt_text, is_primary, sort_order
@@ -296,6 +407,8 @@ export async function getProductById(productId) {
         ...product,
         categories,
         images,
+        colors,
+        sizes,
       },
     };
   } catch (error) {
@@ -328,15 +441,27 @@ export async function updateProduct(productId, productData) {
       sub_category = '',
       for_gender = '',
       is_customized = false,
+      tags = [],
       image_urls = [],
     } = productData;
+
+    // Parse colors and sizes if they come as JSON strings (from FormData)
+    let colors = productData.colors || [];
+    let sizes = productData.sizes || [];
+    
+    if (typeof colors === 'string') {
+      try { colors = JSON.parse(colors); } catch (e) { colors = []; }
+    }
+    if (typeof sizes === 'string') {
+      try { sizes = JSON.parse(sizes); } catch (e) { sizes = []; }
+    }
 
     await connection.beginTransaction();
 
     await connection.execute(
       `UPDATE products
        SET name = ?, slug = ?, description = ?, sku = ?, price = ?, sale_price = ?, 
-           stock_quantity = ?, status = ?, category = ?, sub_category = ?, for_gender = ?, is_customized = ?, main_image_url = ?
+           stock_quantity = ?, status = ?, category = ?, sub_category = ?, for_gender = ?, is_customized = ?, tags = ?, main_image_url = ?
        WHERE id = ?`,
       [
         name,
@@ -351,6 +476,7 @@ export async function updateProduct(productId, productData) {
         sub_category || null,
         for_gender || null,
         is_customized || false,
+        Array.isArray(tags) && tags.length > 0 ? tags.join(',') : (tags || null),
         image_urls[0] || null,
         productId,
       ]
@@ -358,6 +484,9 @@ export async function updateProduct(productId, productData) {
 
     // Images
     await upsertProductImages(connection, productId, image_urls);
+
+    await upsertProductColors(connection, productId, colors);
+    await upsertProductSizes(connection, productId, sizes);
 
     await connection.commit();
     connection.release();

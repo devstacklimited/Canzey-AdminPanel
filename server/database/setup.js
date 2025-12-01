@@ -68,6 +68,8 @@ export async function setupDatabase() {
         phone_number VARCHAR(20),
         password_hash VARCHAR(255),
         profile_url VARCHAR(500),
+        date_of_birth DATE,
+        gender ENUM('male', 'female', 'other', 'prefer_not_to_say') DEFAULT NULL,
         status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
         address VARCHAR(500),
         city VARCHAR(100),
@@ -162,6 +164,7 @@ export async function setupDatabase() {
         sub_category VARCHAR(100) DEFAULT NULL,
         for_gender VARCHAR(20) DEFAULT NULL,
         is_customized BOOLEAN DEFAULT FALSE,
+        tags VARCHAR(500) DEFAULT NULL,
         main_image_url VARCHAR(500),
         status ENUM('active', 'inactive', 'draft') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -191,6 +194,35 @@ export async function setupDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     console.log('✅ product_images table ready');
+
+    // Create product_colors table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS product_colors (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        product_id INT NOT NULL,
+        color_name VARCHAR(50) NOT NULL,
+        color_code VARCHAR(7) NOT NULL,
+        stock_quantity INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        INDEX idx_product_id (product_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ product_colors table ready');
+
+    // Create product_sizes table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS product_sizes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        product_id INT NOT NULL,
+        size VARCHAR(20) NOT NULL,
+        stock_quantity INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        INDEX idx_product_id (product_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ product_sizes table ready');
 
     // Create sessions table
     await connection.execute(`

@@ -54,7 +54,7 @@ export async function firebaseCustomerSignUp(userData) {
     console.log('📝 [FIREBASE SIGNUP] Request received');
     console.log('   📊 User data:', { email: userData.email, first_name: userData.first_name, last_name: userData.last_name });
 
-    const { email, password, first_name, last_name, phone_number } = userData;
+    const { email, password, first_name, last_name, phone_number, date_of_birth, gender } = userData;
 
     // Validate required fields
     if (!email || !password || !first_name || !last_name) {
@@ -103,9 +103,9 @@ export async function firebaseCustomerSignUp(userData) {
     console.log('💾 [FIREBASE SIGNUP] Storing customer in MySQL...');
     const [result] = await connection.execute(
       `INSERT INTO customers 
-       (first_name, last_name, email, phone_number, firebase_uid, firebase_email, auth_method, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [first_name, last_name, email, phone_number || null, firebaseUser.uid, email, 'firebase', 'active']
+       (first_name, last_name, email, phone_number, date_of_birth, gender, firebase_uid, firebase_email, auth_method, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [first_name, last_name, email, phone_number || null, date_of_birth || null, gender || null, firebaseUser.uid, email, 'firebase', 'active']
     );
 
     connection.release();
@@ -122,6 +122,8 @@ export async function firebaseCustomerSignUp(userData) {
         last_name,
         email,
         phone_number,
+        date_of_birth,
+        gender,
         firebase_uid: firebaseUser.uid,
         status: 'active',
       },
@@ -187,7 +189,7 @@ export async function firebaseCustomerSignIn(firebaseToken) {
       );
 
       const [newCustomer] = await connection.execute(
-        'SELECT id, first_name, last_name, email, phone_number, profile_url, status FROM customers WHERE id = ?',
+        'SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status FROM customers WHERE id = ?',
         [result.insertId]
       );
 
@@ -237,6 +239,8 @@ export async function firebaseCustomerSignIn(firebaseToken) {
         email: customer.email,
         phone_number: customer.phone_number,
         profile_url: customer.profile_url,
+        date_of_birth: customer.date_of_birth,
+        gender: customer.gender,
         status: customer.status,
         firebase_uid: customer.firebase_uid,
       },

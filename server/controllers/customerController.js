@@ -22,7 +22,7 @@ export async function customerSignIn(email, password) {
 
     const token = jwt.sign({ userId: user.id, email: user.email, userType: 'customer' }, JWT_SECRET, { expiresIn: '24h' });
 
-    return { success: true, token, user: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email, phone_number: user.phone_number, profile_url: user.profile_url, status: user.status } };
+    return { success: true, token, user: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email, phone_number: user.phone_number, profile_url: user.profile_url, date_of_birth: user.date_of_birth, gender: user.gender, status: user.status } };
   } catch (error) {
     console.error('Customer sign in error:', error);
     return { success: false, error: 'Server error during sign in' };
@@ -34,7 +34,7 @@ export async function customerSignIn(email, password) {
  */
 export async function customerSignUp(userData) {
   try {
-    const { first_name, last_name, email, phone_number, password } = userData;
+    const { first_name, last_name, email, phone_number, password, date_of_birth, gender } = userData;
     if (!first_name || !last_name || !email || !password) {
       return { success: false, error: 'First name, last name, email, and password are required' };
     }
@@ -47,10 +47,10 @@ export async function customerSignUp(userData) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const [result] = await connection.execute('INSERT INTO customers (first_name, last_name, email, phone_number, password_hash, status) VALUES (?, ?, ?, ?, ?, ?)', [first_name, last_name, email, phone_number || null, hashedPassword, 'active']);
+    const [result] = await connection.execute('INSERT INTO customers (first_name, last_name, email, phone_number, date_of_birth, gender, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [first_name, last_name, email, phone_number || null, date_of_birth || null, gender || null, hashedPassword, 'active']);
     connection.release();
 
-    return { success: true, message: 'Account created successfully', user: { id: result.insertId, first_name, last_name, email, phone_number, status: 'active' } };
+    return { success: true, message: 'Account created successfully', user: { id: result.insertId, first_name, last_name, email, phone_number, date_of_birth, gender, status: 'active' } };
   } catch (error) {
     console.error('Customer sign up error:', error);
     return { success: false, error: 'Server error during sign up' };
@@ -63,7 +63,7 @@ export async function customerSignUp(userData) {
 export async function getCustomerByToken(userId) {
   try {
     const connection = await pool.getConnection();
-    const [users] = await connection.execute('SELECT id, first_name, last_name, email, phone_number, profile_url, status FROM customers WHERE id = ?', [userId]);
+    const [users] = await connection.execute('SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status FROM customers WHERE id = ?', [userId]);
     connection.release();
     return users.length > 0 ? users[0] : null;
   } catch (error) {
@@ -81,20 +81,20 @@ export async function updateCustomerInfo(userId, updateData) {
     console.log('   👤 User ID:', userId);
     console.log('   📊 Update data:', updateData);
     
-    const { first_name, last_name, phone_number, profile_url } = updateData;
+    const { first_name, last_name, phone_number, profile_url, date_of_birth, gender } = updateData;
     const connection = await pool.getConnection();
     
     console.log('🔄 [UPDATE CUSTOMER] Executing UPDATE query...');
     console.log('   Values:', [first_name || null, last_name || null, phone_number || null, profile_url || null, userId]);
     
     await connection.execute(
-      'UPDATE customers SET first_name = ?, last_name = ?, phone_number = ?, profile_url = ? WHERE id = ?',
-      [first_name || null, last_name || null, phone_number || null, profile_url || null, userId]
+      'UPDATE customers SET first_name = ?, last_name = ?, phone_number = ?, profile_url = ?, date_of_birth = ?, gender = ? WHERE id = ?',
+      [first_name || null, last_name || null, phone_number || null, profile_url || null, date_of_birth || null, gender || null, userId]
     );
     
     console.log('✅ [UPDATE CUSTOMER] UPDATE query successful');
     
-    const [users] = await connection.execute('SELECT id, first_name, last_name, email, phone_number, profile_url, status FROM customers WHERE id = ?', [userId]);
+    const [users] = await connection.execute('SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status FROM customers WHERE id = ?', [userId]);
     connection.release();
     
     console.log('✅ [UPDATE CUSTOMER] Profile updated successfully');
