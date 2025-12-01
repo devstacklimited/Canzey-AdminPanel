@@ -16,9 +16,9 @@ const router = express.Router();
 
 /**
  * GET /api/admin/products
- * List all products (admin)
+ * List all products (public)
  */
-router.get('/', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/', async (req, res) => {
   const result = await listProducts();
 
   if (!result.success) {
