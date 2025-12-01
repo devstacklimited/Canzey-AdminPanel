@@ -111,7 +111,7 @@ router.get('/info', authenticateToken, async (req, res) => {
 
     const connection = await pool.getConnection();
     const [customers] = await connection.execute(
-      'SELECT id, first_name, last_name, email, phone_number, profile_url, status, firebase_uid, created_at, updated_at FROM customers WHERE id = ?',
+      'SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status, firebase_uid, created_at, updated_at FROM customers WHERE id = ?',
       [req.user.userId]
     );
     connection.release();
