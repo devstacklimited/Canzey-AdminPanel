@@ -537,6 +537,12 @@
     cursor: not-allowed;
 }
 
+.form-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
 @media (max-width: 640px) {
     .form-row {
         grid-template-columns: 1fr;

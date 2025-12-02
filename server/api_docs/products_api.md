@@ -69,6 +69,7 @@ Authorization: Bearer <your-admin-token>
       "for_gender": "Unisex",
       "is_customized": false,
       "tags": "New Arrival,Best Seller",
+      "campaign_id": 1,
       "main_image_url": "/uploads/products/product-1234567890-123.jpg",
       "status": "active",
       "created_at": "2024-01-15T10:30:00.000Z",
@@ -186,6 +187,7 @@ Create a new product with images uploaded from PC.
 | for_gender | enum | No | `Men`, `Women`, `Kids`, `Unisex` |
 | is_customized | boolean | No | Whether product is customizable |
 | tags | string | No | Comma-separated tags (e.g., "Summer,New Arrival") |
+| campaign_id | integer | No | ID of the prize/campaign to link this product to (see [Prize Details](#accessing-prize-details-for-a-product)) |
 | colors | JSON string | No | Array of color objects |
 | sizes | JSON string | No | Array of size objects |
 | status | enum | No | 'active', 'inactive', or 'draft' |
@@ -230,6 +232,7 @@ Create a new product with images uploaded from PC.
    for_gender: "Men"
    is_customized: "0"
    tags: "Summer,New Arrival,Best Seller"
+   campaign_id: "1"
    colors: '[{"name":"Black","code":"#000000","stock_quantity":0},{"name":"White","code":"#FFFFFF","stock_quantity":0}]'
    sizes: '[{"size":"S","stock_quantity":0},{"size":"M","stock_quantity":0},{"size":"L","stock_quantity":0}]'
    status: "active"
@@ -469,3 +472,63 @@ Images are served statically:
 ```
 https://admin.canzey.com/uploads/products/product-1234567890-123.jpg
 ```
+
+---
+
+## Accessing Prize Details for a Product
+
+When a product has a `campaign_id`, you can get the prize details by calling the campaigns API.
+
+### Option 1: Get Prize from Campaigns List
+
+```http
+GET https://admin.canzey.com/api/campaigns
+```
+
+Response includes all active prizes with their linked products:
+
+```json
+{
+  "success": true,
+  "campaigns": [
+    {
+      "id": 1,
+      "title": "iPhone 16 Giveaway",
+      "description": "Win a brand new iPhone 16",
+      "image_url": "/uploads/campaigns/campaign-123.jpg",
+      "ticket_price": 10.0,
+      "credits_per_ticket": 50,
+      "products": [
+        {
+          "id": 5,
+          "name": "iPhone 16 Pro Max",
+          "main_image_url": "/uploads/products/product-123.jpg",
+          "price": "1199.00"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Option 2: Match Product's campaign_id
+
+When you have a product with `campaign_id: 1`, find the matching campaign from the campaigns list:
+
+```javascript
+// Flutter/Dart example
+final product = products.firstWhere((p) => p.id == productId);
+if (product.campaignId != null) {
+  final prize = campaigns.firstWhere((c) => c.id == product.campaignId);
+  // prize.title, prize.image_url, prize.ticket_price, etc.
+}
+```
+
+### Product-Prize Relationship Summary
+
+| Relationship | Description |
+|--------------|-------------|
+| Product → Prize | One product can link to **one** prize via `campaign_id` |
+| Prize → Products | One prize can have **multiple** products linked to it |
+| `campaign_id: null` | Product is not linked to any prize |
+| `campaign_id: 1` | Product is linked to prize with id=1 |

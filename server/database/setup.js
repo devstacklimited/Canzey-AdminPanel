@@ -165,6 +165,7 @@ export async function setupDatabase() {
         for_gender VARCHAR(20) DEFAULT NULL,
         is_customized BOOLEAN DEFAULT FALSE,
         tags VARCHAR(500) DEFAULT NULL,
+        campaign_id INT DEFAULT NULL,
         main_image_url VARCHAR(500),
         status ENUM('active', 'inactive', 'draft') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -173,9 +174,23 @@ export async function setupDatabase() {
         INDEX idx_status (status),
         INDEX idx_slug (slug),
         INDEX idx_stock (stock_quantity),
-        INDEX idx_category (category)
+        INDEX idx_category (category),
+        INDEX idx_campaign_id (campaign_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    
+    // Add campaign_id column if it doesn't exist (for existing databases)
+    try {
+      await connection.execute(`
+        ALTER TABLE products ADD COLUMN campaign_id INT DEFAULT NULL AFTER tags
+      `);
+      console.log('✅ Added campaign_id column to products table');
+    } catch (err) {
+      if (err.code !== 'ER_DUP_FIELDNAME') {
+        // Column already exists, ignore
+      }
+    }
+    
     console.log('✅ products table ready');
 
     // Create product_images table
@@ -238,6 +253,21 @@ export async function setupDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     console.log('✅ sessions table ready');
+
+    // Create campaign_images table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS campaign_images (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        campaign_id INT NOT NULL,
+        image_url VARCHAR(500) NOT NULL,
+        is_primary BOOLEAN DEFAULT FALSE,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+        INDEX idx_campaign_id (campaign_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ campaign_images table ready');
 
     // Seed master admin user
     await seedMasterAdmin(connection);

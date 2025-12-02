@@ -55,7 +55,8 @@ const ProductModal = ({
   onAddColor,
   onRemoveColor,
   onAddSize,
-  onRemoveSize
+  onRemoveSize,
+  campaigns = []
 }) => {
   const [newColorName, setNewColorName] = useState('');
   const [newColorCode, setNewColorCode] = useState('#000000');
@@ -338,6 +339,24 @@ const ProductModal = ({
               </button>
             </div>
             </div>
+
+          {/* Link to Prize Section */}
+          <div className="form-group">
+            <label>Link to Prize</label>
+            <select
+              name="campaign_id"
+              value={formData.campaign_id || ''}
+              onChange={onInputChange}
+            >
+              <option value="">No Prize (Not linked)</option>
+              {campaigns.filter(c => c.status === 'active').map((campaign) => (
+                <option key={campaign.id} value={campaign.id}>
+                  {campaign.title}
+                </option>
+              ))}
+            </select>
+            <p className="form-hint">Link this product to a prize. One product can only be linked to one prize.</p>
+          </div>
 
           {/* Tags Section */}
           <div className="form-group">

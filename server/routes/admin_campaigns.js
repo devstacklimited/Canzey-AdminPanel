@@ -9,12 +9,13 @@ const router = express.Router();
  * POST /api/admin/campaigns
  * Create new campaign (admin only)
  */
-router.post('/', authenticateToken, requireAdmin, upload.single('image'), async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, upload.array('images', 5), async (req, res) => {
   try {
-    // Add image path to request body if file was uploaded
+    // Add image paths to request body if files were uploaded
     const campaignData = { ...req.body };
-    if (req.file) {
-      campaignData.image_url = `/uploads/campaigns/${req.file.filename}`;
+    if (req.files && req.files.length > 0) {
+      campaignData.image_url = `/uploads/campaigns/${req.files[0].filename}`;
+      campaignData.image_urls = req.files.map(f => `/uploads/campaigns/${f.filename}`);
     }
 
     const result = await createCampaign(campaignData);
@@ -60,14 +61,15 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
  * PUT /api/admin/campaigns/:id
  * Update campaign (admin only)
  */
-router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, upload.array('images', 5), async (req, res) => {
   try {
     const campaignId = parseInt(req.params.id);
     
-    // Add image path to request body if file was uploaded
+    // Add image paths to request body if files were uploaded
     const updateData = { ...req.body };
-    if (req.file) {
-      updateData.image_url = `/uploads/campaigns/${req.file.filename}`;
+    if (req.files && req.files.length > 0) {
+      updateData.image_url = `/uploads/campaigns/${req.files[0].filename}`;
+      updateData.image_urls = req.files.map(f => `/uploads/campaigns/${f.filename}`);
     }
 
     const result = await updateCampaign(campaignId, updateData);

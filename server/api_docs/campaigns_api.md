@@ -43,23 +43,47 @@ Content-Type: application/json
 **You receive (example)**
 
 ```json
-[
-  {
-    "id": 1,
-    "title": "iPhone 16 Giveaway",
-    "description": "Win a brand new iPhone 16",
-    "image_url": "/uploads/campaigns/campaign-123.jpg",
-    "ticket_price": 10.0,
-    "credits_per_ticket": 50,
-    "max_tickets_per_user": 5,
-    "status": "active",
-    "start_at": "2025-11-01T00:00:00.000Z",
-    "end_at": "2025-11-30T23:59:59.000Z"
-  }
-]
+{
+  "success": true,
+  "campaigns": [
+    {
+      "id": 1,
+      "title": "iPhone 16 Giveaway",
+      "description": "Win a brand new iPhone 16",
+      "image_url": "/uploads/campaigns/campaign-123.jpg",
+      "ticket_price": 10.0,
+      "credits_per_ticket": 50,
+      "max_tickets_per_user": 5,
+      "status": "active",
+      "start_at": "2025-11-01T00:00:00.000Z",
+      "end_at": "2025-11-30T23:59:59.000Z",
+      "products": [
+        {
+          "id": 5,
+          "name": "iPhone 16 Pro Max",
+          "main_image_url": "/uploads/products/product-123.jpg",
+          "price": "1199.00"
+        },
+        {
+          "id": 6,
+          "name": "iPhone 16 Case",
+          "main_image_url": "/uploads/products/product-456.jpg",
+          "price": "49.00"
+        }
+      ]
+    }
+  ]
+}
 ```
 
-Use this data to show **title, image, price, credits per ticket, dates** in Flutter.
+Use this data to show **title, image, price, credits per ticket, dates, and linked products** in Flutter.
+
+### Product-Prize Relationship
+
+- **One Prize can have multiple Products** linked to it.
+- **One Product can only be linked to one Prize** at a time.
+- Products are linked via `campaign_id` field in the products table.
+- When listing campaigns/prizes, the `products` array shows all linked products.
 
 ---
 
@@ -270,3 +294,128 @@ Show detailed wallet history: where credits came from / where they were spent.
 ```
 
 You can use `type` + `description` to show a nice wallet timeline in Flutter.
+
+---
+
+## Admin: Create/Update Prize with Image Upload
+
+These endpoints are for **admin panel** to manage prizes.
+
+### Create Prize (with Image)
+
+- **URL:** `POST https://admin.canzey.com/api/admin/campaigns`
+- **Auth:** Admin JWT required
+- **Content-Type:** `multipart/form-data`
+
+**Request Fields (form-data):**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| title | string | Yes | Prize title |
+| description | text | No | Prize description |
+| image | file | No | Prize image (max 5MB, JPG/PNG/GIF/WEBP) |
+| ticket_price | decimal | Yes | Price per ticket |
+| credits_per_ticket | integer | Yes | Credits earned per ticket |
+| max_tickets_per_user | integer | No | Max tickets one user can buy |
+| status | enum | No | `active`, `inactive`, `closed` (default: active) |
+| start_at | datetime | No | When prize becomes available |
+| end_at | datetime | No | When prize ends |
+
+**Postman Example:**
+
+1. Method: `POST`
+2. URL: `https://admin.canzey.com/api/admin/campaigns`
+3. Headers: `Authorization: Bearer <admin-token>`
+4. Body → `form-data`:
+   ```
+   title: "iPhone 16 Giveaway"
+   description: "Win a brand new iPhone 16 Pro Max"
+   image: [Select file from PC]
+   ticket_price: "10.00"
+   credits_per_ticket: "50"
+   max_tickets_per_user: "5"
+   status: "active"
+   start_at: "2025-12-01T00:00:00"
+   end_at: "2025-12-31T23:59:59"
+   ```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Campaign created successfully",
+  "campaign": {
+    "id": 1,
+    "title": "iPhone 16 Giveaway",
+    "description": "Win a brand new iPhone 16 Pro Max",
+    "image_url": "/uploads/campaigns/campaign-1234567890-123.jpg",
+    "ticket_price": "10.00",
+    "credits_per_ticket": 50,
+    "max_tickets_per_user": 5,
+    "status": "active",
+    "start_at": "2025-12-01T00:00:00",
+    "end_at": "2025-12-31T23:59:59"
+  }
+}
+```
+
+---
+
+### Update Prize (with Image)
+
+- **URL:** `PUT https://admin.canzey.com/api/admin/campaigns/:id`
+- **Auth:** Admin JWT required
+- **Content-Type:** `multipart/form-data`
+
+**Postman Example:**
+
+1. Method: `PUT`
+2. URL: `https://admin.canzey.com/api/admin/campaigns/1`
+3. Headers: `Authorization: Bearer <admin-token>`
+4. Body → `form-data`:
+   ```
+   title: "iPhone 16 Pro Max Giveaway"
+   image: [Select new file to replace image]
+   ticket_price: "15.00"
+   ```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Campaign updated successfully"
+}
+```
+
+---
+
+### Delete Prize
+
+- **URL:** `DELETE https://admin.canzey.com/api/admin/campaigns/:id`
+- **Auth:** Admin JWT required
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Campaign deleted successfully"
+}
+```
+
+---
+
+## Prize Image Details
+
+### Specifications
+- **Max size:** 5MB per image
+- **Allowed types:** JPG, PNG, GIF, WEBP
+- **Storage:** `/uploads/campaigns/`
+- **URL format:** `/uploads/campaigns/campaign-<timestamp>-<random>.jpg`
+
+### Accessing Prize Images
+```
+https://admin.canzey.com/uploads/campaigns/campaign-1234567890-123.jpg
+```

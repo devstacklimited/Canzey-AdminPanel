@@ -26,6 +26,7 @@ export async function listProducts() {
         p.for_gender,
         p.is_customized,
         p.tags,
+        p.campaign_id,
         p.main_image_url,
         p.status,
         p.created_at,
@@ -277,6 +278,7 @@ export async function createProduct(productData) {
       for_gender = '',
       is_customized = false,
       tags = [],
+      campaign_id = null,
       image_urls = [],
     } = productData;
 
@@ -302,8 +304,8 @@ export async function createProduct(productData) {
 
     const [result] = await connection.execute(
       `INSERT INTO products 
-       (name, slug, description, sku, price, sale_price, stock_quantity, category, sub_category, for_gender, is_customized, tags, main_image_url, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (name, slug, description, sku, price, sale_price, stock_quantity, category, sub_category, for_gender, is_customized, tags, campaign_id, main_image_url, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         slug || null,
@@ -317,6 +319,7 @@ export async function createProduct(productData) {
         for_gender || null,
         is_customized || false,
         Array.isArray(tags) && tags.length > 0 ? tags.join(',') : (tags || null),
+        campaign_id || null,
         image_urls[0] || null,
         status,
       ]
@@ -442,6 +445,7 @@ export async function updateProduct(productId, productData) {
       for_gender = '',
       is_customized = false,
       tags = [],
+      campaign_id = null,
       image_urls = [],
     } = productData;
 
@@ -461,7 +465,7 @@ export async function updateProduct(productId, productData) {
     await connection.execute(
       `UPDATE products
        SET name = ?, slug = ?, description = ?, sku = ?, price = ?, sale_price = ?, 
-           stock_quantity = ?, status = ?, category = ?, sub_category = ?, for_gender = ?, is_customized = ?, tags = ?, main_image_url = ?
+           stock_quantity = ?, status = ?, category = ?, sub_category = ?, for_gender = ?, is_customized = ?, tags = ?, campaign_id = ?, main_image_url = ?
        WHERE id = ?`,
       [
         name,
@@ -477,6 +481,7 @@ export async function updateProduct(productId, productData) {
         for_gender || null,
         is_customized || false,
         Array.isArray(tags) && tags.length > 0 ? tags.join(',') : (tags || null),
+        campaign_id || null,
         image_urls[0] || null,
         productId,
       ]

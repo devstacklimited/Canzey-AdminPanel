@@ -9,6 +9,7 @@ import './Products.css';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -31,6 +32,7 @@ const Products = () => {
     for_gender: '',
     is_customized: false,
     tags: '',
+    campaign_id: '',
     colors: [],
     sizes: []
   });
@@ -58,8 +60,24 @@ const Products = () => {
     }
   };
 
+  const fetchCampaigns = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/campaigns', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCampaigns(data.campaigns || []);
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCampaigns();
   }, []);
 
   const handleInputChange = (e) => {
@@ -206,6 +224,7 @@ const Products = () => {
       formDataToSend.append('for_gender', formData.for_gender || '');
       formDataToSend.append('is_customized', formData.is_customized ? '1' : '0');
       formDataToSend.append('tags', formData.tags || '');
+      formDataToSend.append('campaign_id', formData.campaign_id || '');
       formDataToSend.append('colors', JSON.stringify(formData.colors || []));
       formDataToSend.append('sizes', JSON.stringify(formData.sizes || []));
       
@@ -267,6 +286,7 @@ const Products = () => {
       for_gender: product.for_gender || '',
       is_customized: product.is_customized === 1 || product.is_customized === true,
       tags: product.tags || '',
+      campaign_id: product.campaign_id || '',
       colors: product.colors || [],
       sizes: product.sizes || []
     });
@@ -297,6 +317,7 @@ const Products = () => {
       for_gender: '',
       is_customized: false,
       tags: '',
+      campaign_id: '',
       colors: [],
       sizes: []
     });
@@ -443,6 +464,7 @@ const Products = () => {
           onRemoveColor={handleRemoveColor}
           onAddSize={handleAddSize}
           onRemoveSize={handleRemoveSize}
+          campaigns={campaigns}
         />
       </div>
     </Layout>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
 import CampaignDetailModal from '../../components/CampaignDetailModal/CampaignDetailModal';
-import { Plus, Eye } from 'lucide-react';
+import { Plus, Eye, X } from 'lucide-react';
+import { getImageUrl } from '../../config/api';
 import './Campaigns.css';
 
 const Campaigns = () => {
@@ -19,8 +20,9 @@ const Campaigns = () => {
     start_at: '',
     end_at: ''
   });
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
 
@@ -60,19 +62,29 @@ const Campaigns = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedImage(file);
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setSelectedImage(null);
-      setImagePreview(null);
+    const files = Array.from(e.target.files);
+    const totalImages = existingImages.length + selectedImages.length + files.length;
+    
+    if (totalImages > 5) {
+      alert('Maximum 5 images allowed');
+      return;
     }
+    
+    // Add new files
+    setSelectedImages(prev => [...prev, ...files]);
+    
+    // Create previews
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removeNewImage = (index) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -97,10 +109,15 @@ const Campaigns = () => {
       formDataToSend.append('start_at', formData.start_at || '');
       formDataToSend.append('end_at', formData.end_at || '');
       
-      // Add image file if selected
-      if (selectedImage) {
-        formDataToSend.append('image', selectedImage);
+      // Add existing images if editing
+      if (editingCampaign && existingImages.length > 0) {
+        formDataToSend.append('existing_images', JSON.stringify(existingImages));
       }
+      
+      // Add new image files
+      selectedImages.forEach(file => {
+        formDataToSend.append('images', file);
+      });
       
       const response = await fetch(url, {
         method,
@@ -124,8 +141,9 @@ const Campaigns = () => {
           start_at: '',
           end_at: ''
         });
-        setSelectedImage(null);
-        setImagePreview(null);
+        setSelectedImages([]);
+        setImagePreviews([]);
+        setExistingImages([]);
       } else {
         const error = await response.json();
         alert(`Error: ${error.message}`);
@@ -148,8 +166,11 @@ const Campaigns = () => {
       start_at: campaign.start_at ? new Date(campaign.start_at).toISOString().slice(0, 16) : '',
       end_at: campaign.end_at ? new Date(campaign.end_at).toISOString().slice(0, 16) : ''
     });
-    setSelectedImage(null);
-    setImagePreview(campaign.image_url || null);
+    setSelectedImages([]);
+    setImagePreviews([]);
+    // Set existing images from campaign
+    const existingImgUrls = campaign.images?.map(img => img.image_url) || (campaign.image_url ? [campaign.image_url] : []);
+    setExistingImages(existingImgUrls);
     setShowModal(true);
   };
 
@@ -192,8 +213,9 @@ const Campaigns = () => {
       start_at: '',
       end_at: ''
     });
-    setSelectedImage(null);
-    setImagePreview(null);
+    setSelectedImages([]);
+    setImagePreviews([]);
+    setExistingImages([]);
     setShowModal(true);
   };
 
@@ -238,10 +260,10 @@ const Campaigns = () => {
     <Layout>
       <div className="campaigns-container">
       <div className="campaigns-header">
-        <h1>Campaign Management</h1>
+        <h1>Prize Management</h1>
         <button className="btn-primary" onClick={openCreateModal}>
           <Plus size={16} />
-          Create New Campaign
+          Create New Prize
         </button>
       </div>
 
@@ -249,6 +271,7 @@ const Campaigns = () => {
         <table className="campaigns-table">
           <thead>
             <tr>
+              <th>Image</th>
               <th>Title</th>
               <th>Start Date</th>
               <th>End Date</th>
@@ -259,6 +282,15 @@ const Campaigns = () => {
           <tbody>
             {campaigns.map((campaign) => (
               <tr key={campaign.id}>
+                <td>
+                  <div className="campaign-image-cell">
+                    {campaign.image_url ? (
+                      <img src={getImageUrl(campaign.image_url)} alt={campaign.title} className="campaign-thumbnail" />
+                    ) : (
+                      <div className="campaign-no-image">No Image</div>
+                    )}
+                  </div>
+                </td>
                 <td>
                   <div className="campaign-title-cell">
                     <strong>{campaign.title}</strong>
@@ -287,7 +319,7 @@ const Campaigns = () => {
         
         {campaigns.length === 0 && (
           <div className="no-campaigns">
-            <p>No campaigns found. Create your first campaign!</p>
+            <p>No prizes found. Create your first prize!</p>
           </div>
         )}
       </div>
@@ -296,7 +328,7 @@ const Campaigns = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>{editingCampaign ? 'Edit Campaign' : 'Create New Campaign'}</h2>
+              <h2>{editingCampaign ? 'Edit Prize' : 'Create New Prize'}</h2>
               <button 
                 className="modal-close" 
                 onClick={() => setShowModal(false)}
@@ -330,27 +362,65 @@ const Campaigns = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="image">Campaign Image</label>
-                <input
-                  type="file"
-                  id="image"
-                  name="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="file-input"
-                />
-                {imagePreview && (
-                  <div className="image-preview">
-                    <img 
-                      src={imagePreview} 
-                      alt="Campaign preview" 
-                      className="form-image-preview"
+                <label>Prize Images (Max 5)</label>
+                
+                {/* Existing Images */}
+                {existingImages.length > 0 && (
+                  <div className="images-grid">
+                    <p className="images-label">Current Images:</p>
+                    <div className="image-previews">
+                      {existingImages.map((imgUrl, index) => (
+                        <div key={`existing-${index}`} className="image-preview-item">
+                          <img src={getImageUrl(imgUrl)} alt={`Prize ${index + 1}`} />
+                          <button
+                            type="button"
+                            className="remove-image-btn"
+                            onClick={() => removeExistingImage(index)}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* New Image Previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="images-grid">
+                    <p className="images-label">New Images:</p>
+                    <div className="image-previews">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={`new-${index}`} className="image-preview-item">
+                          <img src={preview} alt={`New ${index + 1}`} />
+                          <button
+                            type="button"
+                            className="remove-image-btn"
+                            onClick={() => removeNewImage(index)}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* File Input */}
+                {(existingImages.length + selectedImages.length) < 5 && (
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      id="images"
+                      name="images"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageChange}
+                      className="file-input"
                     />
-                    {selectedImage && (
-                      <p className="file-info">
-                        Selected: {selectedImage.name} ({(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
-                      </p>
-                    )}
+                    <label htmlFor="images" className="file-input-label">
+                      Choose Images ({5 - existingImages.length - selectedImages.length} remaining)
+                    </label>
                   </div>
                 )}
               </div>
@@ -442,7 +512,7 @@ const Campaigns = () => {
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  {editingCampaign ? 'Update Campaign' : 'Create Campaign'}
+                  {editingCampaign ? 'Update Prize' : 'Create Prize'}
                 </button>
               </div>
             </form>

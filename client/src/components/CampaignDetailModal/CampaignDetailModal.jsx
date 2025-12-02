@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Edit, Calendar, DollarSign, Award, Users, Image as ImageIcon } from 'lucide-react';
+import { getImageUrl } from '../../config/api';
 import './CampaignDetailModal.css';
 
 const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) => {
@@ -45,7 +46,7 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
             <button 
               className="btn-edit-detail" 
               onClick={() => onEdit(campaign)}
-              title="Edit Campaign"
+              title="Edit Prize"
             >
               <Edit size={16} />
             </button>
@@ -61,11 +62,23 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
 
         {/* Content */}
         <div className="detail-modal-content">
-          {/* Campaign Image */}
+          {/* Prize Images */}
           <div className="detail-image-section">
-            {campaign.image_url && !imageError ? (
+            {/* Show all images if available */}
+            {campaign.images && campaign.images.length > 0 ? (
+              <div className="detail-images-gallery">
+                {campaign.images.map((img, index) => (
+                  <img 
+                    key={img.id || index}
+                    src={getImageUrl(img.image_url)} 
+                    alt={`${campaign.title} ${index + 1}`}
+                    className="detail-campaign-image"
+                  />
+                ))}
+              </div>
+            ) : campaign.image_url && !imageError ? (
               <img 
-                src={campaign.image_url} 
+                src={getImageUrl(campaign.image_url)} 
                 alt={campaign.title}
                 className="detail-campaign-image"
                 onError={handleImageError}
@@ -140,7 +153,7 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
             {/* Description */}
             {campaign.description && (
               <div className="detail-description">
-                <div className="detail-info-label">Description</div>
+                <div className="detail-info-label">Prize Description</div>
                 <div className="detail-description-text">{campaign.description}</div>
               </div>
             )}
@@ -165,14 +178,14 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
             className="btn-delete-detail" 
             onClick={() => onDelete(campaign.id)}
           >
-            Delete Campaign
+            Delete Prize
           </button>
           <button 
             className="btn-edit-primary" 
             onClick={() => onEdit(campaign)}
           >
             <Edit size={16} />
-            Edit Campaign
+            Edit Prize
           </button>
         </div>
       </div>
