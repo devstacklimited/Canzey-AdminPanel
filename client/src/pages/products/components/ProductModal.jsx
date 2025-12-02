@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Package, Trash2 } from 'lucide-react';
+import { X, Package, Trash2, Trophy, ChevronDown } from 'lucide-react';
 import { getImageUrl } from '../../../config/api';
 import './ProductModal.css';
 
@@ -61,6 +61,18 @@ const ProductModal = ({
   const [newColorName, setNewColorName] = useState('');
   const [newColorCode, setNewColorCode] = useState('#000000');
   const [newSize, setNewSize] = useState('');
+  const [showPrizeDropdown, setShowPrizeDropdown] = useState(false);
+
+  // Get selected prize details
+  const getSelectedPrize = () => {
+    if (!formData.campaign_id) return null;
+    return campaigns.find(c => c.id === parseInt(formData.campaign_id));
+  };
+
+  const handlePrizeSelect = (campaignId) => {
+    onInputChange({ target: { name: 'campaign_id', value: campaignId } });
+    setShowPrizeDropdown(false);
+  };
 
   // Check if color is already added
   const isColorAdded = (colorName) => {
@@ -343,18 +355,81 @@ const ProductModal = ({
           {/* Link to Prize Section */}
           <div className="form-group">
             <label>Link to Prize</label>
-            <select
-              name="campaign_id"
-              value={formData.campaign_id || ''}
-              onChange={onInputChange}
-            >
-              <option value="">No Prize (Not linked)</option>
-              {campaigns.filter(c => c.status === 'active').map((campaign) => (
-                <option key={campaign.id} value={campaign.id}>
-                  {campaign.title}
-                </option>
-              ))}
-            </select>
+            <div className="prize-selector">
+              {/* Selected Prize Display */}
+              <div 
+                className="prize-selector-trigger"
+                onClick={() => setShowPrizeDropdown(!showPrizeDropdown)}
+              >
+                {getSelectedPrize() ? (
+                  <div className="prize-selected">
+                    {getSelectedPrize().image_url ? (
+                      <img 
+                        src={getImageUrl(getSelectedPrize().image_url)} 
+                        alt={getSelectedPrize().title}
+                        className="prize-thumb"
+                      />
+                    ) : (
+                      <div className="prize-thumb-placeholder">
+                        <Trophy size={16} />
+                      </div>
+                    )}
+                    <span className="prize-name">{getSelectedPrize().title}</span>
+                  </div>
+                ) : (
+                  <div className="prize-placeholder">
+                    <Trophy size={16} />
+                    <span>Select a Prize (Optional)</span>
+                  </div>
+                )}
+                <ChevronDown size={18} className={`prize-chevron ${showPrizeDropdown ? 'open' : ''}`} />
+              </div>
+
+              {/* Dropdown Options */}
+              {showPrizeDropdown && (
+                <div className="prize-dropdown">
+                  {/* No Prize Option */}
+                  <div 
+                    className={`prize-option ${!formData.campaign_id ? 'selected' : ''}`}
+                    onClick={() => handlePrizeSelect('')}
+                  >
+                    <div className="prize-thumb-placeholder">
+                      <X size={16} />
+                    </div>
+                    <span>No Prize (Not linked)</span>
+                  </div>
+
+                  {/* Active Prizes */}
+                  {campaigns.filter(c => c.status === 'active').map((campaign) => (
+                    <div 
+                      key={campaign.id}
+                      className={`prize-option ${formData.campaign_id == campaign.id ? 'selected' : ''}`}
+                      onClick={() => handlePrizeSelect(campaign.id)}
+                    >
+                      {campaign.image_url ? (
+                        <img 
+                          src={getImageUrl(campaign.image_url)} 
+                          alt={campaign.title}
+                          className="prize-thumb"
+                        />
+                      ) : (
+                        <div className="prize-thumb-placeholder">
+                          <Trophy size={16} />
+                        </div>
+                      )}
+                      <div className="prize-option-info">
+                        <span className="prize-option-title">{campaign.title}</span>
+                        <span className="prize-option-price">${campaign.ticket_price} per ticket</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {campaigns.filter(c => c.status === 'active').length === 0 && (
+                    <div className="prize-no-options">No active prizes available</div>
+                  )}
+                </div>
+              )}
+            </div>
             <p className="form-hint">Link this product to a prize. One product can only be linked to one prize.</p>
           </div>
 

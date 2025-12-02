@@ -543,6 +543,136 @@
     margin-top: 4px;
 }
 
+/* Prize Selector Styles */
+.prize-selector {
+    position: relative;
+}
+
+.prize-selector-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.prize-selector-trigger:hover {
+    border-color: #3B82F6;
+}
+
+.prize-selected,
+.prize-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.prize-placeholder {
+    color: var(--text-secondary);
+}
+
+.prize-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+.prize-thumb-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
+
+.prize-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.prize-chevron {
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+}
+
+.prize-chevron.open {
+    transform: rotate(180deg);
+}
+
+.prize-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.prize-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.prize-option:last-child {
+    border-bottom: none;
+}
+
+.prize-option:hover {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.prize-option.selected {
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.prize-option.selected .prize-option-title {
+    color: #3B82F6;
+    font-weight: 600;
+}
+
+.prize-option-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.prize-option-title {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.prize-option-price {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.prize-no-options {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
 @media (max-width: 640px) {
     .form-row {
         grid-template-columns: 1fr;
