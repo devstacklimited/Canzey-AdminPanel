@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../public/uploads/campaigns/');
+// Ensure upload directory exists (can be overridden by env)
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../public/uploads/campaigns/');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -15,7 +15,8 @@ if (!fs.existsSync(uploadDir)) {
 // Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../public/uploads/campaigns/'));
+    const dir = process.env.UPLOAD_DIR || path.join(__dirname, '../public/uploads/campaigns/');
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
     // Generate unique filename: timestamp-originalname

@@ -57,6 +57,20 @@ Content-Type: application/json
       "status": "active",
       "start_at": "2025-11-01T00:00:00.000Z",
       "end_at": "2025-11-30T23:59:59.000Z",
+      "images": [
+        {
+          "id": 10,
+          "image_url": "/uploads/campaigns/campaign-123.jpg",
+          "is_primary": true,
+          "sort_order": 0
+        },
+        {
+          "id": 11,
+          "image_url": "/uploads/campaigns/campaign-123-side.jpg",
+          "is_primary": false,
+          "sort_order": 1
+        }
+      ],
       "products": [
         {
           "id": 5,
@@ -76,7 +90,7 @@ Content-Type: application/json
 }
 ```
 
-Use this data to show **title, image, price, credits per ticket, dates, and linked products** in Flutter.
+Use this data to show **title, main image, extra gallery images, price, credits per ticket, dates, and linked products** in Flutter.
 
 ### Product-Prize Relationship
 
@@ -84,6 +98,7 @@ Use this data to show **title, image, price, credits per ticket, dates, and link
 - **One Product can only be linked to one Prize** at a time.
 - Products are linked via `campaign_id` field in the products table.
 - When listing campaigns/prizes, the `products` array shows all linked products.
+- Use the `images` array to show a **gallery** for each prize.
 
 ---
 
@@ -301,7 +316,12 @@ You can use `type` + `description` to show a nice wallet timeline in Flutter.
 
 These endpoints are for **admin panel** to manage prizes.
 
-### Create Prize (with Image)
+Prizes now support **up to 5 images** each:
+
+- First image becomes `image_url` (main image) on the campaign row
+- All images are stored in `campaign_images` table and returned in `images` array
+
+### Create Prize (with Multiple Images)
 
 - **URL:** `POST https://admin.canzey.com/api/admin/campaigns`
 - **Auth:** Admin JWT required
@@ -313,7 +333,7 @@ These endpoints are for **admin panel** to manage prizes.
 |-------|------|----------|-------------|
 | title | string | Yes | Prize title |
 | description | text | No | Prize description |
-| image | file | No | Prize image (max 5MB, JPG/PNG/GIF/WEBP) |
+| images | file[] | No | Up to 5 prize images (max 5MB each, JPG/PNG/GIF/WEBP) |
 | ticket_price | decimal | Yes | Price per ticket |
 | credits_per_ticket | integer | Yes | Credits earned per ticket |
 | max_tickets_per_user | integer | No | Max tickets one user can buy |
@@ -330,7 +350,8 @@ These endpoints are for **admin panel** to manage prizes.
    ```
    title: "iPhone 16 Giveaway"
    description: "Win a brand new iPhone 16 Pro Max"
-   image: [Select file from PC]
+   images: [Select file 1 from PC]
+   images: [Select file 2 from PC]
    ticket_price: "10.00"
    credits_per_ticket: "50"
    max_tickets_per_user: "5"
@@ -355,18 +376,38 @@ These endpoints are for **admin panel** to manage prizes.
     "max_tickets_per_user": 5,
     "status": "active",
     "start_at": "2025-12-01T00:00:00",
-    "end_at": "2025-12-31T23:59:59"
+    "end_at": "2025-12-31T23:59:59",
+    "images": [
+      {
+        "id": 10,
+        "image_url": "/uploads/campaigns/campaign-1234567890-123.jpg",
+        "is_primary": true,
+        "sort_order": 0
+      }
+    ]
   }
 }
 ```
 
 ---
 
-### Update Prize (with Image)
+### Update Prize (with Multiple Images)
 
 - **URL:** `PUT https://admin.canzey.com/api/admin/campaigns/:id`
 - **Auth:** Admin JWT required
 - **Content-Type:** `multipart/form-data`
+
+You can:
+
+- Keep some existing images
+- Remove some images
+- Add new images (up to total of 5)
+
+**Extra Field:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| existing_images | JSON string | No | Array of existing image URLs to keep |
 
 **Postman Example:**
 
@@ -376,8 +417,9 @@ These endpoints are for **admin panel** to manage prizes.
 4. Body → `form-data`:
    ```
    title: "iPhone 16 Pro Max Giveaway"
-   image: [Select new file to replace image]
    ticket_price: "15.00"
+   existing_images: "[\"/uploads/campaigns/campaign-1234567890-123.jpg\"]"
+   images: [Select new file to add another image]
    ```
 
 **Response:**
@@ -410,12 +452,30 @@ These endpoints are for **admin panel** to manage prizes.
 ## Prize Image Details
 
 ### Specifications
+- **Max files:** 5 images per prize
 - **Max size:** 5MB per image
 - **Allowed types:** JPG, PNG, GIF, WEBP
-- **Storage:** `/uploads/campaigns/`
+- **Storage (production):** `/uploads/campaigns/`
 - **URL format:** `/uploads/campaigns/campaign-<timestamp>-<random>.jpg`
 
+### Fields
+
+- `image_url` (string)
+  - Main image URL stored on `campaigns` table
+  - Always equals the first image in `images` array (primary)
+
+- `images` (array)
+  - All images for this prize from `campaign_images` table
+  - Each item has: `id`, `image_url`, `is_primary`, `sort_order`
+
 ### Accessing Prize Images
-```
+
+```text
 https://admin.canzey.com/uploads/campaigns/campaign-1234567890-123.jpg
 ```
+
+In mobile / frontend apps you usually:
+
+- Use `image_url` for main thumbnail / banner
+- Use `images` array to show a carousel / gallery
+

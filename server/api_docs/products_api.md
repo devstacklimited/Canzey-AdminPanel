@@ -38,6 +38,11 @@ Content-Type: application/json
 
 Get all products with images, colors, sizes, tags, etc. This endpoint is **public**.
 
+Each product can be **optionally linked to a Prize** via `campaign_id`:
+
+- `campaign_id: null` → product is **not linked** to any prize
+- `campaign_id: 3` → product is linked to prize with id **3** (see Campaigns/Prize API)
+
 - **Method:** `GET`
 - **URL:** `/api/admin/products`
 - **Auth:** Not required
@@ -149,6 +154,7 @@ Authorization: Bearer <your-admin-token>
     "for_gender": "Unisex",
     "is_customized": false,
     "tags": "New Arrival,Best Seller",
+    "campaign_id": 1,
     "main_image_url": "/uploads/products/product-1234567890-123.jpg",
     "status": "active",
     "created_at": "2024-01-15T10:30:00.000Z",
@@ -477,15 +483,15 @@ https://admin.canzey.com/uploads/products/product-1234567890-123.jpg
 
 ## Accessing Prize Details for a Product
 
-When a product has a `campaign_id`, you can get the prize details by calling the campaigns API.
+When a product has a `campaign_id`, you can get full prize details (including **multiple images** and **linked products**) from the Campaigns/Prize API.
 
-### Option 1: Get Prize from Campaigns List
+### 1. Get All Active Prizes with Linked Products
 
 ```http
 GET https://admin.canzey.com/api/campaigns
 ```
 
-Response includes all active prizes with their linked products:
+Response includes all active prizes with their products and images:
 
 ```json
 {
@@ -498,6 +504,20 @@ Response includes all active prizes with their linked products:
       "image_url": "/uploads/campaigns/campaign-123.jpg",
       "ticket_price": 10.0,
       "credits_per_ticket": 50,
+      "images": [
+        {
+          "id": 10,
+          "image_url": "/uploads/campaigns/campaign-123.jpg",
+          "is_primary": true,
+          "sort_order": 0
+        },
+        {
+          "id": 11,
+          "image_url": "/uploads/campaigns/campaign-123-side.jpg",
+          "is_primary": false,
+          "sort_order": 1
+        }
+      ],
       "products": [
         {
           "id": 5,
@@ -511,16 +531,25 @@ Response includes all active prizes with their linked products:
 }
 ```
 
-### Option 2: Match Product's campaign_id
+### 2. Match a Product to Its Prize
 
-When you have a product with `campaign_id: 1`, find the matching campaign from the campaigns list:
+When you have a product with `campaign_id`, match it to a campaign from the list above.
 
-```javascript
+```dart
 // Flutter/Dart example
 final product = products.firstWhere((p) => p.id == productId);
+
 if (product.campaignId != null) {
   final prize = campaigns.firstWhere((c) => c.id == product.campaignId);
-  // prize.title, prize.image_url, prize.ticket_price, etc.
+
+  // Prize main image
+  final String mainPrizeImage = prize.imageUrl; // or prize.images.first.imageUrl
+
+  // Prize gallery images
+  final List images = prize.images; // show as carousel
+
+  // Linked products under this prize
+  final List linkedProducts = prize.products;
 }
 ```
 
@@ -532,3 +561,4 @@ if (product.campaignId != null) {
 | Prize → Products | One prize can have **multiple** products linked to it |
 | `campaign_id: null` | Product is not linked to any prize |
 | `campaign_id: 1` | Product is linked to prize with id=1 |
+
