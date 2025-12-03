@@ -4,6 +4,14 @@
 
 .customers-header {
   margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  display: flex;
+  flex-direction: column;
 }
 
 .customers-header h1 {

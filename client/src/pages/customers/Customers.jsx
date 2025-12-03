@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../../components/layout/Layout';
-import { CheckCircle, XCircle, Search, Filter, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, Search, Filter, Eye, Plus } from 'lucide-react';
 import { API_ENDPOINTS, getAuthHeaders } from '../../config/api';
 import CustomerModal from './components/CustomerModal';
 import './Customers.css';
@@ -70,6 +70,15 @@ const Customers = () => {
     setShowModal(true);
   };
 
+  const handleAddCustomer = () => {
+    setSelectedCustomer(null); // Null means create mode
+    setShowModal(true);
+  };
+
+  const handleCreateCustomer = (newCustomer) => {
+    setCustomers(prev => [newCustomer, ...prev]);
+  };
+
   const handleUpdateCustomer = (updatedCustomer) => {
     setCustomers(prev => prev.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
   };
@@ -78,8 +87,14 @@ const Customers = () => {
     <Layout>
       <div className="customers-container">
         <div className="customers-header">
-          <h1>Canzey Customers</h1>
-          <p>Manage your customer base</p>
+          <div className="header-title">
+            <h1>Canzey Customers</h1>
+            <p>Manage your customer base</p>
+          </div>
+          <button className="btn-primary" onClick={handleAddCustomer}>
+            <Plus size={16} />
+            Add Customer
+          </button>
         </div>
 
         <div className="customers-filters">
@@ -166,10 +181,11 @@ const Customers = () => {
       </div>
 
       {showModal && (
-        <CustomerModal 
-          customer={selectedCustomer} 
-          onClose={() => setShowModal(false)} 
+        <CustomerModal
+          customer={selectedCustomer}
+          onClose={() => setShowModal(false)}
           onUpdate={handleUpdateCustomer}
+          onCreate={handleCreateCustomer}
         />
       )}
     </Layout>

@@ -9,6 +9,7 @@ import {
   updateCustomer,
   updateCustomerStatus
 } from '../controllers/adminController.js';
+import { firebaseCustomerSignUp } from '../controllers/firebaseCustomerController.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -93,6 +94,46 @@ router.get('/customers', authenticateToken, requireAdmin, async (req, res) => {
   res.json({
     success: true,
     customers: result.customers,
+  });
+});
+
+/**
+ * POST /api/admin/customers
+ * Create new customer (admin only)
+ * Creates Firebase user and MySQL record
+ */
+router.post('/customers', authenticateToken, requireAdmin, async (req, res) => {
+  const { email, password, first_name, last_name, phone_number, date_of_birth, gender } = req.body;
+
+  // Basic validation
+  if (!email || !password || !first_name || !last_name) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email, password, first name, and last name are required'
+    });
+  }
+
+  const result = await firebaseCustomerSignUp({
+    email,
+    password,
+    first_name,
+    last_name,
+    phone_number,
+    date_of_birth,
+    gender
+  });
+
+  if (!result.success) {
+    return res.status(400).json({
+      success: false,
+      message: result.error
+    });
+  }
+
+  res.status(201).json({
+    success: true,
+    message: 'Customer created successfully',
+    customer: result.user
   });
 });
 
