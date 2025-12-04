@@ -262,71 +262,79 @@ Profile images are stored on **our server** at `/uploads/customers/`. Both admin
 
 ### 1. Where images are stored
 
-- **Server folder:** `/uploads/customers/`
+- **Server folder:** `public/uploads/customers/`
 - **Full URL format:** `https://admin.canzey.com/uploads/customers/customer-<timestamp>.jpg`
 - The `profile_url` field in API responses contains the **relative path**, e.g. `/uploads/customers/customer-123456.jpg`
 
-### 2. How Admin uploads profile image
+---
 
-In the **Canzey Customers** page:
-1. Click **Details** on any customer.
-2. Under **Profile Image**, click the file picker.
-3. Choose an image from your computer.
-4. Image uploads to server automatically.
-5. `profile_url` is set and preview updates.
+### 2. How Flutter DISPLAYS profile image
 
-**Backend endpoint used:**
-```http
-POST https://admin.canzey.com/api/admin/customers/:id/avatar
-Content-Type: multipart/form-data
-Authorization: Bearer <admin-jwt-token>
-
-Form field: avatar (file)
-```
-
-### 3. How Flutter displays profile image
-
-When you call any of these endpoints:
+When you call any of these endpoints, the response includes `profile_url`:
 - `POST /signin`
 - `GET /info`
 - `PUT /edit`
+- `POST /avatar`
 
-The response contains:
-
+**Example Response:**
 ```json
 {
+  "success": true,
   "user": {
     "id": 1,
     "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
     "profile_url": "/uploads/customers/customer-1234567890.jpg",
-    ...
+    "status": "active"
   }
 }
 ```
 
-**Flutter code to display:**
+**Flutter code to display profile image:**
 
 ```dart
-final baseUrl = 'https://admin.canzey.com';
-final profileUrl = user.profileUrl; // e.g. "/uploads/customers/customer-123.jpg"
+// Constants
+const String baseUrl = 'https://admin.canzey.com';
 
-// Build full URL
-final fullImageUrl = profileUrl != null && profileUrl.isNotEmpty
-    ? (profileUrl.startsWith('http') ? profileUrl : '$baseUrl$profileUrl')
-    : null;
+// Build full image URL from profile_url
+String? getFullImageUrl(String? profileUrl) {
+  if (profileUrl == null || profileUrl.isEmpty) return null;
+  if (profileUrl.startsWith('http')) return profileUrl;
+  return '$baseUrl$profileUrl';
+}
 
-// Display
-if (fullImageUrl != null) {
-  Image.network(fullImageUrl);
-} else {
-  // Show placeholder/initials
+// Usage in Widget
+Widget buildProfileImage(User user) {
+  final imageUrl = getFullImageUrl(user.profileUrl);
+  
+  if (imageUrl != null) {
+    return CircleAvatar(
+      radius: 40,
+      backgroundImage: NetworkImage(imageUrl),
+      onBackgroundImageError: (_, __) {
+        // Handle error - show placeholder
+      },
+    );
+  } else {
+    // Show initials placeholder
+    return CircleAvatar(
+      radius: 40,
+      backgroundColor: Colors.purple,
+      child: Text(
+        '${user.firstName[0]}${user.lastName[0]}',
+        style: TextStyle(color: Colors.white, fontSize: 20),
+      ),
+    );
+  }
 }
 ```
 
-### 4. How Flutter uploads profile image (optional)
+---
 
-If you want users to change their own profile image from the app:
+### 3. How Flutter UPLOADS/CHANGES profile image
 
+**Endpoint:**
 ```http
 POST https://admin.canzey.com/api/firebase/customer/avatar
 Content-Type: multipart/form-data
@@ -335,33 +343,118 @@ Authorization: Bearer <customer-jwt-token>
 Form field: avatar (file)
 ```
 
-**Flutter code:**
+**Flutter code to upload:**
 
 ```dart
+import 'dart:io';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-Future<void> uploadAvatar(File imageFile, String token) async {
-  final uri = Uri.parse('https://admin.canzey.com/api/firebase/customer/avatar');
-  final request = http.MultipartRequest('POST', uri);
-  request.headers['Authorization'] = 'Bearer $token';
-  request.files.add(await http.MultipartFile.fromPath('avatar', imageFile.path));
-  
-  final response = await request.send();
-  final body = await response.stream.bytesToString();
-  // Parse JSON, get updated profile_url
+class ProfileService {
+  static const String baseUrl = 'https://admin.canzey.com';
+
+  /// Upload profile image and get updated user data
+  static Future<Map<String, dynamic>?> uploadProfileImage(
+    File imageFile,
+    String token,
+  ) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/firebase/customer/avatar');
+      final request = http.MultipartRequest('POST', uri);
+      
+      // Add auth header
+      request.headers['Authorization'] = 'Bearer $token';
+      
+      // Add image file
+      request.files.add(
+        await http.MultipartFile.fromPath('avatar', imageFile.path),
+      );
+      
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          // Return updated user with new profile_url
+          return data['user'];
+        }
+      }
+      
+      print('Upload failed: ${response.body}');
+      return null;
+    } catch (e) {
+      print('Upload error: $e');
+      return null;
+    }
+  }
 }
 ```
 
-Response:
+**Usage in Flutter:**
+
+```dart
+// Pick image using image_picker package
+final picker = ImagePicker();
+final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+if (pickedFile != null) {
+  final file = File(pickedFile.path);
+  final token = await getStoredToken(); // Your auth token
+  
+  final updatedUser = await ProfileService.uploadProfileImage(file, token);
+  
+  if (updatedUser != null) {
+    // Update local user state with new profile_url
+    setState(() {
+      user.profileUrl = updatedUser['profile_url'];
+    });
+  }
+}
+```
+
+**Success Response:**
 ```json
 {
   "success": true,
   "message": "Avatar updated successfully",
   "user": {
+    "id": 1,
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
     "profile_url": "/uploads/customers/customer-1234567890.jpg",
-    ...
+    "status": "active"
   }
 }
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "message": "Avatar image is required"
+}
+```
+
+---
+
+### 4. How Admin uploads profile image
+
+In the **Canzey Customers** admin page:
+1. Click **Details** on any customer
+2. Under **Profile Image**, click "Choose Image"
+3. Select an image from your computer
+4. Image uploads automatically and preview updates
+
+**Admin endpoint (different from customer endpoint):**
+```http
+POST https://admin.canzey.com/api/admin/customers/:id/avatar
+Content-Type: multipart/form-data
+Authorization: Bearer <admin-jwt-token>
+
+Form field: avatar (file)
 ```
 
 

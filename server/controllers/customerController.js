@@ -74,6 +74,7 @@ export async function getCustomerByToken(userId) {
 
 /**
  * Update customer info
+ * Only updates fields that are provided in updateData
  */
 export async function updateCustomerInfo(userId, updateData) {
   try {
@@ -81,16 +82,33 @@ export async function updateCustomerInfo(userId, updateData) {
     console.log('   👤 User ID:', userId);
     console.log('   📊 Update data:', updateData);
     
-    const { first_name, last_name, phone_number, profile_url, date_of_birth, gender } = updateData;
     const connection = await pool.getConnection();
     
-    console.log('🔄 [UPDATE CUSTOMER] Executing UPDATE query...');
-    console.log('   Values:', [first_name || null, last_name || null, phone_number || null, profile_url || null, userId]);
+    // Build dynamic update query - only update fields that are provided
+    const allowedFields = ['first_name', 'last_name', 'phone_number', 'profile_url', 'date_of_birth', 'gender'];
+    const updates = [];
+    const values = [];
     
-    await connection.execute(
-      'UPDATE customers SET first_name = ?, last_name = ?, phone_number = ?, profile_url = ?, date_of_birth = ?, gender = ? WHERE id = ?',
-      [first_name || null, last_name || null, phone_number || null, profile_url || null, date_of_birth || null, gender || null, userId]
-    );
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        values.push(updateData[field] === '' ? null : updateData[field]);
+      }
+    }
+    
+    if (updates.length === 0) {
+      connection.release();
+      console.log('⚠️ [UPDATE CUSTOMER] No fields to update');
+      return { success: false, error: 'No fields to update' };
+    }
+    
+    values.push(userId);
+    const query = `UPDATE customers SET ${updates.join(', ')} WHERE id = ?`;
+    
+    console.log('🔄 [UPDATE CUSTOMER] Executing query:', query);
+    console.log('   Values:', values);
+    
+    await connection.execute(query, values);
     
     console.log('✅ [UPDATE CUSTOMER] UPDATE query successful');
     
