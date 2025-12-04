@@ -146,15 +146,33 @@ export function verifyToken(token) {
 
 /**
  * Update customer info (Admin)
+ * Only updates fields that are provided in updateData
  */
 export async function updateCustomer(customerId, updateData) {
   try {
-    const { first_name, last_name, phone_number, status } = updateData;
     const connection = await pool.getConnection();
     
+    // Build dynamic update query - only update fields that are provided
+    const allowedFields = ['first_name', 'last_name', 'phone_number', 'status', 'profile_url'];
+    const updates = [];
+    const values = [];
+    
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        values.push(updateData[field] === '' ? null : updateData[field]);
+      }
+    }
+    
+    if (updates.length === 0) {
+      connection.release();
+      return { success: false, error: 'No fields to update' };
+    }
+    
+    values.push(customerId);
     await connection.execute(
-      'UPDATE customers SET first_name = ?, last_name = ?, phone_number = ?, status = ? WHERE id = ?',
-      [first_name, last_name, phone_number, status, customerId]
+      `UPDATE customers SET ${updates.join(', ')} WHERE id = ?`,
+      values
     );
     
     const [customers] = await connection.execute('SELECT * FROM customers WHERE id = ?', [customerId]);

@@ -11,6 +11,7 @@ import {
 } from '../controllers/adminController.js';
 import { firebaseCustomerSignUp } from '../controllers/firebaseCustomerController.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
+import customerAvatarUpload from '../middleware/customerAvatarUpload.js';
 
 const router = express.Router();
 
@@ -198,6 +199,38 @@ router.patch('/customers/:id/status', authenticateToken, requireAdmin, async (re
   }
 
   res.json(result);
+});
+
+/**
+ * POST /api/admin/customers/:id/avatar
+ * Upload/update customer profile image (admin only)
+ * Body: multipart/form-data with field "avatar"
+ */
+router.post('/customers/:id/avatar', authenticateToken, requireAdmin, customerAvatarUpload.single('avatar'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: 'Avatar image is required'
+    });
+  }
+
+  // Build relative URL for frontend/API consumers - always use consistent format
+  const relativePath = `/uploads/customers/${req.file.filename}`;
+
+  const result = await updateCustomer(req.params.id, { profile_url: relativePath });
+
+  if (!result.success) {
+    return res.status(400).json({
+      success: false,
+      message: result.error
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Avatar updated successfully',
+    customer: result.customer
+  });
 });
 
 export default router;

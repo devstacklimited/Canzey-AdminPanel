@@ -6,12 +6,16 @@ import './CustomerModal.css';
 
 const CustomerModal = ({ customer, onClose, onUpdate, onCreate }) => {
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
     phone_number: '',
     password: '', // Only for create
+    profile_url: '',
     status: 'active'
   });
 
@@ -25,6 +29,7 @@ const CustomerModal = ({ customer, onClose, onUpdate, onCreate }) => {
         email: customer.email || '',
         phone_number: customer.phone_number || '',
         password: '', 
+        profile_url: customer.profile_url || '',
         status: customer.status || 'active'
       });
     } else {
@@ -35,6 +40,7 @@ const CustomerModal = ({ customer, onClose, onUpdate, onCreate }) => {
         email: '',
         phone_number: '',
         password: '',
+        profile_url: '',
         status: 'active'
       });
     }
@@ -46,6 +52,76 @@ const CustomerModal = ({ customer, onClose, onUpdate, onCreate }) => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Create preview for both modes
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+
+    if (isCreateMode) {
+      // Store file for upload after customer creation
+      setAvatarFile(file);
+      return;
+    }
+
+    // Edit mode: upload immediately
+    if (!customer) return;
+
+    try {
+      setUploadingAvatar(true);
+      const formDataUpload = new FormData();
+      formDataUpload.append('avatar', file);
+
+      const response = await fetch(API_ENDPOINTS.ADMIN.CUSTOMER_AVATAR(customer.id), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formDataUpload,
+      });
+
+      const data = await response.json();
+      if (data.success && data.customer) {
+        setFormData(prev => ({ ...prev, profile_url: data.customer.profile_url || '' }));
+        onUpdate && onUpdate(data.customer);
+      } else {
+        alert(data.message || 'Failed to upload avatar');
+      }
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      alert('Error uploading avatar');
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
+    }
+  };
+
+  // Upload avatar for newly created customer
+  const uploadAvatarForCustomer = async (customerId) => {
+    if (!avatarFile) return;
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('avatar', avatarFile);
+
+      const response = await fetch(API_ENDPOINTS.ADMIN.CUSTOMER_AVATAR(customerId), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formDataUpload,
+      });
+
+      const data = await response.json();
+      return data.success ? data.customer : null;
+    } catch (err) {
+      console.error('Error uploading avatar for new customer:', err);
+      return null;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -76,10 +152,20 @@ const CustomerModal = ({ customer, onClose, onUpdate, onCreate }) => {
       const data = await response.json();
 
       if (data.success) {
+        let finalCustomer = data.customer;
+        
+        if (isCreateMode && avatarFile) {
+          // Upload avatar for newly created customer
+          const updatedCustomer = await uploadAvatarForCustomer(data.customer.id);
+          if (updatedCustomer) {
+            finalCustomer = updatedCustomer;
+          }
+        }
+        
         if (isCreateMode) {
-          onCreate(data.customer);
+          onCreate(finalCustomer);
         } else {
-          onUpdate(data.customer);
+          onUpdate(finalCustomer);
         }
         onClose();
       } else {
@@ -247,6 +333,52 @@ const CustomerModal = ({ customer, onClose, onUpdate, onCreate }) => {
                   onChange={handleChange}
                   placeholder={isCreateMode ? "+1234567890" : "Not provided"}
                 />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Profile Image</label>
+              <div className="avatar-upload-container">
+                <div className="avatar-preview-wrapper">
+                  {(avatarPreview || formData.profile_url) ? (
+                    <img 
+                      src={avatarPreview || (formData.profile_url.startsWith('http') ? formData.profile_url : `${window.location.origin}${formData.profile_url}`)} 
+                      alt="Profile preview" 
+                      className="avatar-preview-img"
+                    />
+                  ) : (
+                    <div className="avatar-placeholder">
+                      <User size={40} />
+                    </div>
+                  )}
+                </div>
+                <div className="avatar-upload-actions">
+                  <label className="avatar-upload-btn">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarFileChange}
+                      disabled={uploadingAvatar}
+                      style={{ display: 'none' }}
+                    />
+                    {uploadingAvatar ? 'Uploading...' : (avatarPreview || formData.profile_url ? 'Change Image' : 'Choose Image')}
+                  </label>
+                  {(avatarPreview || formData.profile_url) && !uploadingAvatar && (
+                    <button 
+                      type="button" 
+                      className="avatar-remove-btn"
+                      onClick={() => {
+                        setAvatarPreview(null);
+                        setAvatarFile(null);
+                        if (!isCreateMode) {
+                          setFormData(prev => ({ ...prev, profile_url: '' }));
+                        }
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

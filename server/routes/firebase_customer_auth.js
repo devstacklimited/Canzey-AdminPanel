@@ -3,6 +3,7 @@ import { firebaseCustomerSignUp, firebaseCustomerSignIn } from '../controllers/f
 import { updateCustomerInfo } from '../controllers/customerController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import pool from '../database/connection.js';
+import customerAvatarUpload from '../middleware/customerAvatarUpload.js';
 
 const router = express.Router();
 
@@ -134,6 +135,52 @@ router.get('/info', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
+    });
+  }
+});
+
+/**
+ * POST /api/firebase/customer/avatar
+ * Upload/update customer's own profile image (requires our JWT token)
+ * Body: multipart/form-data with field "avatar"
+ */
+router.post('/avatar', authenticateToken, customerAvatarUpload.single('avatar'), async (req, res) => {
+  try {
+    console.log('📨 [FIREBASE CUSTOMER AVATAR API] Request received');
+    console.log('   User ID:', req.user.userId);
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Avatar image is required'
+      });
+    }
+
+    // Build relative URL
+    let relativePath = `/uploads/customers/${req.file.filename}`;
+
+    // Update profile_url in database
+    const result = await updateCustomerInfo(req.user.userId, { profile_url: relativePath });
+
+    if (!result.success) {
+      console.log('❌ [FIREBASE CUSTOMER AVATAR API] Failed:', result.error);
+      return res.status(400).json({
+        success: false,
+        message: result.error
+      });
+    }
+
+    console.log('✅ [FIREBASE CUSTOMER AVATAR API] Avatar updated');
+    res.json({
+      success: true,
+      message: 'Avatar updated successfully',
+      user: result.user
+    });
+  } catch (error) {
+    console.error('❌ [FIREBASE CUSTOMER AVATAR API] Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during avatar upload'
     });
   }
 });

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../../components/layout/Layout';
 import { CheckCircle, XCircle, Search, Filter, Eye, Plus } from 'lucide-react';
-import { API_ENDPOINTS, getAuthHeaders } from '../../config/api';
+import { API_ENDPOINTS, getAuthHeaders, API_BASE_URL } from '../../config/api';
 import CustomerModal from './components/CustomerModal';
 import './Customers.css';
 
@@ -139,17 +139,25 @@ const Customers = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((customer) => (
+                {filtered.map((customer) => {
+                  const imgUrl = customer.profile_url 
+                    ? (customer.profile_url.startsWith('http') ? customer.profile_url : `${API_BASE_URL}${customer.profile_url}`)
+                    : null;
+                  console.log(`[Customer ${customer.id}] profile_url:`, customer.profile_url, '-> Full URL:', imgUrl);
+                  return (
                   <tr key={customer.id}>
                     <td>
                       <div className="customer-cell">
                         <div className="customer-avatar">
-                          {customer.profile_url ? (
-                            <img src={customer.profile_url} alt={customer.first_name} />
-                          ) : (
-                            <div className="avatar-placeholder">
-                              {customer.first_name?.[0]}{customer.last_name?.[0]}
-                            </div>
+                          <div className="avatar-placeholder">
+                            {customer.first_name?.[0]}{customer.last_name?.[0]}
+                          </div>
+                          {imgUrl && (
+                            <img 
+                              src={imgUrl} 
+                              alt={customer.first_name}
+                              onError={(e) => console.error(`[Customer ${customer.id}] Image failed to load:`, imgUrl)}
+                            />
                           )}
                         </div>
                         <span className="customer-name">
@@ -173,7 +181,8 @@ const Customers = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}
