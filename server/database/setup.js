@@ -64,8 +64,8 @@ export async function setupDatabase() {
         id INT PRIMARY KEY AUTO_INCREMENT,
         first_name VARCHAR(100) NOT NULL,
         last_name VARCHAR(100) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        phone_number VARCHAR(20),
+        email VARCHAR(255) UNIQUE,
+        phone_number VARCHAR(50),
         password_hash VARCHAR(255),
         profile_url VARCHAR(500),
         date_of_birth DATE,
@@ -77,10 +77,11 @@ export async function setupDatabase() {
         postal_code VARCHAR(20),
         firebase_uid VARCHAR(255) UNIQUE,
         firebase_email VARCHAR(255),
-        auth_method ENUM('local', 'firebase') DEFAULT 'local',
+        auth_method ENUM('local', 'firebase', 'email', 'phone') DEFAULT 'local',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_email (email),
+        INDEX idx_phone (phone_number),
         INDEX idx_firebase_uid (firebase_uid),
         INDEX idx_status (status)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

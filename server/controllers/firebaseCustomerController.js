@@ -158,7 +158,13 @@ export async function firebaseCustomerSignIn(firebaseToken) {
     }
 
     const firebaseUid = decodedToken.uid;
-    const firebaseEmail = decodedToken.email;
+    const firebaseEmail = decodedToken.email || null;
+    const firebasePhone = decodedToken.phone_number || null;
+    const authMethod = firebaseEmail ? 'email' : 'phone';
+
+    console.log('📱 [FIREBASE SIGNIN] Auth method:', authMethod);
+    console.log('   Email:', firebaseEmail || 'N/A');
+    console.log('   Phone:', firebasePhone || 'N/A');
 
     // Find customer in MySQL
     console.log('🔍 [FIREBASE SIGNIN] Looking up customer in MySQL...');
@@ -169,46 +175,54 @@ export async function firebaseCustomerSignIn(firebaseToken) {
     );
 
     if (customers.length === 0) {
-      connection.release();
       console.log('⚠️  [FIREBASE SIGNIN] Customer not found, creating new customer...');
 
       // Auto-create customer if not exists
-      const [result] = await connection.execute(
-        `INSERT INTO customers 
-         (first_name, last_name, email, firebase_uid, firebase_email, auth_method, status) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          decodedToken.name?.split(' ')[0] || 'User',
-          decodedToken.name?.split(' ')[1] || '',
-          firebaseEmail,
-          firebaseUid,
-          firebaseEmail,
-          'firebase',
-          'active',
-        ]
-      );
+      // Handle both email and phone auth methods
+      try {
+        const [result] = await connection.execute(
+          `INSERT INTO customers 
+           (first_name, last_name, email, phone_number, firebase_uid, auth_method, status) 
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            decodedToken.name?.split(' ')[0] || 'User',
+            decodedToken.name?.split(' ')[1] || '',
+            firebaseEmail,      // NULL for phone users
+            firebasePhone,      // NULL for email users
+            firebaseUid,
+            authMethod,
+            'active',
+          ]
+        );
 
-      const [newCustomer] = await connection.execute(
-        'SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status FROM customers WHERE id = ?',
-        [result.insertId]
-      );
+        const [newCustomer] = await connection.execute(
+          'SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status FROM customers WHERE id = ?',
+          [result.insertId]
+        );
 
-      connection.release();
+        connection.release();
 
-      // Generate our JWT token
-      const token = jwt.sign(
-        { userId: result.insertId, email: firebaseEmail, userType: 'customer' },
-        JWT_SECRET,
-        { expiresIn: '24h' }
-      );
+        // Generate our JWT token
+        const token = jwt.sign(
+          { userId: result.insertId, email: firebaseEmail, phone: firebasePhone, userType: 'customer' },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
 
-      console.log('✅ [FIREBASE SIGNIN] New customer created and logged in');
+        console.log('✅ [FIREBASE SIGNIN] New customer created and logged in');
+        console.log('   Customer ID:', result.insertId);
+        console.log('   Auth method:', authMethod);
 
-      return {
-        success: true,
-        token,
-        user: { ...newCustomer[0], firebase_uid: firebaseUid },
-      };
+        return {
+          success: true,
+          token,
+          user: { ...newCustomer[0], firebase_uid: firebaseUid },
+        };
+      } catch (insertError) {
+        connection.release();
+        console.error('❌ [FIREBASE SIGNIN] Failed to create customer:', insertError.message);
+        return { success: false, error: 'Failed to create customer account' };
+      }
     }
 
     const customer = customers[0];
