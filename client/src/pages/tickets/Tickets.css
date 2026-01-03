@@ -1,0 +1,19 @@
+.status-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-used {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-expired {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-won {
+    background: #fef3c7;
+    color: #92400e;
+}

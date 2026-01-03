@@ -10,6 +10,9 @@ import adminProductsRoutes from './routes/admin_products.js';
 import firebaseCustomerAuthRoutes from './routes/firebase_customer_auth.js';
 import campaignsRoutes from './routes/campaigns.js';
 import campaignParticipationRoutes from './routes/campaign_participation.js';
+import dynamicContentRoutes from './routes/dynamic_content.js';
+import ordersRoutes from './routes/orders.js';
+import ticketsRoutes from './routes/tickets.js';
 
 dotenv.config();
 
@@ -33,6 +36,9 @@ app.use('/api/admin/products', adminProductsRoutes);
 app.use('/api/firebase/customer', firebaseCustomerAuthRoutes);
 app.use('/api/campaigns', campaignsRoutes);
 app.use('/api', campaignParticipationRoutes);
+app.use('/api/content', dynamicContentRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/tickets', ticketsRoutes);
 
 
 // 404 handler

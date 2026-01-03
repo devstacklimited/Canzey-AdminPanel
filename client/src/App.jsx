@@ -13,6 +13,8 @@ import Customers from './pages/customers/Customers'
 import Campaigns from './pages/campaigns/Campaigns'
 import Profile from './pages/profile/Profile'
 import Products from './pages/products/Products'
+import Promos from './pages/promos/Promos'
+import Tickets from './pages/tickets/Tickets'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -77,6 +79,16 @@ function App() {
             <Route path="/products" element={
               <ProtectedRoute>
                 <Products />
+              </ProtectedRoute>
+            } />
+            <Route path="/promos" element={
+              <ProtectedRoute>
+                <Promos />
+              </ProtectedRoute>
+            } />
+            <Route path="/tickets" element={
+              <ProtectedRoute>
+                <Tickets />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Package, Settings, User, Menu, X, ShoppingCart, Ticket, Users, Trophy } from 'lucide-react';
+import { Home, Package, Settings, User, Menu, X, ShoppingCart, Ticket, Users, Trophy, Tag } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
@@ -12,6 +12,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { icon: Ticket, label: 'Raffles', path: '/raffles' },
     { icon: Trophy, label: 'Prize', path: '/campaigns' },
     { icon: Package, label: 'Products', path: '/products' },
+    { icon: Tag, label: 'Promos', path: '/promos' },
+    { icon: Ticket, label: 'Tickets', path: '/tickets' },
     { icon: Users, label: 'Canzey Customers', path: '/customers' },
     { icon: Users, label: 'Users', path: '/users' },
     { icon: User, label: 'Profile', path: '/profile' },
