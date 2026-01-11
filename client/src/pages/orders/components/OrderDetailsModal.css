@@ -103,6 +103,12 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+.item-card {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
 .order-summary {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -214,6 +220,10 @@
     object-fit: cover;
 }
 
+.item-details {
+    flex: 1;
+}
+
 .item-details h4 {
     font-size: 15px;
     font-weight: 900;
@@ -231,6 +241,46 @@
     font-size: 16px;
     font-weight: 900;
     color: #1e1b4b !important;
+}
+
+.item-variants {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.variant-tag {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.variant-tag strong {
+    font-weight: 700;
+    color: #1e1b4b;
+}
+
+.campaign-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e1b4b;
+    margin-top: 8px;
+    background: #e0e7ff;
+    padding: 4px 10px;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+.campaign-badge svg {
+    color: #6366f1;
 }
 
 /* TICKETS */

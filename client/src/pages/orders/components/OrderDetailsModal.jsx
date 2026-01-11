@@ -137,6 +137,20 @@ const OrderDetailsModal = ({ show, onClose, order }) => {
                     <p className="item-meta">
                       Quantity: {item.quantity} × ${item.price}
                     </p>
+                    {(item.color || item.size) && (
+                      <p className="item-variants">
+                        {item.color && (
+                          <span className="variant-tag">
+                            <strong>Color:</strong> {item.color}
+                          </span>
+                        )}
+                        {item.size && (
+                          <span className="variant-tag">
+                            <strong>Size:</strong> {item.size}
+                          </span>
+                        )}
+                      </p>
+                    )}
                     {item.campaign_title && (
                       <p className="campaign-badge">
                         <Ticket size={14} /> {item.campaign_title}
