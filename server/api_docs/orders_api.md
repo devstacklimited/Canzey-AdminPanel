@@ -7,7 +7,7 @@ This API helps you create and manage customer orders. When a customer buys a pro
 
 ## Base URL
 ```
-http://localhost:5000/api/orders
+https://admin.canzey.com/api/orders
 ```
 
 ---
@@ -27,7 +27,7 @@ final firebaseToken = await FirebaseAuth.instance.currentUser?.getIdToken();
 
 // Exchange for backend JWT
 final response = await http.post(
-  Uri.parse('http://localhost:5000/api/firebase/customer/signin'),
+  Uri.parse('https://admin.canzey.com/api/firebase/customer/signin'),
   headers: {'Content-Type': 'application/json'},
   body: json.encode({'firebase_token': firebaseToken}),
 );
@@ -46,7 +46,7 @@ if (data['success']) {
 final token = await SecureStorage.read('auth_token');
 
 final response = await http.post(
-  Uri.parse('http://localhost:5000/api/orders'),
+  Uri.parse('https://admin.canzey.com/api/orders'),
   headers: {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer $token',  // ✅ Add token here
@@ -200,7 +200,7 @@ GET /api/orders/customer/1
 
 ### 3. Get One Order Details
 
-**What it does:** Shows complete details of one order.
+**What it does:** Shows complete details of one specific order.
 
 **URL:** `GET /api/orders/:orderId`
 
@@ -208,7 +208,7 @@ GET /api/orders/customer/1
 
 **Example:**
 ```
-GET /api/orders/1
+GET /api/orders/3
 ```
 
 **What you get back:**
@@ -216,27 +216,49 @@ GET /api/orders/1
 {
   "success": true,
   "order": {
-    "id": 1,
-    "order_number": "ORD-1704297600000-123",
+    "id": 3,
+    "order_number": "ORD-1704990000000-123",
+    "customer_id": 1,
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
     "total_amount": 99.98,
-    "order_status": "delivered",
+    "payment_status": "paid",
+    "payment_method": "stripe",
+    "payment_transaction_id": "txn_12345",
+    "order_status": "pending",
     "shipping_address": {
       "name": "John Doe",
+      "phone": "+1234567890",
       "address": "123 Main St",
-      "city": "New York"
+      "city": "New York",
+      "postal_code": "10001",
+      "country": "USA"
     },
+    "customer_notes": "Please deliver after 5 PM",
+    "admin_notes": null,
+    "created_at": "2026-01-11T15:00:00.000Z",
     "items": [
       {
+        "id": 1,
+        "product_id": 4,
+        "campaign_id": 1,
         "product_name": "Premium T-Shirt",
+        "product_image": "/uploads/products/image.jpg",
         "quantity": 2,
-        "price": 49.99
+        "unit_price": 49.99,
+        "total_price": 99.98,
+        "color": "Red",
+        "size": "M",
+        "campaign_title": "Win iPhone 15 Pro!"
       }
     ],
     "campaign_entries": [
       {
-        "ticket_number": "TKT-5-ABC123",
-        "campaign_title": "Win iPhone 15 Pro!",
-        "status": "active"
+        "ticket_number": "TKT-1-ABC123",
+        "campaign_id": 1,
+        "status": "active",
+        "campaign_title": "Win iPhone 15 Pro!"
       }
     ]
   }
@@ -387,7 +409,7 @@ Future<void> createOrder() async {
   final token = 'YOUR_TOKEN';
   
   final response = await http.post(
-    Uri.parse('http://localhost:5000/api/orders'),
+    Uri.parse('https://admin.canzey.com/api/orders'),
     headers: {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
@@ -428,7 +450,7 @@ Future<List<dynamic>> getMyOrders(int customerId) async {
   final token = 'YOUR_TOKEN';
   
   final response = await http.get(
-    Uri.parse('http://localhost:5000/api/orders/customer/$customerId'),
+    Uri.parse('https://admin.canzey.com/api/orders/customer/$customerId'),
     headers: {'Authorization': 'Bearer $token'},
   );
   
@@ -499,7 +521,7 @@ Test creating an order in browser console:
 ```javascript
 const token = localStorage.getItem('token');
 
-fetch('http://localhost:5000/api/orders', {
+fetch('https://admin.canzey.com/api/orders', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
