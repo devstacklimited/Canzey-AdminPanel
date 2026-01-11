@@ -270,6 +270,29 @@ export async function setupDatabase() {
     `);
     console.log('✅ campaign_images table ready');
 
+    // Create dynamic_content table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS dynamic_content (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        key_name VARCHAR(100) NOT NULL UNIQUE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        content_type ENUM('promo','ad','notification','banner','popup','other') DEFAULT 'promo',
+        status ENUM('active','inactive','scheduled','expired') DEFAULT 'active',
+        priority INT DEFAULT 0,
+        start_date DATETIME DEFAULT NULL,
+        end_date DATETIME DEFAULT NULL,
+        metadata JSON DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_key_name (key_name),
+        INDEX idx_status (status),
+        INDEX idx_content_type (content_type),
+        INDEX idx_priority (priority)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ dynamic_content table ready');
+
     // Seed master admin user
     await seedMasterAdmin(connection);
 
