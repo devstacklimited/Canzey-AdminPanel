@@ -13,6 +13,7 @@ import campaignParticipationRoutes from './routes/campaign_participation.js';
 import dynamicContentRoutes from './routes/dynamic_content.js';
 import ordersRoutes from './routes/orders.js';
 import ticketsRoutes from './routes/tickets.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin/campaigns', adminCampaignsRoutes);
 app.use('/api/admin/products', adminProductsRoutes);
+app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/firebase/customer', firebaseCustomerAuthRoutes);
 app.use('/api/campaigns', campaignsRoutes);
 app.use('/api', campaignParticipationRoutes);

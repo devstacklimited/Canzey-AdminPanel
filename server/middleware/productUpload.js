@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 // In development (local), keep using the existing ../public/uploads/products path
 const isProduction = process.env.NODE_ENV === 'production';
 const uploadDir = isProduction
-  ? '/home/canzey/public_html/admin.canzey.com/uploads/products/'
+  ? '/home/canzey/admin.canzey.com/uploads/products/'
   : path.join(__dirname, '../public/uploads/products/');
 
 // Ensure upload directory exists

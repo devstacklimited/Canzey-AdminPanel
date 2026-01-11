@@ -25,7 +25,7 @@ const Tickets = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/tickets/all', {
+      const response = await fetch('http://localhost:5000/api/tickets/admin/all', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

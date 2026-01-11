@@ -1,139 +1,192 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Plus, Users, LayoutDashboard, Settings, Activity } from 'lucide-react';
-import { API_ENDPOINTS } from '../../config/api';
+import { ShoppingCart, Users, DollarSign, Activity, ArrowUpRight, Clock, Package, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import Layout from '../../components/layout/Layout';
 import './Dashboard.css';
 
-// Components
-import Layout from '../../components/layout/Layout';
-import StatsCard from './components/StatsCard';
-import UsersTable from './components/UsersTable';
-import AddUserModal from './components/AddUserModal';
-
 const Dashboard = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'user' });
+    const [stats, setStats] = useState({
+        totalRevenue: 0,
+        totalOrders: 0,
+        totalCustomers: 0,
+        activeOrders: 0
+    });
+    const [recentOrders, setRecentOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(API_ENDPOINTS.USERS.LIST);
-      if (response.data.success) {
-        setUsers(response.data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchDashboardData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/admin/dashboard/stats', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setStats(data.stats);
+                setRecentOrders(data.recentOrders);
+            }
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handleAddUser = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(API_ENDPOINTS.USERS.LIST, newUser);
-      if (response.data.success) {
-        fetchUsers();
-        setShowAddModal(false);
-        setNewUser({ name: '', email: '', role: 'user' });
-      }
-    } catch (error) {
-      console.error('Error adding user:', error);
-    }
-  };
+    const statsData = [
+        {
+            title: 'Total Revenue',
+            value: `$${stats.totalRevenue.toLocaleString()}`,
+            icon: <DollarSign size={24} />,
+            color: 'bg-purple-100 text-purple-600',
+            trend: '+12%',
+            trendColor: 'text-green-500'
+        },
+        {
+            title: 'Total Orders',
+            value: stats.totalOrders.toString(),
+            icon: <ShoppingCart size={24} />,
+            color: 'bg-blue-100 text-blue-600',
+            trend: '+8%',
+            trendColor: 'text-green-500'
+        },
+        {
+            title: 'Customers',
+            value: stats.totalCustomers.toString(),
+            icon: <Users size={24} />,
+            color: 'bg-pink-100 text-pink-600',
+            trend: '+15%',
+            trendColor: 'text-green-500'
+        },
+        {
+            title: 'Active Orders',
+            value: stats.activeOrders.toString(),
+            icon: <Activity size={24} />,
+            color: 'bg-orange-100 text-orange-600',
+            trend: '+5%',
+            trendColor: 'text-green-500'
+        }
+    ];
 
-  const handleEditUser = (user) => {
-    // TODO: Implement edit functionality
-    console.log('Edit user:', user);
-  };
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    };
 
-  const handleDeleteUser = async (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await axios.delete(API_ENDPOINTS.USERS.DELETE(id));
-        fetchUsers();
-      } catch (error) {
-        console.error('Error deleting user:', error);
-      }
-    }
-  };
+    return (
+        <Layout>
+            <div className="dashboard-content">
+                <div className="dashboard-header">
+                    <div className="header-info">
+                        <h1 className="header-title">Dashboard Overview</h1>
+                        <p className="header-subtitle">Welcome back! Here's what's happening with your store today.</p>
+                    </div>
+                    <div className="header-status">
+                        <span className="status-dot"></span>
+                        Live
+                    </div>
+                </div>
 
-  const filteredUsers = users.filter(user =>
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+                {/* Stats Grid */}
+                <div className="stats-grid">
+                    {statsData.map((stat, index) => (
+                        <div key={index} className="stats-card">
+                            <div className="stats-card-header">
+                                <div className={`stats-icon ${stat.color}`}>
+                                    {stat.icon}
+                                </div>
+                            </div>
+                            <div className="stats-body">
+                                <h3 className="stats-value">{stat.value}</h3>
+                                <p className="stats-label">{stat.title}</p>
+                            </div>
+                            <div className="stats-footer">
+                                <span className={`trend ${stat.trendColor}`}>
+                                    <ArrowUpRight size={14} /> {stat.trend}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-  return (
-    <Layout>
-      {/* Page Content */}
-      <main className="dashboard-content">
-          <div className="dashboard-container">
-            {/* Page Title */}
-            <div className="dashboard-page-header">
-              <h1 className="dashboard-page-title">Dashboard</h1>
-              <p className="dashboard-page-subtitle">
-                Welcome to Canzey Admin Panel - Manage your users and system
-              </p>
+                <div className="dashboard-lower-grid">
+                    {/* Recent Orders */}
+                    <div className="dashboard-section recent-orders">
+                        <div className="section-header">
+                            <div className="section-title-box">
+                                <Package size={20} className="text-purple-600" />
+                                <h3>Recent Orders</h3>
+                            </div>
+                            <Link to="/orders" className="view-all-btn">View All</Link>
+                        </div>
+                        <div className="table-container">
+                            {loading ? (
+                                <div className="loading-spinner">Loading...</div>
+                            ) : recentOrders.length > 0 ? (
+                                <table className="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order #</th>
+                                            <th>Customer</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {recentOrders.map((order) => (
+                                            <tr key={order.id}>
+                                                <td className="font-mono text-sm">{order.order_number.split('-')[1]}...</td>
+                                                <td>{order.customer_name}</td>
+                                                <td className="font-bold">${order.total_amount}</td>
+                                                <td>
+                                                    <span className={`status-pill ${order.order_status}`}>
+                                                        {order.order_status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="empty-state">No recent orders</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <div className="dashboard-section recent-activity">
+                        <div className="section-header">
+                            <div className="section-title-box">
+                                <Activity size={20} className="text-purple-600" />
+                                <h3>Recent Activity</h3>
+                            </div>
+                        </div>
+                        <div className="activity-list">
+                            {recentOrders.map((order, index) => (
+                                <div key={index} className="activity-item">
+                                    <div className="activity-icon-box">
+                                        <Clock size={16} />
+                                    </div>
+                                    <div className="activity-text">
+                                        <p><strong>New Order</strong> placed by {order.customer_name}</p>
+                                        <span>{formatDate(order.created_at)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                            {recentOrders.length === 0 && (
+                                <div className="empty-state">No recent activity</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            {/* Stats Cards */}
-            <div className="dashboard-stats-grid">
-              <StatsCard
-                title="Total Users"
-                value={users.length}
-                icon={Users}
-                color="primary"
-              />
-              <StatsCard
-                title="Active Sessions"
-                value="24"
-                icon={Activity}
-                color="green"
-              />
-              <StatsCard
-                title="System Status"
-                value="Online"
-                icon={LayoutDashboard}
-                color="purple"
-              />
-              <StatsCard
-                title="Admin Users"
-                value={users.filter(u => u.role === 'admin').length}
-                icon={Settings}
-                color="red"
-              />
-            </div>
-
-            {/* Users Management Section */}
-            <div className="dashboard-users-section">
-              <div className="dashboard-users-header">
-                <h2 className="dashboard-users-title">Users Management</h2>
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="dashboard-add-user-btn"
-                >
-                  <Plus size={20} />
-                  Add User
-                </button>
-              </div>
-            </div>
-
-            {/* Users Table */}
-            <UsersTable
-              users={filteredUsers}
-              loading={loading}
-              searchTerm={searchTerm}
-            />
-          </div>
-        </main>
-    </Layout>
-  );
+        </Layout>
+    );
 };
 
 export default Dashboard;

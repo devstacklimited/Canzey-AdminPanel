@@ -9,7 +9,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const menuItems = [
     { icon: Home, label: 'Home', path: '/home' },
     { icon: ShoppingCart, label: 'Orders', path: '/orders' },
-    { icon: Ticket, label: 'Raffles', path: '/raffles' },
     { icon: Trophy, label: 'Prize', path: '/campaigns' },
     { icon: Package, label: 'Products', path: '/products' },
     { icon: Tag, label: 'Promos', path: '/promos' },

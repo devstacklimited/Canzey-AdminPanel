@@ -5,9 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
 import Dashboard from './pages/dashboard/Dashboard'
-import Home from './pages/home/Home'
 import Orders from './pages/orders/Orders'
-import Raffles from './pages/raffels/raffels'
 import Users from './pages/users/Users'
 import Customers from './pages/customers/Customers'
 import Campaigns from './pages/campaigns/Campaigns'
@@ -42,12 +40,12 @@ function App() {
             {/* Protected Routes */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <Home />
+                <Dashboard />
               </ProtectedRoute>
             } />
             <Route path="/home" element={
               <ProtectedRoute>
-                <Home />
+                <Dashboard />
               </ProtectedRoute>
             } />
             <Route path="/orders" element={
@@ -55,12 +53,7 @@ function App() {
                 <Orders />
               </ProtectedRoute>
             } />
-          
-            <Route path="/raffles" element={
-              <ProtectedRoute>
-                <Raffles />
-              </ProtectedRoute>
-            } />
+
             <Route path="/users" element={
               <ProtectedRoute>
                 <Users />
