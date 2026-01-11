@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Package, MapPin, CreditCard, Ticket, User, Calendar, DollarSign } from 'lucide-react';
+import { API_BASE_URL } from '../../../config/api';
 import './OrderDetailsModal.css';
 
 const OrderDetailsModal = ({ show, onClose, order }) => {
@@ -126,7 +127,7 @@ const OrderDetailsModal = ({ show, onClose, order }) => {
                 <div key={index} className="item-card">
                   {item.product_image && (
                     <img 
-                      src={`http://localhost:5000${item.product_image}`} 
+                      src={`${API_BASE_URL}${item.product_image}`} 
                       alt={item.product_name}
                       className="item-image"
                     />

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Ticket, User, Package, Calendar, Award } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import Toast from '../../components/ui/Toast';
+import { API_BASE_URL } from '../../config/api';
 import './Tickets.css';
 
 const Tickets = () => {
@@ -25,7 +26,7 @@ const Tickets = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/tickets/admin/all', {
+      const response = await fetch(`${API_BASE_URL}/api/tickets/admin/all`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

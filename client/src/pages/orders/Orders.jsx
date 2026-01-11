@@ -3,6 +3,7 @@ import { Search, Filter, Eye, Package, Clock, CheckCircle, XCircle, Truck, Dolla
 import Layout from '../../components/layout/Layout';
 import Toast from '../../components/ui/Toast';
 import OrderDetailsModal from './components/OrderDetailsModal';
+import { API_BASE_URL } from '../../config/api';
 import './Orders.css';
 
 const Orders = () => {
@@ -28,7 +29,7 @@ const Orders = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/orders/admin/all', {
+      const response = await fetch(`${API_BASE_URL}/api/orders/admin/all`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -68,7 +69,7 @@ const Orders = () => {
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/orders/admin/${orderId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/admin/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -94,7 +95,7 @@ const Orders = () => {
   const handleViewOrder = async (orderId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

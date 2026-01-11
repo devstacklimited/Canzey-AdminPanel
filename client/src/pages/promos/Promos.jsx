@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Search, Tag, ToggleLeft, ToggleRight } from 'lucide
 import Layout from '../../components/layout/Layout';
 import PromoModal from './components/PromoModal';
 import Toast from '../../components/ui/Toast';
+import { API_BASE_URL } from '../../config/api';
 import '../../components/ui/ToggleSwitch.css';
 import './Promos.css';
 
@@ -33,7 +34,7 @@ const Promos = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/content/admin', {
+      const response = await fetch(`${API_BASE_URL}/api/content/admin`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -65,8 +66,8 @@ const Promos = () => {
     try {
       const token = localStorage.getItem('token');
       const url = editingContent 
-        ? `http://localhost:5000/api/content/admin/${editingContent.id}`
-        : 'http://localhost:5000/api/content/admin';
+        ? `${API_BASE_URL}/api/content/admin/${editingContent.id}`
+        : `${API_BASE_URL}/api/content/admin`;
       
       const method = editingContent ? 'PUT' : 'POST';
 
@@ -124,7 +125,7 @@ const Promos = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/content/admin/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/content/admin/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -156,7 +157,7 @@ const Promos = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/content/admin/${id}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/content/admin/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
