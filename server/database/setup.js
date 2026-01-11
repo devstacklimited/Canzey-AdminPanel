@@ -321,6 +321,7 @@ export async function setupDatabase() {
         shipping_amount DECIMAL(10,2) DEFAULT 0.00,
         discount_amount DECIMAL(10,2) DEFAULT 0.00,
         payment_method VARCHAR(50) DEFAULT NULL,
+        payment_transaction_id VARCHAR(255) DEFAULT NULL,
         payment_status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
         order_status ENUM('pending','processing','shipped','delivered','cancelled') DEFAULT 'pending',
         shipping_address TEXT,
@@ -338,6 +339,19 @@ export async function setupDatabase() {
         INDEX idx_created_at (created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    
+    // Add payment_transaction_id column if it doesn't exist (for existing databases)
+    try {
+      await connection.execute(`
+        ALTER TABLE orders ADD COLUMN payment_transaction_id VARCHAR(255) DEFAULT NULL AFTER payment_method
+      `);
+      console.log('✅ Added payment_transaction_id column to orders table');
+    } catch (err) {
+      if (err.code !== 'ER_DUP_FIELDNAME') {
+        // Column already exists, ignore
+      }
+    }
+    
     console.log('✅ orders table ready');
 
     // Create order_items table
