@@ -80,6 +80,10 @@ final response = await http.post(
     {
       "product_id": 1,
       "quantity": 2
+    },
+    {
+      "product_id": 2,
+      "quantity": 1
     }
   ],
   "shipping_address": {
@@ -90,7 +94,11 @@ final response = await http.post(
     "postal_code": "10001",
     "country": "USA"
   },
-  "payment_status": "paid"
+  "payment_status": "paid",
+  "payment_method": "stripe",
+  "payment_transaction_id": "1234567890",
+  "notes": "Any specia instructions",
+
 }
 ```
 
@@ -103,6 +111,7 @@ final response = await http.post(
 - `payment_method` - How they paid (e.g., "stripe", "paypal")
 - `payment_transaction_id` - Payment reference number
 - `payment_status` - Payment status ("pending", "paid", "failed", "refunded")
+- `order_status` - Order status ("pending", "processing", "shipped", "delivered", "cancelled")
 - `notes` - Any special instructions
 
 **What you get back:**
