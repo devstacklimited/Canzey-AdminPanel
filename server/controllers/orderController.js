@@ -161,11 +161,12 @@ export async function createOrder(req, res) {
       // Insert order item
       await connection.query(
         `INSERT INTO order_items 
-         (order_id, product_id, product_name, product_image, quantity, unit_price, total_price, color, size)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (order_id, product_id, campaign_id, product_name, product_image, quantity, unit_price, total_price, color, size)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           orderId,
           itemData.product_id,
+          itemData.campaign_id,
           itemData.product_name,
           itemData.product_image,
           itemData.quantity,

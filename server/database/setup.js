@@ -360,6 +360,7 @@ export async function setupDatabase() {
         id INT PRIMARY KEY AUTO_INCREMENT,
         order_id INT NOT NULL,
         product_id INT DEFAULT NULL,
+        campaign_id INT DEFAULT NULL,
         product_name VARCHAR(255) NOT NULL,
         product_sku VARCHAR(100),
         product_image VARCHAR(500),
@@ -373,9 +374,22 @@ export async function setupDatabase() {
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
         INDEX idx_order_id (order_id),
-        INDEX idx_product_id (product_id)
+        INDEX idx_product_id (product_id),
+        INDEX idx_campaign_id (campaign_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+
+    // Add campaign_id column if it doesn't exist (for existing databases)
+    try {
+      await connection.execute(`
+        ALTER TABLE order_items ADD COLUMN campaign_id INT DEFAULT NULL AFTER product_id
+      `);
+      console.log('✅ Added campaign_id column to order_items table');
+    } catch (err) {
+      if (err.code !== 'ER_DUP_FIELDNAME') {
+        // Column already exists, ignore
+      }
+    }
     console.log('✅ order_items table ready');
 
     // Seed master admin user
