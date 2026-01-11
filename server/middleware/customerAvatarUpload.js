@@ -6,8 +6,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Directory where customer avatars will be stored - same as other uploads (public/uploads)
-const avatarDir = process.env.CUSTOMER_AVATAR_DIR || path.join(__dirname, '../public/uploads/customers/');
+// In production (live server), store files directly under the Apache DocumentRoot
+// In development (local), keep using the existing ../public/uploads/customers path
+const isProduction = process.env.NODE_ENV === 'production';
+const avatarDir = isProduction
+  ? '/home/canzey/admin.canzey.com/uploads/customers/'
+  : path.join(__dirname, '../public/uploads/customers/');
 
 if (!fs.existsSync(avatarDir)) {
   fs.mkdirSync(avatarDir, { recursive: true });
@@ -15,8 +19,7 @@ if (!fs.existsSync(avatarDir)) {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = process.env.CUSTOMER_AVATAR_DIR || avatarDir;
-    cb(null, dir);
+    cb(null, avatarDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
