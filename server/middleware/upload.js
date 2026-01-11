@@ -6,8 +6,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure upload directory exists (can be overridden by env)
-const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../public/uploads/campaigns/');
+// In production (live server), store files directly under the Apache DocumentRoot
+// In development (local), keep using the existing ../public/uploads/campaigns path
+const isProduction = process.env.NODE_ENV === 'production';
+const uploadDir = isProduction
+  ? '/home/canzey/admin.canzey.com/uploads/campaigns/'
+  : path.join(__dirname, '../public/uploads/campaigns/');
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -15,8 +20,7 @@ if (!fs.existsSync(uploadDir)) {
 // Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = process.env.UPLOAD_DIR || path.join(__dirname, '../public/uploads/campaigns/');
-    cb(null, dir);
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     // Generate unique filename: timestamp-originalname
