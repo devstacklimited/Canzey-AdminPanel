@@ -293,6 +293,62 @@ export async function setupDatabase() {
     `);
     console.log('✅ dynamic_content table ready');
 
+    // Create orders table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        order_number VARCHAR(100) UNIQUE NOT NULL,
+        customer_id INT DEFAULT NULL,
+        guest_token VARCHAR(255) DEFAULT NULL,
+        total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        tax_amount DECIMAL(10,2) DEFAULT 0.00,
+        shipping_amount DECIMAL(10,2) DEFAULT 0.00,
+        discount_amount DECIMAL(10,2) DEFAULT 0.00,
+        payment_method VARCHAR(50) DEFAULT NULL,
+        payment_status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
+        order_status ENUM('pending','processing','shipped','delivered','cancelled') DEFAULT 'pending',
+        shipping_address TEXT,
+        billing_address TEXT,
+        customer_notes TEXT,
+        admin_notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+        INDEX idx_order_number (order_number),
+        INDEX idx_customer_id (customer_id),
+        INDEX idx_guest_token (guest_token),
+        INDEX idx_payment_status (payment_status),
+        INDEX idx_order_status (order_status),
+        INDEX idx_created_at (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ orders table ready');
+
+    // Create order_items table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        order_id INT NOT NULL,
+        product_id INT DEFAULT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        product_sku VARCHAR(100),
+        product_image VARCHAR(500),
+        quantity INT NOT NULL DEFAULT 1,
+        unit_price DECIMAL(10,2) NOT NULL,
+        total_price DECIMAL(10,2) NOT NULL,
+        color VARCHAR(50),
+        size VARCHAR(20),
+        customization_details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
+        INDEX idx_order_id (order_id),
+        INDEX idx_product_id (product_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ order_items table ready');
+
     // Seed master admin user
     await seedMasterAdmin(connection);
 
