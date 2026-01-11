@@ -115,6 +115,7 @@ export async function setupDatabase() {
         id INT PRIMARY KEY AUTO_INCREMENT,
         campaign_id INT NOT NULL,
         customer_id INT NOT NULL,
+        order_id INT DEFAULT NULL,
         ticket_number VARCHAR(50) UNIQUE NOT NULL,
         quantity INT NOT NULL DEFAULT 1,
         total_price DECIMAL(10,2) NOT NULL,
@@ -125,9 +126,23 @@ export async function setupDatabase() {
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
         INDEX idx_customer_id (customer_id),
         INDEX idx_campaign_id (campaign_id),
+        INDEX idx_order_id (order_id),
         INDEX idx_ticket_number (ticket_number)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    
+    // Add order_id column if it doesn't exist (for existing databases)
+    try {
+      await connection.execute(`
+        ALTER TABLE campaign_tickets ADD COLUMN order_id INT DEFAULT NULL AFTER customer_id
+      `);
+      console.log('✅ Added order_id column to campaign_tickets table');
+    } catch (err) {
+      if (err.code !== 'ER_DUP_FIELDNAME') {
+        // Column already exists, ignore
+      }
+    }
+    
     console.log('✅ campaign_tickets table ready');
 
     // Create customer_credits table
