@@ -135,7 +135,7 @@ export async function createOrder(req, res) {
     const [orderResult] = await connection.query(
       `INSERT INTO orders 
        (order_number, customer_id, total_amount, payment_status, payment_method, 
-        payment_transaction_id, order_status, shipping_address, notes)
+        payment_transaction_id, order_status, shipping_address, customer_notes)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         orderNumber,
@@ -159,12 +159,11 @@ export async function createOrder(req, res) {
       // Insert order item
       await connection.query(
         `INSERT INTO order_items 
-         (order_id, product_id, campaign_id, product_name, product_image, quantity, price, subtotal)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+         (order_id, product_id, product_name, product_image, quantity, unit_price, total_price)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           orderId,
           itemData.product_id,
-          itemData.campaign_id,
           itemData.product_name,
           itemData.product_image,
           itemData.quantity,
@@ -196,19 +195,17 @@ export async function createOrder(req, res) {
 
             await connection.query(
               `INSERT INTO campaign_tickets 
-               (campaign_id, customer_id, order_id, product_id, ticket_number, 
-                quantity, total_price, credits_earned, source)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+               (campaign_id, customer_id, order_id, ticket_number, 
+                quantity, total_price, credits_earned)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`,
               [
                 itemData.campaign_id,
                 customer_id,
                 orderId,
-                itemData.product_id,
                 ticketNumber,
                 1,
                 itemData.price,
-                0, // Credits can be calculated based on your logic
-                'purchase'
+                0 // Credits can be calculated based on your logic
               ]
             );
 
