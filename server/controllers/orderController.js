@@ -127,7 +127,9 @@ export async function createOrder(req, res) {
         product_image: product.main_image_url,
         quantity: item.quantity,
         price: price,
-        subtotal: subtotal
+        subtotal: subtotal,
+        color: item.color || null,
+        size: item.size || null
       });
     }
 
@@ -159,8 +161,8 @@ export async function createOrder(req, res) {
       // Insert order item
       await connection.query(
         `INSERT INTO order_items 
-         (order_id, product_id, product_name, product_image, quantity, unit_price, total_price)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         (order_id, product_id, product_name, product_image, quantity, unit_price, total_price, color, size)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           orderId,
           itemData.product_id,
@@ -168,7 +170,9 @@ export async function createOrder(req, res) {
           itemData.product_image,
           itemData.quantity,
           itemData.price,
-          itemData.subtotal
+          itemData.subtotal,
+          itemData.color,
+          itemData.size
         ]
       );
 

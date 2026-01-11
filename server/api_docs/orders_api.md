@@ -79,11 +79,15 @@ final response = await http.post(
   "items": [
     {
       "product_id": 1,
-      "quantity": 2
+      "quantity": 2,
+      "color": "Red",
+      "size": "M"
     },
     {
       "product_id": 2,
-      "quantity": 1
+      "quantity": 1,
+      "color": "Blue",
+      "size": "L"
     }
   ],
   "shipping_address": {
@@ -104,7 +108,11 @@ final response = await http.post(
 
 **Required fields:**
 - `customer_id` - Who is buying
-- `items` - What they're buying (product ID and how many)
+- `items` - Array of items being purchased. Each item must have:
+  - `product_id` (required) - The product ID
+  - `quantity` (required) - How many
+  - `color` (optional) - Selected color variant
+  - `size` (optional) - Selected size variant
 
 **Optional fields:**
 - `shipping_address` - Where to send the order
