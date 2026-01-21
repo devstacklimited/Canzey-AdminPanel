@@ -285,6 +285,25 @@ export async function setupDatabase() {
     `);
     console.log('✅ campaign_images table ready');
 
+    // Create banners table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS banners (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        title VARCHAR(255),
+        image_url VARCHAR(500) NOT NULL,
+        width INT DEFAULT 1080,
+        height INT DEFAULT 400,
+        priority INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        link_url VARCHAR(500),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_active (is_active),
+        INDEX idx_priority (priority)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ banners table ready');
+
     // Create dynamic_content table
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS dynamic_content (
