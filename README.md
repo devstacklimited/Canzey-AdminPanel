@@ -131,3 +131,26 @@ PORT=5000
 ## License
 
 MIT
+
+
+# how to deploy 
+
+cd ~/Canzey-AdminPanel
+git pull origin main
+
+# Create/update the .env with correct API URL
+echo "VITE_API_URL=https://admin.canzey.com" > ~/Canzey-AdminPanel/client/.env
+
+# Rebuild frontend
+cd ~/Canzey-AdminPanel/client
+npm install
+npm run build
+
+# Deploy
+cp -r dist/* /home/canzey/admin.canzey.com/
+chown -R canzey:canzey /home/canzey/admin.canzey.com/
+
+# Restart backend if needed
+cd ~/Canzey-AdminPanel/server
+npm install
+pm2 restart canzey-backend

@@ -6,12 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// In production (live server), store files directly under the Apache DocumentRoot
-// In development (local), keep using the existing ../public/uploads/customers path
-const isProduction = process.env.NODE_ENV === 'production';
-const avatarDir = isProduction
-  ? '/home/canzey/admin.canzey.com/uploads/customers/'
-  : path.join(__dirname, '../public/uploads/customers/');
+// Configure customer avatar upload directory
+const avatarDir = path.join(__dirname, '../uploads/customers/');
 
 if (!fs.existsSync(avatarDir)) {
   fs.mkdirSync(avatarDir, { recursive: true });

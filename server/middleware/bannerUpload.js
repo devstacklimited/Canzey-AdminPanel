@@ -7,10 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Configure banner upload directory
-const isProduction = process.env.NODE_ENV === 'production';
-const uploadDir = isProduction
-  ? '/home/canzey/admin.canzey.com/uploads/banners/'
-  : path.join(__dirname, '../uploads/banners/');
+const uploadDir = path.join(__dirname, '../uploads/banners/');
 
 // Create the banners directory if it doesn't exist
 if (!fs.existsSync(uploadDir)) {
