@@ -13,9 +13,6 @@ const Campaigns = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    ticket_price: '',
-    credits_per_ticket: '',
-    max_tickets_per_user: '',
     status: 'active',
     start_at: '',
     end_at: ''
@@ -102,9 +99,6 @@ const Campaigns = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description || '');
-      formDataToSend.append('ticket_price', parseFloat(formData.ticket_price));
-      formDataToSend.append('credits_per_ticket', parseInt(formData.credits_per_ticket));
-      formDataToSend.append('max_tickets_per_user', formData.max_tickets_per_user ? parseInt(formData.max_tickets_per_user) : '');
       formDataToSend.append('status', formData.status);
       formDataToSend.append('start_at', formData.start_at || '');
       formDataToSend.append('end_at', formData.end_at || '');
@@ -134,9 +128,6 @@ const Campaigns = () => {
         setFormData({
           title: '',
           description: '',
-          ticket_price: '',
-          credits_per_ticket: '',
-          max_tickets_per_user: '',
           status: 'active',
           start_at: '',
           end_at: ''
@@ -159,9 +150,6 @@ const Campaigns = () => {
     setFormData({
       title: campaign.title,
       description: campaign.description || '',
-      ticket_price: campaign.ticket_price.toString(),
-      credits_per_ticket: campaign.credits_per_ticket.toString(),
-      max_tickets_per_user: campaign.max_tickets_per_user?.toString() || '',
       status: campaign.status,
       start_at: campaign.start_at ? new Date(campaign.start_at).toISOString().slice(0, 16) : '',
       end_at: campaign.end_at ? new Date(campaign.end_at).toISOString().slice(0, 16) : ''
@@ -206,9 +194,6 @@ const Campaigns = () => {
     setFormData({
       title: '',
       description: '',
-      ticket_price: '',
-      credits_per_ticket: '',
-      max_tickets_per_user: '',
       status: 'active',
       start_at: '',
       end_at: ''
@@ -426,48 +411,6 @@ const Campaigns = () => {
               </div>
 
               <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="ticket_price">Ticket Price ($) *</label>
-                  <input
-                    type="number"
-                    id="ticket_price"
-                    name="ticket_price"
-                    value={formData.ticket_price}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    min="0"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="credits_per_ticket">Credits per Ticket *</label>
-                  <input
-                    type="number"
-                    id="credits_per_ticket"
-                    name="credits_per_ticket"
-                    value={formData.credits_per_ticket}
-                    onChange={handleInputChange}
-                    min="0"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="max_tickets_per_user">Max Tickets per User</label>
-                  <input
-                    type="number"
-                    id="max_tickets_per_user"
-                    name="max_tickets_per_user"
-                    value={formData.max_tickets_per_user}
-                    onChange={handleInputChange}
-                    min="1"
-                    placeholder="Leave empty for unlimited"
-                  />
-                </div>
-
                 <div className="form-group">
                   <label htmlFor="status">Status</label>
                   <select

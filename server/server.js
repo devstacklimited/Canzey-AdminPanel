@@ -7,6 +7,9 @@ import { setupDatabase } from './database/setup.js';
 import adminAuthRoutes from './routes/admin_auth.js';
 import adminCampaignsRoutes from './routes/admin_campaigns.js';
 import adminProductsRoutes from './routes/admin_products.js';
+import adminBannersRoutes from './routes/admin_banners.js';
+import adminTicketStatsRoutes from './routes/admin_ticket_stats.js';
+import adminProductPrizesRoutes from './routes/admin_product_prizes.js';
 import firebaseCustomerAuthRoutes from './routes/firebase_customer_auth.js';
 import campaignsRoutes from './routes/campaigns.js';
 import campaignParticipationRoutes from './routes/campaign_participation.js';
@@ -14,6 +17,8 @@ import dynamicContentRoutes from './routes/dynamic_content.js';
 import ordersRoutes from './routes/orders.js';
 import ticketsRoutes from './routes/tickets.js';
 import dashboardRoutes from './routes/dashboard.js';
+import bannersRoutes from './routes/banners.js';
+import productPrizesRoutes from './routes/product_prizes.js';
 
 dotenv.config();
 
@@ -34,6 +39,9 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin/campaigns', adminCampaignsRoutes);
 app.use('/api/admin/products', adminProductsRoutes);
+app.use('/api/admin/banners', adminBannersRoutes);
+app.use('/api/admin/tickets', adminTicketStatsRoutes);
+app.use('/api/admin/product-prizes', adminProductPrizesRoutes);
 app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/firebase/customer', firebaseCustomerAuthRoutes);
 app.use('/api/campaigns', campaignsRoutes);
@@ -41,6 +49,8 @@ app.use('/api', campaignParticipationRoutes);
 app.use('/api/content', dynamicContentRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/tickets', ticketsRoutes);
+app.use('/api/v1/public/banners', bannersRoutes);
+app.use('/api/v1/public', productPrizesRoutes);
 
 
 // 404 handler
