@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Upload, Eye, EyeOff } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import BannerModal from './components/BannerModal';
 import Toast from '../../components/ui/Toast';
+import { API_BASE_URL } from '../../config/api';
 import './Banners.css';
 
 const Banners = () => {
@@ -26,7 +27,7 @@ const Banners = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/banners', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/banners`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -69,7 +70,7 @@ const Banners = () => {
     setFormData({
       title: banner.title,
       image: null,
-      imagePreview: `${import.meta.env.VITE_API_URL}${banner.image_url}`,
+      imagePreview: `${API_BASE_URL}${banner.image_url}`,
       width: banner.width,
       height: banner.height,
       priority: banner.priority,
@@ -84,7 +85,7 @@ const Banners = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/banners/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/banners/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -106,7 +107,7 @@ const Banners = () => {
   const handleToggleActive = async (id, currentStatus) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/banners/${id}/toggle`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/banners/${id}/toggle`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -143,8 +144,8 @@ const Banners = () => {
       }
 
       const url = editingBanner 
-        ? `/api/admin/banners/${editingBanner.id}`
-        : '/api/admin/banners';
+        ? `${API_BASE_URL}/api/admin/banners/${editingBanner.id}`
+        : `${API_BASE_URL}/api/admin/banners`;
       
       const method = editingBanner ? 'PUT' : 'POST';
 
@@ -202,7 +203,7 @@ const Banners = () => {
               <div key={banner.id} className="banner-card">
                 <div className="banner-image-container">
                   <img 
-                    src={`${import.meta.env.VITE_API_URL}${banner.image_url}`} 
+                    src={`${API_BASE_URL}${banner.image_url}`} 
                     alt={banner.title}
                     className="banner-image"
                   />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
 import CampaignDetailModal from '../../components/CampaignDetailModal/CampaignDetailModal';
 import { Plus, Eye, X } from 'lucide-react';
-import { getImageUrl } from '../../config/api';
+import { getImageUrl, API_BASE_URL } from '../../config/api';
 import './Campaigns.css';
 
 const Campaigns = () => {
@@ -30,7 +30,7 @@ const Campaigns = () => {
   const fetchCampaigns = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/campaigns', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/campaigns`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -90,8 +90,8 @@ const Campaigns = () => {
     try {
       const token = localStorage.getItem('token');
       const url = editingCampaign 
-        ? `/api/admin/campaigns/${editingCampaign.id}`
-        : '/api/admin/campaigns';
+        ? `${API_BASE_URL}/api/admin/campaigns/${editingCampaign.id}`
+        : `${API_BASE_URL}/api/admin/campaigns`;
       
       const method = editingCampaign ? 'PUT' : 'POST';
       
