@@ -33,6 +33,8 @@ const Products = () => {
     is_customized: false,
     tags: '',
     campaign_id: '',
+    tickets_required: '',
+    countdown_start_tickets: '',
     colors: [],
     sizes: []
   });
@@ -195,6 +197,34 @@ const Products = () => {
     }
   };
 
+  const saveProductPrize = async (productId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const prizeData = {
+        product_id: productId,
+        campaign_id: formData.campaign_id,
+        tickets_required: parseInt(formData.tickets_required),
+        countdown_start_tickets: parseInt(formData.countdown_start_tickets) || 0
+      };
+
+      const response = await fetch('/api/admin/product-prizes', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(prizeData)
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        console.error('Failed to save product prize:', result.message);
+      }
+    } catch (error) {
+      console.error('Error saving product prize:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -225,6 +255,8 @@ const Products = () => {
       formDataToSend.append('is_customized', formData.is_customized ? '1' : '0');
       formDataToSend.append('tags', formData.tags || '');
       formDataToSend.append('campaign_id', formData.campaign_id || '');
+      formDataToSend.append('tickets_required', formData.tickets_required || '');
+      formDataToSend.append('countdown_start_tickets', formData.countdown_start_tickets || '');
       formDataToSend.append('colors', JSON.stringify(formData.colors || []));
       formDataToSend.append('sizes', JSON.stringify(formData.sizes || []));
       
@@ -249,6 +281,11 @@ const Products = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Save product-prize mapping if campaign and tickets are set
+        if (formData.campaign_id && formData.tickets_required) {
+          await saveProductPrize(data.product?.id || editingProduct?.id);
+        }
+        
         setToast({
           type: 'success',
           message: editingProduct ? 'Product updated successfully!' : 'Product created successfully!'
@@ -318,6 +355,8 @@ const Products = () => {
       is_customized: false,
       tags: '',
       campaign_id: '',
+      tickets_required: '',
+      countdown_start_tickets: '',
       colors: [],
       sizes: []
     });
@@ -459,7 +498,7 @@ const Products = () => {
           onRemoveNewImage={removeNewImage}
           loading={loading}
           isEditing={!!editingProduct}
-          onDelete={handleDelete}
+          onDelete={() => handleDelete(editingProduct?.id)}
           onAddColor={handleAddColor}
           onRemoveColor={handleRemoveColor}
           onAddSize={handleAddSize}

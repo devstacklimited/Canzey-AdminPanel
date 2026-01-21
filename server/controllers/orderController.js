@@ -185,7 +185,20 @@ export async function createOrder(req, res) {
 
       // Auto-create campaign tickets if product has campaign
       if (itemData.campaign_id) {
-        // Get campaign details
+        // 1. Update the product_prizes progress count
+        try {
+          await connection.query(
+            `UPDATE product_prizes 
+             SET tickets_sold = tickets_sold + ? 
+             WHERE product_id = ? AND campaign_id = ? AND is_active = 1`,
+            [itemData.quantity, itemData.product_id, itemData.campaign_id]
+          );
+        } catch (prizeErr) {
+          console.error('⚠️ Could not update product_prizes progress:', prizeErr.message);
+          // We don't fail the whole order if prizes tracking fails, but we log it
+        }
+
+        // 2. Get campaign details to generate tickets
         const [campaigns] = await connection.query(
           `SELECT id, title FROM campaigns WHERE id = ?`,
           [itemData.campaign_id]

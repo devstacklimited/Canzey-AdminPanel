@@ -392,6 +392,29 @@ export async function setupDatabase() {
     }
     console.log('✅ order_items table ready');
 
+    // Create product_prizes table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS product_prizes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        product_id INT NOT NULL,
+        campaign_id INT NOT NULL,
+        tickets_required INT NOT NULL DEFAULT 1,
+        tickets_sold INT DEFAULT 0,
+        tickets_remaining INT GENERATED ALWAYS AS (tickets_required - tickets_sold) STORED,
+        countdown_start_tickets INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+        INDEX idx_product_campaign (product_id, campaign_id),
+        INDEX idx_campaign (campaign_id),
+        INDEX idx_tickets_remaining (tickets_remaining),
+        INDEX idx_active (is_active)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ product_prizes table ready');
+
     // Seed master admin user
     await seedMasterAdmin(connection);
 

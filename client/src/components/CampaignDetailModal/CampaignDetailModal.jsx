@@ -1,14 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit, Calendar, DollarSign, Award, Users, Image as ImageIcon } from 'lucide-react';
+import { X, Edit, Calendar, Image as ImageIcon, Package, Ticket } from 'lucide-react';
 import { getImageUrl } from '../../config/api';
 import './CampaignDetailModal.css';
 
 const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) => {
   const [imageError, setImageError] = useState(false);
+  const [productPrizes, setProductPrizes] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   useEffect(() => {
     setImageError(false);
-  }, [campaign]);
+    if (campaign && isOpen) {
+      fetchProductPrizes();
+    }
+  }, [campaign, isOpen]);
+
+  const fetchProductPrizes = async () => {
+    setLoadingProducts(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/product-prizes', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Filter products for this specific campaign
+        const campaignProducts = data.product_prizes.filter(pp => pp.campaign_id === campaign.id);
+        setProductPrizes(campaignProducts);
+      }
+    } catch (error) {
+      console.error('Error fetching product prizes:', error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   if (!isOpen || !campaign) return null;
 
@@ -102,35 +130,6 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
                 </div>
               </div>
 
-              {/* Ticket Price */}
-              <div className="detail-info-item">
-                <div className="detail-info-label">
-                  <DollarSign size={16} />
-                  Ticket Price
-                </div>
-                <div className="detail-info-value">${campaign.ticket_price}</div>
-              </div>
-
-              {/* Credits per Ticket */}
-              <div className="detail-info-item">
-                <div className="detail-info-label">
-                  <Award size={16} />
-                  Credits per Ticket
-                </div>
-                <div className="detail-info-value">{campaign.credits_per_ticket}</div>
-              </div>
-
-              {/* Max Tickets */}
-              <div className="detail-info-item">
-                <div className="detail-info-label">
-                  <Users size={16} />
-                  Max Tickets per User
-                </div>
-                <div className="detail-info-value">
-                  {campaign.max_tickets_per_user || 'Unlimited'}
-                </div>
-              </div>
-
               {/* Start Date */}
               <div className="detail-info-item">
                 <div className="detail-info-label">
@@ -157,6 +156,84 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
                 <div className="detail-description-text">{campaign.description}</div>
               </div>
             )}
+
+            {/* Attached Products */}
+            <div className="detail-products-section">
+              <div className="detail-info-label">
+                <Package size={16} />
+                Attached Products ({productPrizes.length})
+              </div>
+              {loadingProducts ? (
+                <div className="detail-loading">Loading products...</div>
+              ) : productPrizes.length === 0 ? (
+                <div className="detail-no-products">
+                  <Package size={32} />
+                  <p>No products attached to this prize yet</p>
+                </div>
+              ) : (
+                <div className="detail-products-grid">
+                  {productPrizes.map((productPrize) => (
+                    <div key={productPrize.id} className="detail-product-card">
+                      <div className="detail-product-header">
+                        {productPrize.main_image_url ? (
+                          <img 
+                            src={getImageUrl(productPrize.main_image_url)} 
+                            alt={productPrize.product_name}
+                            className="detail-product-image"
+                          />
+                        ) : (
+                          <div className="detail-product-no-image">
+                            <Package size={24} />
+                          </div>
+                        )}
+                        <div className="detail-product-info">
+                          <h4>{productPrize.product_name}</h4>
+                          <span className={`detail-product-status ${productPrize.is_active ? 'active' : 'inactive'}`}>
+                            {productPrize.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-product-tickets">
+                        <div className="detail-ticket-info">
+                          <div className="detail-ticket-label">
+                            <Ticket size={14} />
+                            Ticket Progress
+                          </div>
+                          <div className="detail-ticket-stats">
+                            <span className="ticket-sold">{productPrize.tickets_sold}</span>
+                            <span className="ticket-separator">/</span>
+                            <span className="ticket-total">{productPrize.tickets_required}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="detail-ticket-progress">
+                          <div className="ticket-progress-bar">
+                            <div 
+                              className="ticket-progress-fill" 
+                              style={{ 
+                                width: `${Math.min((productPrize.tickets_sold / productPrize.tickets_required) * 100, 100)}%` 
+                              }}
+                            />
+                          </div>
+                          <div className="ticket-progress-text">
+                            {productPrize.tickets_remaining} tickets remaining
+                          </div>
+                        </div>
+                        
+                        {productPrize.countdown_start_tickets > 0 && (
+                          <div className="detail-countdown-info">
+                            <small>
+                              Countdown starts after {productPrize.countdown_start_tickets} tickets sold
+                            </small>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Timestamps */}
             <div className="detail-timestamps">

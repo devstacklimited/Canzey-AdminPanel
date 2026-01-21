@@ -21,8 +21,8 @@ export async function createCampaign(campaignData) {
       end_at 
     } = campaignData;
 
-    if (!title || ticket_price === undefined || credits_per_ticket === undefined) {
-      return { success: false, error: 'Title, ticket_price, and credits_per_ticket are required' };
+    if (!title) {
+      return { success: false, error: 'Title is required' };
     }
 
     const connection = await pool.getConnection();
@@ -34,10 +34,10 @@ export async function createCampaign(campaignData) {
         title || null, 
         description || null, 
         image_url || null, 
-        ticket_price || null, 
-        credits_per_ticket || null, 
+        ticket_price || 0, 
+        credits_per_ticket || 0, 
         max_tickets_per_user || null, 
-        status || null, 
+        status || 'active', 
         start_at || null, 
         end_at || null
       ]
@@ -241,9 +241,9 @@ export async function updateCampaign(campaignId, updateData) {
         title || null, 
         description || null, 
         image_url || null, 
-        ticket_price || null, 
-        credits_per_ticket || null, 
-        max_tickets_per_user || null, 
+        ticket_price !== undefined ? ticket_price : 0, 
+        credits_per_ticket !== undefined ? credits_per_ticket : 0, 
+        max_tickets_per_user !== undefined ? max_tickets_per_user : null, 
         status || null, 
         start_at || null, 
         end_at || null, 

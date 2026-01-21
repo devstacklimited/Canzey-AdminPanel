@@ -317,6 +317,187 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+/* Product Section Styles */
+.detail-products-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.detail-loading {
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.detail-no-products {
+  text-align: center;
+  padding: 32px;
+  color: #94a3b8;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 2px dashed #e2e8f0;
+}
+
+.detail-no-products p {
+  margin: 12px 0 0 0;
+  font-size: 14px;
+}
+
+.detail-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.detail-product-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.detail-product-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.detail-product-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-product-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+
+.detail-product-no-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.detail-product-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.detail-product-status {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-product-status.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.detail-product-status.inactive {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.detail-product-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-ticket-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-ticket-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.detail-ticket-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ticket-sold {
+  color: #3b82f6;
+}
+
+.ticket-separator {
+  color: #94a3b8;
+}
+
+.ticket-total {
+  color: #64748b;
+}
+
+.detail-ticket-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ticket-progress-bar {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ticket-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.ticket-progress-text {
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.detail-countdown-info {
+  text-align: center;
+  padding: 8px;
+  background: #fef3c7;
+  border-radius: 6px;
+  border: 1px solid #fde68a;
+}
+
+.detail-countdown-info small {
+  color: #92400e;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .detail-modal {
@@ -337,5 +518,9 @@
   .detail-modal-footer {
     flex-direction: column;
     gap: 12px;
+  }
+  
+  .detail-products-grid {
+    grid-template-columns: 1fr;
   }
 }

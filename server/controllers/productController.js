@@ -179,21 +179,7 @@ export async function listProducts() {
   }
 }
 
-/**
- * Helper: upsert product categories
- */
-async function upsertProductCategories(connection, productId, categoryIds = []) {
-  // Remove existing
-  await connection.execute('DELETE FROM product_categories WHERE product_id = ?', [productId]);
 
-  if (!Array.isArray(categoryIds) || categoryIds.length === 0) return;
-
-  const values = categoryIds.map((cid) => [productId, cid]);
-  await connection.query(
-    'INSERT INTO product_categories (product_id, category_id) VALUES ?;',
-    [values]
-  );
-}
 
 /**
  * Helper: upsert product images
@@ -527,14 +513,30 @@ export async function deleteProduct(productId) {
   try {
     await connection.beginTransaction();
 
-    // Delete product images
-    await connection.execute('DELETE FROM product_images WHERE product_id = ?', [productId]);
+    // Important: Handle foreign key constraints for tables that might not have ON DELETE CASCADE
+    
+    // 1. Update order_items to set product_id to NULL (to preserve order history)
+    // Some older database versions might have ON DELETE RESTRICT by default
+    await connection.execute('UPDATE order_items SET product_id = NULL WHERE product_id = ?', [productId]);
 
-    // Delete product categories
-    await connection.execute('DELETE FROM product_categories WHERE product_id = ?', [productId]);
+    // 2. Delete from product_prizes (this mapping is no longer needed if product is gone)
+    try {
+      await connection.execute('DELETE FROM product_prizes WHERE product_id = ?', [productId]);
+    } catch (e) {
+      // Ignore if table doesn't exist
+    }
 
+    // Note: product_images, product_colors, and product_sizes have ON DELETE CASCADE
+    // in the setup.js schema, so they will be automatically deleted when the product is deleted.
+    
     // Delete product
-    await connection.execute('DELETE FROM products WHERE id = ?', [productId]);
+    const [result] = await connection.execute('DELETE FROM products WHERE id = ?', [productId]);
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      connection.release();
+      return { success: false, error: 'Product not found or already deleted' };
+    }
 
     await connection.commit();
     connection.release();

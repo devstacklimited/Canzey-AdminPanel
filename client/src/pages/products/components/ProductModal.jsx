@@ -433,6 +433,57 @@ const ProductModal = ({
             <p className="form-hint">Link this product to a prize. One product can only be linked to one prize.</p>
           </div>
 
+          {/* Ticket Configuration Section */}
+          {formData.campaign_id && (
+            <div className="form-group">
+              <label>Ticket Configuration</label>
+              <div className="ticket-config-grid">
+                <div className="ticket-input-group">
+                  <label htmlFor="tickets_required">Total Tickets Required</label>
+                  <input
+                    type="number"
+                    id="tickets_required"
+                    name="tickets_required"
+                    value={formData.tickets_required || ''}
+                    onChange={onInputChange}
+                    placeholder="e.g., 1000"
+                    min="1"
+                    className="ticket-input"
+                  />
+                  <small>Total tickets needed to win this prize</small>
+                </div>
+                <div className="ticket-input-group">
+                  <label htmlFor="countdown_start_tickets">Countdown Starts After</label>
+                  <input
+                    type="number"
+                    id="countdown_start_tickets"
+                    name="countdown_start_tickets"
+                    value={formData.countdown_start_tickets || ''}
+                    onChange={onInputChange}
+                    placeholder="e.g., 100"
+                    min="0"
+                    className="ticket-input"
+                  />
+                  <small>Show countdown after this many tickets sold</small>
+                </div>
+              </div>
+              <div className="ticket-preview">
+                <div className="ticket-preview-info">
+                  <span className="ticket-preview-label">Preview:</span>
+                  <span className="ticket-preview-text">
+                    {formData.tickets_required ? 
+                      `${formData.tickets_required} tickets required` : 
+                      'Set ticket count above'
+                    }
+                    {formData.countdown_start_tickets && formData.tickets_required && 
+                      ` • Countdown starts after ${formData.countdown_start_tickets} tickets`
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Tags Section */}
           <div className="form-group">
             <label>Tags</label>
