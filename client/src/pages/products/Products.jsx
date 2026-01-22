@@ -324,6 +324,8 @@ const Products = () => {
       is_customized: product.is_customized === 1 || product.is_customized === true,
       tags: product.tags || '',
       campaign_id: product.campaign_id || '',
+      tickets_required: product.tickets_required || '',
+      countdown_start_tickets: product.countdown_start_tickets || '',
       colors: product.colors || [],
       sizes: product.sizes || []
     });

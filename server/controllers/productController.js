@@ -13,25 +13,11 @@ export async function listProducts() {
 
     const [products] = await connection.execute(`
       SELECT 
-        p.id,
-        p.name,
-        p.slug,
-        p.description,
-        p.sku,
-        p.price,
-        p.sale_price,
-        p.stock_quantity,
-        p.category,
-        p.sub_category,
-        p.for_gender,
-        p.is_customized,
-        p.tags,
-        p.campaign_id,
-        p.main_image_url,
-        p.status,
-        p.created_at,
-        p.updated_at
+        p.*,
+        pp.tickets_required,
+        pp.countdown_start_tickets
       FROM products p
+      LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
       ORDER BY p.created_at DESC
     `);
 
@@ -352,7 +338,10 @@ export async function getProductById(productId) {
     const connection = await pool.getConnection();
 
     const [products] = await connection.execute(
-      'SELECT * FROM products WHERE id = ?',
+      `SELECT p.*, pp.tickets_required, pp.countdown_start_tickets 
+       FROM products p 
+       LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
+       WHERE p.id = ?`,
       [productId]
     );
 
