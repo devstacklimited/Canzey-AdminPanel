@@ -50,6 +50,15 @@ const Products = () => {
       });
       const data = await response.json();
       if (data.success) {
+        console.log('📦 [DEBUG] Products fetched:', data.products?.length);
+        if (data.products?.length > 0) {
+          console.log('📦 [DEBUG] Sample product prize info:', {
+            id: data.products[0].id,
+            name: data.products[0].name,
+            tickets: data.products[0].tickets_required,
+            countdown: data.products[0].countdown_start_tickets
+          });
+        }
         setProducts(data.products || []);
       } else {
         setToast({ type: 'error', message: 'Failed to fetch products' });
@@ -303,6 +312,12 @@ const Products = () => {
   };
 
   const handleEdit = (product) => {
+    console.log('📝 [DEBUG] Editing product:', product.id, product.name);
+    console.log('📊 [DEBUG] Prize info to populate:', {
+      tickets: product.tickets_required,
+      countdown: product.countdown_start_tickets
+    });
+
     setEditingProduct(product);
     setFormData({
       name: product.name || '',

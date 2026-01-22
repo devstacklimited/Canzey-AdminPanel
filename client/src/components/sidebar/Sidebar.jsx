@@ -56,7 +56,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Footer */}
         <div className="sidebar-footer">
           <div className="sidebar-footer-text">
-            <p>Version 1.0.0</p>
+            <p>Version {__APP_VERSION__}</p>
+            <p className="build-date">Build: {__BUILD_DATE__}</p>
             <p>© 2024 Canzey</p>
           </div>
         </div>
