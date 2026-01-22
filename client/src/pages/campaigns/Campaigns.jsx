@@ -269,8 +269,12 @@ const Campaigns = () => {
               <tr key={campaign.id}>
                 <td>
                   <div className="campaign-image-cell">
-                    {campaign.image_url ? (
-                      <img src={getImageUrl(campaign.image_url)} alt={campaign.title} className="campaign-thumbnail" />
+                    {campaign.image_url || (campaign.images && campaign.images.length > 0) ? (
+                      <img 
+                        src={getImageUrl(campaign.image_url || campaign.images[0].image_url)} 
+                        alt={campaign.title} 
+                        className="campaign-thumbnail" 
+                      />
                     ) : (
                       <div className="campaign-no-image">No Image</div>
                     )}
