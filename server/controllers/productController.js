@@ -311,12 +311,24 @@ export async function createProduct(productData) {
     await upsertProductSizes(connection, productId, sizes);
 
     // Prize Management
-    if (campaign_id && productData.tickets_required) {
+    console.log('🏆 [CREATE PRODUCT] Prize Check - parsedCampaignId:', parsedCampaignId, 'parsedTickets:', parsedTickets);
+    
+    if (parsedCampaignId && parsedTickets) {
+      console.log('🏆 [CREATE PRODUCT] Saving prize info for product:', productId, 'with values:', {
+        campaign: parsedCampaignId,
+        tickets: parsedTickets,
+        countdown: safeInt(countdown_start_tickets) || 0
+      });
+      
       await connection.execute(
         `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets)
          VALUES (?, ?, ?, ?)`,
-        [productId, campaign_id, productData.tickets_required, productData.countdown_start_tickets || 0]
+        [productId, parsedCampaignId, parsedTickets, safeInt(countdown_start_tickets) || 0]
       );
+    } else {
+      console.log('⚠️ [CREATE PRODUCT] NOT saving prize data. Reason:');
+      if (!parsedCampaignId) console.log('   - parsedCampaignId is', parsedCampaignId);
+      if (!parsedTickets) console.log('   - parsedTickets is', parsedTickets);
     }
 
     await connection.commit();
@@ -420,7 +432,10 @@ export async function updateProduct(productId, productData) {
   try {
     console.log('📝 [UPDATE PRODUCT] Request received');
     console.log('   Product ID:', productId);
-    console.log('   Product data:', productData);
+    console.log('   Raw productData keys:', Object.keys(productData));
+    console.log('   campaign_id (raw):', productData.campaign_id, 'type:', typeof productData.campaign_id);
+    console.log('   tickets_required (raw):', productData.tickets_required, 'type:', typeof productData.tickets_required);
+    console.log('   countdown_start_tickets (raw):', productData.countdown_start_tickets, 'type:', typeof productData.countdown_start_tickets);
 
     const {
       name,
@@ -485,27 +500,47 @@ export async function updateProduct(productId, productData) {
     await upsertProductSizes(connection, productId, sizes);
 
     // Prize Management
-    if (campaign_id && productData.tickets_required) {
+    console.log('🏆 [UPDATE PRODUCT] Prize Check - parsedCampaignId:', parsedCampaignId, 'parsedTickets:', parsedTickets);
+    
+    if (parsedCampaignId && parsedTickets) {
       // Check if exists
       const [existing] = await connection.execute(
         'SELECT id FROM product_prizes WHERE product_id = ?',
         [productId]
       );
 
+      console.log('   Found existing prize records:', existing.length);
+
       if (existing.length > 0) {
+        console.log('🏆 [UPDATE PRODUCT] Updating prize ID:', existing[0].id, 'with values:', {
+          campaign: parsedCampaignId,
+          tickets: parsedTickets,
+          countdown: safeInt(countdown_start_tickets) || 0
+        });
+        
         await connection.execute(
           `UPDATE product_prizes 
            SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, is_active = 1
            WHERE id = ?`,
-          [campaign_id, productData.tickets_required, productData.countdown_start_tickets || 0, existing[0].id]
+          [parsedCampaignId, parsedTickets, safeInt(countdown_start_tickets) || 0, existing[0].id]
         );
       } else {
+        console.log('🏆 [UPDATE PRODUCT] Inserting new prize for product:', productId, 'with values:', {
+          campaign: parsedCampaignId,
+          tickets: parsedTickets,
+          countdown: safeInt(countdown_start_tickets) || 0
+        });
+        
         await connection.execute(
           `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets)
            VALUES (?, ?, ?, ?)`,
-          [productId, campaign_id, productData.tickets_required, productData.countdown_start_tickets || 0]
+          [productId, parsedCampaignId, parsedTickets, safeInt(countdown_start_tickets) || 0]
         );
       }
+    } else {
+      console.log('⚠️ [UPDATE PRODUCT] NOT saving prize data. Reason:');
+      if (!parsedCampaignId) console.log('   - parsedCampaignId is', parsedCampaignId);
+      if (!parsedTickets) console.log('   - parsedTickets is', parsedTickets);
     }
 
     await connection.commit();
