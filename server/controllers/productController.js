@@ -277,6 +277,15 @@ export async function createProduct(productData) {
       return { success: false, error: 'Name and price are required' };
     }
 
+    const safeInt = (val) => {
+      if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') return null;
+      const parsed = parseInt(val);
+      return isNaN(parsed) ? null : parsed;
+    };
+
+    const parsedCampaignId = safeInt(productData.campaign_id);
+    const parsedTickets = safeInt(productData.tickets_required);
+
     await connection.beginTransaction();
 
     const [result] = await connection.execute(
@@ -296,7 +305,7 @@ export async function createProduct(productData) {
         for_gender || null,
         is_customized || false,
         Array.isArray(tags) && tags.length > 0 ? tags.join(',') : (tags || null),
-        campaign_id || null,
+        parsedCampaignId,
         image_urls[0] || null,
         status,
       ]
