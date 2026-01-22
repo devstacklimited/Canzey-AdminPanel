@@ -312,12 +312,32 @@ const Products = () => {
     }
   };
 
-  const handleEdit = (product) => {
+  const handleEdit = async (product) => {
     console.log('📝 [DEBUG] Editing product:', product.id, product.name);
-    console.log('📊 [DEBUG] Prize info to populate:', {
-      tickets: product.tickets_required,
-      countdown: product.countdown_start_tickets
-    });
+    
+    let tickets = product.tickets_required;
+    let countdown = product.countdown_start_tickets;
+
+    // If data is missing from the list, fetch it directly (Smart Edit)
+    if (tickets === undefined || tickets === null || tickets === '') {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/admin/product-prizes`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          const prizeInfo = data.product_prizes.find(pp => pp.product_id === product.id);
+          if (prizeInfo) {
+            tickets = prizeInfo.tickets_required;
+            countdown = prizeInfo.countdown_start_tickets;
+            console.log('🎯 [DEBUG] Found prize info via secondary fetch:', { tickets, countdown });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching secondary prize info:', err);
+      }
+    }
 
     setEditingProduct(product);
     setFormData({
@@ -335,8 +355,8 @@ const Products = () => {
       is_customized: product.is_customized === 1 || product.is_customized === true,
       tags: product.tags || '',
       campaign_id: product.campaign_id || '',
-      tickets_required: product.tickets_required || '',
-      countdown_start_tickets: product.countdown_start_tickets || '',
+      tickets_required: tickets || '',
+      countdown_start_tickets: countdown || '',
       colors: product.colors || [],
       sizes: product.sizes || []
     });
