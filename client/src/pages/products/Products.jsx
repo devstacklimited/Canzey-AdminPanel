@@ -87,6 +87,7 @@ const Products = () => {
   };
 
   useEffect(() => {
+    console.log('🚀 [VERSION] Canzey Admin Dashboard v' + __APP_VERSION__ + ' - Build: ' + __BUILD_DATE__);
     fetchProducts();
     fetchCampaigns();
   }, []);

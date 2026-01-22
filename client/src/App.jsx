@@ -30,7 +30,7 @@ function App() {
   return (
     <ErrorBoundary>
       <UserProvider>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             {/* Auth Routes */}
             <Route path="/" element={<Login />} />
