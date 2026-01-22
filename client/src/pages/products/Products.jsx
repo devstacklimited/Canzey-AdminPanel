@@ -281,11 +281,6 @@ const Products = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Save product-prize mapping if campaign and tickets are set
-        if (formData.campaign_id && formData.tickets_required) {
-          await saveProductPrize(data.product?.id || editingProduct?.id);
-        }
-        
         setToast({
           type: 'success',
           message: editingProduct ? 'Product updated successfully!' : 'Product created successfully!'

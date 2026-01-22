@@ -14,12 +14,17 @@ export async function listProducts() {
     const [products] = await connection.execute(`
       SELECT 
         p.*,
-        pp.tickets_required,
-        pp.countdown_start_tickets
+        (SELECT tickets_required FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as tickets_required,
+        (SELECT countdown_start_tickets FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as countdown_start_tickets
       FROM products p
-      LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
       ORDER BY p.created_at DESC
     `);
+
+    // Log a few products to see if prize data is attached
+    if (products.length > 0) {
+      const withPrize = products.filter(p => p.tickets_required);
+      console.log(`📦 [LIST PRODUCTS] Total: ${products.length}, With Prize Info: ${withPrize.length}`);
+    }
 
     console.log('📦 [LIST PRODUCTS] Products from DB:', products.length);
     if (products.length > 0) {
@@ -305,6 +310,15 @@ export async function createProduct(productData) {
     await upsertProductColors(connection, productId, colors);
     await upsertProductSizes(connection, productId, sizes);
 
+    // Prize Management
+    if (campaign_id && productData.tickets_required) {
+      await connection.execute(
+        `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets)
+         VALUES (?, ?, ?, ?)`,
+        [productId, campaign_id, productData.tickets_required, productData.countdown_start_tickets || 0]
+      );
+    }
+
     await connection.commit();
     connection.release();
 
@@ -338,9 +352,11 @@ export async function getProductById(productId) {
     const connection = await pool.getConnection();
 
     const [products] = await connection.execute(
-      `SELECT p.*, pp.tickets_required, pp.countdown_start_tickets 
+      `SELECT 
+        p.*, 
+        (SELECT tickets_required FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as tickets_required,
+        (SELECT countdown_start_tickets FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as countdown_start_tickets
        FROM products p 
-       LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
        WHERE p.id = ?`,
       [productId]
     );
@@ -467,6 +483,30 @@ export async function updateProduct(productId, productData) {
 
     await upsertProductColors(connection, productId, colors);
     await upsertProductSizes(connection, productId, sizes);
+
+    // Prize Management
+    if (campaign_id && productData.tickets_required) {
+      // Check if exists
+      const [existing] = await connection.execute(
+        'SELECT id FROM product_prizes WHERE product_id = ?',
+        [productId]
+      );
+
+      if (existing.length > 0) {
+        await connection.execute(
+          `UPDATE product_prizes 
+           SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, is_active = 1
+           WHERE id = ?`,
+          [campaign_id, productData.tickets_required, productData.countdown_start_tickets || 0, existing[0].id]
+        );
+      } else {
+        await connection.execute(
+          `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets)
+           VALUES (?, ?, ?, ?)`,
+          [productId, campaign_id, productData.tickets_required, productData.countdown_start_tickets || 0]
+        );
+      }
+    }
 
     await connection.commit();
     connection.release();
