@@ -67,6 +67,11 @@ router.post('/', authenticateToken, requireAdmin, productUpload.array('images', 
       productData.category_ids = JSON.parse(productData.category_ids);
     }
     
+    console.log('🌐 [ROUTE] POST /products - Received data:');
+    console.log('   campaign_id:', productData.campaign_id);
+    console.log('   tickets_required:', productData.tickets_required);
+    console.log('   countdown_start_tickets:', productData.countdown_start_tickets);
+    
     const result = await createProduct(productData);
 
     if (!result.success) {
@@ -113,6 +118,12 @@ router.put('/:id', authenticateToken, requireAdmin, productUpload.array('images'
     if (typeof productData.category_ids === 'string') {
       productData.category_ids = JSON.parse(productData.category_ids);
     }
+    
+    console.log('🌐 [ROUTE] PUT /products/:id - Received data:');
+    console.log('   Product ID:', productId);
+    console.log('   campaign_id:', productData.campaign_id);
+    console.log('   tickets_required:', productData.tickets_required);
+    console.log('   countdown_start_tickets:', productData.countdown_start_tickets);
     
     const result = await updateProduct(productId, productData);
 

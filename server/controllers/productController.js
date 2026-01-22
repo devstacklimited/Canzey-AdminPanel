@@ -317,13 +317,13 @@ export async function createProduct(productData) {
       console.log('🏆 [CREATE PRODUCT] Saving prize info for product:', productId, 'with values:', {
         campaign: parsedCampaignId,
         tickets: parsedTickets,
-        countdown: safeInt(countdown_start_tickets) || 0
+        countdown: safeInt(productData.countdown_start_tickets) || 0
       });
       
       await connection.execute(
         `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets)
          VALUES (?, ?, ?, ?)`,
-        [productId, parsedCampaignId, parsedTickets, safeInt(countdown_start_tickets) || 0]
+        [productId, parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0]
       );
     } else {
       console.log('⚠️ [CREATE PRODUCT] NOT saving prize data. Reason:');
@@ -466,6 +466,16 @@ export async function updateProduct(productId, productData) {
       try { sizes = JSON.parse(sizes); } catch (e) { sizes = []; }
     }
 
+    
+    const safeInt = (val) => {
+      if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') return null;
+      const parsed = parseInt(val);
+      return isNaN(parsed) ? null : parsed;
+    };
+
+    const parsedCampaignId = safeInt(productData.campaign_id);
+    const parsedTickets = safeInt(productData.tickets_required);
+
     await connection.beginTransaction();
 
     await connection.execute(
@@ -487,7 +497,7 @@ export async function updateProduct(productId, productData) {
         for_gender || null,
         is_customized || false,
         Array.isArray(tags) && tags.length > 0 ? tags.join(',') : (tags || null),
-        campaign_id || null,
+        parsedCampaignId,
         image_urls[0] || null,
         productId,
       ]
@@ -515,26 +525,26 @@ export async function updateProduct(productId, productData) {
         console.log('🏆 [UPDATE PRODUCT] Updating prize ID:', existing[0].id, 'with values:', {
           campaign: parsedCampaignId,
           tickets: parsedTickets,
-          countdown: safeInt(countdown_start_tickets) || 0
+          countdown: safeInt(productData.countdown_start_tickets) || 0
         });
         
         await connection.execute(
           `UPDATE product_prizes 
            SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, is_active = 1
            WHERE id = ?`,
-          [parsedCampaignId, parsedTickets, safeInt(countdown_start_tickets) || 0, existing[0].id]
+          [parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0, existing[0].id]
         );
       } else {
         console.log('🏆 [UPDATE PRODUCT] Inserting new prize for product:', productId, 'with values:', {
           campaign: parsedCampaignId,
           tickets: parsedTickets,
-          countdown: safeInt(countdown_start_tickets) || 0
+          countdown: safeInt(productData.countdown_start_tickets) || 0
         });
         
         await connection.execute(
           `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets)
            VALUES (?, ?, ?, ?)`,
-          [productId, parsedCampaignId, parsedTickets, safeInt(countdown_start_tickets) || 0]
+          [productId, parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0]
         );
       }
     } else {
