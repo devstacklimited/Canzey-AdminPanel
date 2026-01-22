@@ -42,23 +42,33 @@ export async function attachPrizeToProduct(prizeData) {
       return { success: false, error: 'Campaign not found' };
     }
     
-    // Check if already attached
+    // Check if prize already attached to this product
     const [existing] = await connection.execute(
-      'SELECT id FROM product_prizes WHERE product_id = ? AND campaign_id = ?',
-      [product_id, campaign_id]
+      'SELECT id FROM product_prizes WHERE product_id = ?',
+      [product_id]
     );
     
+    let result;
     if (existing.length > 0) {
-      connection.release();
-      return { success: false, error: 'Prize already attached to this product' };
+      // Update existing mapping
+      const [updateResult] = await connection.execute(
+        `UPDATE product_prizes 
+         SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, is_active = 1
+         WHERE id = ?`,
+        [campaign_id, tickets_required, countdown_start_tickets, existing[0].id]
+      );
+      result = { insertId: existing[0].id, affectedRows: updateResult.affectedRows };
+      console.log('✅ [ATTACH PRIZE] Prize mapping updated for product', product_id);
+    } else {
+      // Create new product-prize mapping
+      const [insertResult] = await connection.execute(
+        `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets) 
+         VALUES (?, ?, ?, ?)`,
+        [product_id, campaign_id, tickets_required, countdown_start_tickets]
+      );
+      result = insertResult;
+      console.log('✅ [ATTACH PRIZE] New prize mapping created for product', product_id);
     }
-    
-    // Create product-prize mapping
-    const [result] = await connection.execute(
-      `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets) 
-       VALUES (?, ?, ?, ?)`,
-      [product_id, campaign_id, tickets_required, countdown_start_tickets]
-    );
     
     connection.release();
     

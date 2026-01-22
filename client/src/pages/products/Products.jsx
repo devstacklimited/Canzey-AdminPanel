@@ -3,7 +3,7 @@ import { Plus, Edit, Package, Search } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import ProductModal from './components/ProductModal';
 import Toast from '../../components/ui/Toast';
-import { API_ENDPOINTS, getAuthHeaders, getImageUrl } from '../../config/api';
+import { API_ENDPOINTS, getAuthHeaders, getImageUrl, API_BASE_URL } from '../../config/api';
 import '../../components/ui/ToggleSwitch.css';
 import './Products.css';
 
@@ -207,7 +207,7 @@ const Products = () => {
         countdown_start_tickets: parseInt(formData.countdown_start_tickets) || 0
       };
 
-      const response = await fetch('/api/admin/product-prizes', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/product-prizes`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

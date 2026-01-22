@@ -157,8 +157,31 @@ final response = await http.post(
 - ✅ Checks if products are in stock
 - ✅ Calculates total price
 - ✅ Reduces product stock
-- ✅ Creates campaign tickets if product has a prize
+- ✅ **Updates Prize Progress:** Increments `tickets_sold` in the `product_prizes` table for the specific product purchased.
+- ✅ Creates unique campaign tickets for the customer (one per quantity).
 - ✅ Generates unique order number
+
+---
+
+### 1.1 Winning/Prize Progress (For Flutter)
+**URL:** `GET /api/v1/public/product-prizes/:productId`
+
+Use this to show the "Sold vs Remaining" progress bar on the product page in Flutter.
+
+**Response Example:**
+```json
+{
+  "success": true,
+  "prize": {
+    "product_id": 1,
+    "campaign_id": 5,
+    "tickets_required": 1000,
+    "tickets_sold": 450,
+    "tickets_remaining": 550,
+    "is_active": true
+  }
+}
+```
 
 ---
 

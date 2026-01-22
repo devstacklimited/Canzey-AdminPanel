@@ -209,6 +209,36 @@ export async function setupDatabase() {
     
     console.log('✅ products table ready');
 
+    // Create categories table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE,
+        description TEXT,
+        parent_id INT DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL,
+        INDEX idx_slug (slug)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ categories table ready');
+
+    // Create product_categories pivot table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS product_categories (
+        product_id INT NOT NULL,
+        category_id INT NOT NULL,
+        PRIMARY KEY (product_id, category_id),
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+        INDEX idx_product_id (product_id),
+        INDEX idx_category_id (category_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log('✅ product_categories table ready');
+
     // Create product_images table
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS product_images (

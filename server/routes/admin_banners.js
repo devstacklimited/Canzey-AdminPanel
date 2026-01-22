@@ -14,6 +14,7 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
     // Add image path to request body if file was uploaded
     const bannerData = { ...req.body };
     if (req.file) {
+      // Use full path including subfolder for the database
       bannerData.image_url = `/uploads/banners/${req.file.filename}`;
     }
 
@@ -73,6 +74,7 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), asyn
     // Add image path to request body if file was uploaded
     const updateData = { ...req.body };
     if (req.file) {
+      // Use full path including subfolder for the database
       updateData.image_url = `/uploads/banners/${req.file.filename}`;
     }
 

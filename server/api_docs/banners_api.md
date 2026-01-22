@@ -246,7 +246,7 @@ Retrieve all active banners ordered by priority for display in the mobile app.
 ```json
 {
   "success": true,
-  "data": [
+  "banners": [
     {
       "id": 1,
       "title": "Big Sale",
@@ -266,6 +266,47 @@ Retrieve all active banners ordered by priority for display in the mobile app.
       "link_url": "/limited"
     }
   ]
+}
+```
+
+**Flutter Integration Example:**
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class BannerModel {
+  final int id;
+  final String title;
+  final String imageUrl;
+  final String? linkUrl;
+
+  BannerModel({required this.id, required this.title, required this.imageUrl, this.linkUrl});
+
+  factory BannerModel.fromJson(Map<String, dynamic> json) {
+    // Note: Always join image_url with your API Base URL
+    const String baseUrl = 'https://admin.canzey.com';
+    return BannerModel(
+      id: json['id'],
+      title: json['title'] ?? '',
+      imageUrl: baseUrl + json['image_url'],
+      linkUrl: json['link_url'],
+    );
+  }
+}
+
+Future<List<BannerModel>> fetchBanners() async {
+  final response = await http.get(
+    Uri.parse('https://admin.canzey.com/api/v1/public/banners'),
+  );
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    if (data['success'] == true) {
+      List<dynamic> list = data['banners'];
+      return list.map((b) => BannerModel.fromJson(b)).toList();
+    }
+  }
+  return [];
 }
 ```
 
