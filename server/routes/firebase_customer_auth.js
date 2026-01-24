@@ -4,6 +4,7 @@ import { updateCustomerInfo } from '../controllers/customerController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import pool from '../database/connection.js';
 import customerAvatarUpload from '../middleware/customerAvatarUpload.js';
+import { getCustomerTickets, getCustomerCreditBalance, getCustomerCreditHistory } from '../controllers/ticketController.js';
 
 const router = express.Router();
 
@@ -177,10 +178,100 @@ router.post('/avatar', authenticateToken, customerAvatarUpload.single('avatar'),
       user: result.user
     });
   } catch (error) {
-    console.error('❌ [FIREBASE CUSTOMER AVATAR API] Error:', error.message);
+    console.error(' [FIREBASE CUSTOMER AVATAR API] Error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Server error during avatar upload'
+    });
+  }
+});
+
+/**
+ * GET /api/firebase/customer/tickets
+ * Get customer's tickets (requires our JWT token)
+ */
+router.get('/tickets', authenticateToken, async (req, res) => {
+  try {
+    console.log(' [CUSTOMER TICKETS API] Request received');
+    console.log('   Customer ID:', req.user.userId);
+
+    const result = await getCustomerTickets(req.user.userId);
+
+    if (!result.success) {
+      console.log(' [CUSTOMER TICKETS API] Failed:', result.error || result.message);
+      return res.status(500).json({
+        success: false,
+        message: result.error || result.message || 'Server error while fetching tickets',
+      });
+    }
+
+    console.log(' [CUSTOMER TICKETS API] Success - Found', result.tickets?.length || 0, 'tickets');
+    res.json(result);
+  } catch (error) {
+    console.error(' [CUSTOMER TICKETS API] Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching tickets',
+    });
+  }
+});
+
+/**
+ * GET /api/firebase/customer/credits
+ * Get customer's credit balance (requires our JWT token)
+ */
+router.get('/credits', authenticateToken, async (req, res) => {
+  try {
+    console.log(' [CUSTOMER CREDITS API] Request received');
+    console.log('   Customer ID:', req.user.userId);
+
+    const result = await getCustomerCreditBalance(req.user.userId);
+
+    if (!result.success) {
+      console.log(' [CUSTOMER CREDITS API] Failed:', result.error);
+      return res.status(500).json({
+        success: false,
+        message: result.error || 'Server error while fetching credits',
+      });
+    }
+
+    console.log(' [CUSTOMER CREDITS API] Success');
+    res.json(result);
+  } catch (error) {
+    console.error(' [CUSTOMER CREDITS API] Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching credits',
+    });
+  }
+});
+
+/**
+ * GET /api/firebase/customer/credits/history
+ * Get customer's credit history (requires our JWT token)
+ */
+router.get('/credits/history', authenticateToken, async (req, res) => {
+  try {
+    console.log(' [CUSTOMER CREDIT HISTORY API] Request received');
+    console.log('   Customer ID:', req.user.userId);
+
+    const result = await getCustomerCreditHistory(req.user.userId);
+
+    if (!result.success) {
+      console.log(' [CUSTOMER CREDIT HISTORY API] Failed:', result.error);
+      return res.status(500).json({
+        success: false,
+        message: result.error || 'Server error while fetching credit history',
+      });
+    }
+
+    console.log(' [CUSTOMER CREDIT HISTORY API] Success');
+    res.json(result);
+  } catch (error) {
+    console.error(' [CUSTOMER CREDIT HISTORY API] Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching credit history',
     });
   }
 });

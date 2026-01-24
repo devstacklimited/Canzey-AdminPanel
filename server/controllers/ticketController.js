@@ -185,44 +185,44 @@ export async function getCustomerTickets(customerId) {
     console.log('🎫 [GET CUSTOMER TICKETS] Request received');
     console.log('   Customer ID:', customerId);
 
+    // Test basic connection first
     const connection = await pool.getConnection();
+    console.log('✅ Database connection established');
 
+    // Test simple query first
+    console.log('🔍 Testing simple query...');
+    const [testResult] = await connection.execute('SELECT 1 as test');
+    console.log('✅ Simple query test passed:', testResult);
+
+    // Try the tickets query
+    console.log('🔍 Executing tickets query...');
     const [tickets] = await connection.execute(
       `SELECT 
         ct.id, ct.ticket_number, ct.quantity, ct.total_price, ct.credits_earned, 
         ct.status, ct.created_at,
         c.title as campaign_title, c.image_url as campaign_image,
-        (
-          SELECT JSON_OBJECT(
-            'product_id', p.id,
-            'product_name', p.name,
-            'product_image', p.main_image_url,
-            'color', oi.color,
-            'size', oi.size
-          )
-          FROM order_items oi
-          JOIN products p ON oi.product_id = p.id
-          WHERE oi.order_id = (
-            SELECT o.id FROM orders o 
-            WHERE o.customer_id = ct.customer_id 
-            ORDER BY o.created_at DESC 
-            LIMIT 1
-          )
-          AND p.id IN (
-            SELECT product_id FROM campaign_prizes 
-            WHERE campaign_id = ct.campaign_id
-          )
-          LIMIT 1
-        ) as product_info
+        c.description as campaign_description,
+        c.category as campaign_category,
+        c.ticket_price as campaign_ticket_price,
+        c.credits_per_ticket as campaign_credits_per_ticket,
+        p.id as prize_id,
+        p.name as prize_name,
+        p.price as prize_price,
+        p.main_image_url as prize_image,
+        p.sku as prize_sku,
+        pp.tickets_required as prize_tickets_required,
+        pp.tickets_sold as prize_tickets_sold,
+        pp.tickets_remaining as prize_tickets_remaining
        FROM campaign_tickets ct
        JOIN campaigns c ON ct.campaign_id = c.id
+       LEFT JOIN product_prizes pp ON c.id = pp.campaign_id AND pp.is_active = 1
+       LEFT JOIN products p ON pp.product_id = p.id
        WHERE ct.customer_id = ?
        ORDER BY ct.created_at DESC`,
       [customerId]
     );
 
     connection.release();
-
     console.log('✅ [GET CUSTOMER TICKETS] Found', tickets.length, 'tickets');
 
     return {
@@ -231,8 +231,10 @@ export async function getCustomerTickets(customerId) {
     };
 
   } catch (error) {
-    console.error('❌ [GET CUSTOMER TICKETS] Error:', error.message);
-    return { success: false, error: 'Server error while fetching tickets' };
+    console.error('❌ [GET CUSTOMER TICKETS] Full Error:', error);
+    console.error('❌ [GET CUSTOMER TICKETS] Error Stack:', error.stack);
+    console.error('❌ [GET CUSTOMER TICKETS] Error Message:', error.message);
+    return { success: false, message: 'Server error while fetching tickets' };
   }
 }
 
