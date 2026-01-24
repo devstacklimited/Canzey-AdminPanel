@@ -162,7 +162,7 @@ export async function listActiveCampaigns() {
     
     const connection = await pool.getConnection();
     const [campaigns] = await connection.execute(
-      `SELECT id, title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, start_at, end_at, created_at 
+      `SELECT id, title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, start_at, end_at, created_at, category
        FROM campaigns 
        WHERE status = 'active' 
        AND (start_at IS NULL OR start_at <= NOW()) 
