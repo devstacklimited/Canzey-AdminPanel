@@ -94,6 +94,7 @@ export async function setupDatabase() {
         id INT PRIMARY KEY AUTO_INCREMENT,
         title VARCHAR(255) NOT NULL,
         description TEXT,
+        category ENUM('exclusive', 'cash', 'electronics', 'featured', 'new', 'premium') DEFAULT 'featured',
         image_url VARCHAR(500),
         ticket_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
         credits_per_ticket INT NOT NULL DEFAULT 0,
@@ -104,7 +105,8 @@ export async function setupDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_status (status),
-        INDEX idx_dates (start_at, end_at)
+        INDEX idx_dates (start_at, end_at),
+        INDEX idx_category (category)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     console.log('✅ campaigns table ready');

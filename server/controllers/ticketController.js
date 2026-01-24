@@ -191,7 +191,29 @@ export async function getCustomerTickets(customerId) {
       `SELECT 
         ct.id, ct.ticket_number, ct.quantity, ct.total_price, ct.credits_earned, 
         ct.status, ct.created_at,
-        c.title as campaign_title, c.image_url as campaign_image
+        c.title as campaign_title, c.image_url as campaign_image,
+        (
+          SELECT JSON_OBJECT(
+            'product_id', p.id,
+            'product_name', p.name,
+            'product_image', p.main_image_url,
+            'color', oi.color,
+            'size', oi.size
+          )
+          FROM order_items oi
+          JOIN products p ON oi.product_id = p.id
+          WHERE oi.order_id = (
+            SELECT o.id FROM orders o 
+            WHERE o.customer_id = ct.customer_id 
+            ORDER BY o.created_at DESC 
+            LIMIT 1
+          )
+          AND p.id IN (
+            SELECT product_id FROM campaign_prizes 
+            WHERE campaign_id = ct.campaign_id
+          )
+          LIMIT 1
+        ) as product_info
        FROM campaign_tickets ct
        JOIN campaigns c ON ct.campaign_id = c.id
        WHERE ct.customer_id = ?

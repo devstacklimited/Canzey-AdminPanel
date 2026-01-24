@@ -50,6 +50,7 @@ Content-Type: application/json
       "id": 1,
       "title": "iPhone 16 Giveaway",
       "description": "Win a brand new iPhone 16",
+      "category": "electronics",
       "image_url": "/uploads/campaigns/campaign-123.jpg",
       "ticket_price": 10.0,
       "credits_per_ticket": 50,
@@ -91,6 +92,23 @@ Content-Type: application/json
 ```
 
 Use this data to show **title, main image, extra gallery images, price, credits per ticket, dates, and linked products** in Flutter.
+
+### Prize Categories
+
+Each campaign/prize has a category to help users find what they're interested in:
+
+**Available Categories:**
+- `exclusive` - Limited edition prizes
+- `cash` - Cash prizes
+- `electronics` - Electronic devices
+- `featured` - Featured prizes (default)
+- `new` - New prizes
+- `premium` - Premium prizes
+
+**Use in Flutter:**
+- Show category badges on campaign cards
+- Filter campaigns by category
+- Create separate sections for each category type
 
 ### Product-Prize Relationship
 
@@ -333,6 +351,7 @@ Prizes now support **up to 5 images** each:
 |-------|------|----------|-------------|
 | title | string | Yes | Prize title |
 | description | text | No | Prize description |
+| category | enum | No | `exclusive`, `cash`, `electronics`, `featured`, `new`, `premium` (default: featured) |
 | images | file[] | No | Up to 5 prize images (max 5MB each, JPG/PNG/GIF/WEBP) |
 | ticket_price | decimal | Yes | Price per ticket |
 | credits_per_ticket | integer | Yes | Credits earned per ticket |
@@ -350,6 +369,7 @@ Prizes now support **up to 5 images** each:
    ```
    title: "iPhone 16 Giveaway"
    description: "Win a brand new iPhone 16 Pro Max"
+   category: "electronics"
    images: [Select file 1 from PC]
    images: [Select file 2 from PC]
    ticket_price: "10.00"
@@ -370,6 +390,7 @@ Prizes now support **up to 5 images** each:
     "id": 1,
     "title": "iPhone 16 Giveaway",
     "description": "Win a brand new iPhone 16 Pro Max",
+    "category": "electronics",
     "image_url": "/uploads/campaigns/campaign-1234567890-123.jpg",
     "ticket_price": "10.00",
     "credits_per_ticket": 50,
@@ -403,10 +424,11 @@ You can:
 - Remove some images
 - Add new images (up to total of 5)
 
-**Extra Field:**
+**Extra Fields:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| category | enum | No | `exclusive`, `cash`, `electronics`, `featured`, `new`, `premium` |
 | existing_images | JSON string | No | Array of existing image URLs to keep |
 
 **Postman Example:**
@@ -417,6 +439,7 @@ You can:
 4. Body → `form-data`:
    ```
    title: "iPhone 16 Pro Max Giveaway"
+   category: "premium"
    ticket_price: "15.00"
    existing_images: "[\"/uploads/campaigns/campaign-1234567890-123.jpg\"]"
    images: [Select new file to add another image]

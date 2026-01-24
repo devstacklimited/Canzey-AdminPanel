@@ -22,6 +22,7 @@ async function createProductPrizesTable() {
         tickets_sold INT DEFAULT 0,
         tickets_remaining INT GENERATED ALWAYS AS (tickets_required - tickets_sold) STORED,
         countdown_start_tickets INT DEFAULT 0,
+        category ENUM('exclusive', 'cash', 'electronics', 'featured', 'new', 'premium') DEFAULT 'featured',
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -32,7 +33,8 @@ async function createProductPrizesTable() {
         INDEX idx_product_campaign (product_id, campaign_id),
         INDEX idx_campaign (campaign_id),
         INDEX idx_tickets_remaining (tickets_remaining),
-        INDEX idx_active (is_active)
+        INDEX idx_active (is_active),
+        INDEX idx_category (category)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     
@@ -65,23 +67,28 @@ async function insertSampleProductPrizes() {
       return true;
     }
     
+    // Define available categories
+    const categories = ['exclusive', 'cash', 'electronics', 'featured', 'new', 'premium'];
+    
     // Create sample mappings
     for (let i = 0; i < Math.min(products.length, campaigns.length); i++) {
       const product = products[i];
       const campaign = campaigns[i];
       const ticketsRequired = Math.floor(Math.random() * 900) + 100; // 100-1000 tickets
+      const category = categories[i % categories.length]; // Rotate through categories
       
       await connection.execute(`
-        INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets, category)
+        VALUES (?, ?, ?, ?, ?)
       `, [
         product.id,
         campaign.id,
         ticketsRequired,
-        Math.floor(ticketsRequired * 0.1) // Start countdown at 10% sold
+        Math.floor(ticketsRequired * 0.1), // Start countdown at 10% sold
+        category
       ]);
       
-      console.log(`   🎁 ${product.name} → ${campaign.title} (${ticketsRequired} tickets)`);
+      console.log(`   🎁 ${product.name} → ${campaign.title} (${ticketsRequired} tickets) [${category}]`);
     }
     
     connection.release();

@@ -13,6 +13,7 @@ const Campaigns = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    category: 'featured',
     status: 'active',
     start_at: '',
     end_at: ''
@@ -99,6 +100,7 @@ const Campaigns = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description || '');
+      formDataToSend.append('category', formData.category);
       formDataToSend.append('status', formData.status);
       formDataToSend.append('start_at', formData.start_at || '');
       formDataToSend.append('end_at', formData.end_at || '');
@@ -150,6 +152,7 @@ const Campaigns = () => {
     setFormData({
       title: campaign.title,
       description: campaign.description || '',
+      category: campaign.category || 'featured',
       status: campaign.status,
       start_at: campaign.start_at ? new Date(campaign.start_at).toISOString().slice(0, 16) : '',
       end_at: campaign.end_at ? new Date(campaign.end_at).toISOString().slice(0, 16) : ''
@@ -258,6 +261,7 @@ const Campaigns = () => {
             <tr>
               <th>Image</th>
               <th>Title</th>
+              <th>Category</th>
               <th>Start Date</th>
               <th>End Date</th>
               <th>Status</th>
@@ -285,6 +289,11 @@ const Campaigns = () => {
                     <strong>{campaign.title}</strong>
                     <div className="campaign-subtitle">ID: {campaign.id}</div>
                   </div>
+                </td>
+                <td>
+                  <span className={`category-badge category-${campaign.category || 'featured'}`}>
+                    {campaign.category || 'featured'}
+                  </span>
                 </td>
                 <td>{campaign.start_at ? new Date(campaign.start_at).toLocaleDateString() : 'No limit'}</td>
                 <td>{campaign.end_at ? new Date(campaign.end_at).toLocaleDateString() : 'No limit'}</td>
@@ -348,6 +357,23 @@ const Campaigns = () => {
                   onChange={handleInputChange}
                   rows="3"
                 />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="category">Category</label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                >
+                  <option value="exclusive">Exclusive</option>
+                  <option value="cash">Cash</option>
+                  <option value="electronics">Electronics</option>
+                  <option value="featured">Featured</option>
+                  <option value="new">New</option>
+                  <option value="premium">Premium</option>
+                </select>
               </div>
 
               <div className="form-group">

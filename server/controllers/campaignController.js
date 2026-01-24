@@ -11,6 +11,7 @@ export async function createCampaign(campaignData) {
     const { 
       title, 
       description, 
+      category,
       image_url,
       image_urls = [],
       ticket_price, 
@@ -28,11 +29,12 @@ export async function createCampaign(campaignData) {
     const connection = await pool.getConnection();
     
     const [result] = await connection.execute(
-      `INSERT INTO campaigns (title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, status, start_at, end_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO campaigns (title, description, category, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, status, start_at, end_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         title || null, 
         description || null, 
+        category || 'featured',
         image_url || null, 
         ticket_price || 0, 
         credits_per_ticket || 0, 
@@ -219,6 +221,7 @@ export async function updateCampaign(campaignId, updateData) {
     const { 
       title, 
       description, 
+      category,
       image_url,
       image_urls = [],
       existing_images,
@@ -234,12 +237,13 @@ export async function updateCampaign(campaignId, updateData) {
     
     await connection.execute(
       `UPDATE campaigns 
-       SET title = ?, description = ?, image_url = ?, ticket_price = ?, credits_per_ticket = ?, 
+       SET title = ?, description = ?, category = ?, image_url = ?, ticket_price = ?, credits_per_ticket = ?, 
            max_tickets_per_user = ?, status = ?, start_at = ?, end_at = ?
        WHERE id = ?`,
       [
         title || null, 
         description || null, 
+        category || null,
         image_url || null, 
         ticket_price !== undefined ? ticket_price : 0, 
         credits_per_ticket !== undefined ? credits_per_ticket : 0, 

@@ -178,10 +178,19 @@ Use this to show the "Sold vs Remaining" progress bar on the product page in Flu
     "tickets_required": 1000,
     "tickets_sold": 450,
     "tickets_remaining": 550,
+    "category": "featured",
     "is_active": true
   }
 }
 ```
+
+**Available Categories:**
+- `exclusive` - Limited edition prizes
+- `cash` - Cash prizes
+- `electronics` - Electronic devices
+- `featured` - Featured prizes (default)
+- `new` - New prizes
+- `premium` - Premium prizes
 
 ---
 
@@ -569,5 +578,27 @@ fetch('https://admin.canzey.com/api/orders', {
 
 ---
 
-**Last Updated:** January 3, 2026  
-**Version:** 1.0.0
+## SUPER SIMPLE SUMMARY
+
+| Action | Endpoint | Who | What it does |
+|--------|----------|-----|-------------|
+| Create Order | `POST /api/orders` | Customer | Buy products, get tickets |
+| My Orders | `GET /api/orders/customer/:id` | Customer | View my order history |
+| Order Details | `GET /api/orders/:id` | Customer | View one order |
+| All Orders | `GET /api/orders/admin/all` | Admin | View all orders |
+| Update Status | `PATCH /api/orders/admin/:id/status` | Admin | Change order status |
+| Prize Progress | `GET /api/v1/public/product-prizes/:id` | Public | Show ticket progress |
+
+### Key Points for Flutter Dev
+
+1. **Get JWT token first** from `/api/firebase/customer/signin`
+2. **Include `Authorization: Bearer TOKEN`** in all requests
+3. **Payment first** → then create order
+4. **Auto tickets**: 1 ticket per quantity if product has campaign
+5. **Stock reduces** automatically
+6. **Order numbers**: Format `ORD-timestamp-random`
+
+---
+
+**Last Updated:** January 24, 2026  
+**Version:** 1.1.0
