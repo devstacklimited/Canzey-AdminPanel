@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Eye, Package, Clock, CheckCircle, XCircle, Truck, DollarSign, ShoppingCart, Users, Calendar } from 'lucide-react';
+import { Search, Filter, Eye, Package, Clock, CheckCircle, XCircle, Truck, DollarSign, ShoppingCart, Users, Calendar, Download, FileText } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import Toast from '../../components/ui/Toast';
 import OrderDetailsModal from './components/OrderDetailsModal';
@@ -9,8 +9,11 @@ import './Orders.css';
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [toast, setToast] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -23,13 +26,25 @@ const Orders = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [filterStatus, startDate, endDate]);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/orders/admin/all`, {
+      let url = `${API_BASE_URL}/api/orders/admin/all?limit=100`;
+      
+      if (filterStatus !== 'all') {
+        url += `&status=${filterStatus}`;
+      }
+      if (startDate) {
+        url += `&start_date=${startDate}`;
+      }
+      if (endDate) {
+        url += `&end_date=${endDate}`;
+      }
+
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -64,6 +79,99 @@ const Orders = () => {
       totalCustomers: uniqueCustomers,
       pendingOrders: pendingOrders
     });
+  };
+
+  const handleExportCSV = async () => {
+    setExporting(true);
+    try {
+      const token = localStorage.getItem('token');
+      // Limit to 2000 for export, including items
+      let url = `${API_BASE_URL}/api/orders/admin/all?limit=2000&include_items=true`;
+      
+      if (filterStatus !== 'all') url += `&status=${filterStatus}`;
+      if (startDate) url += `&start_date=${startDate}`;
+      if (endDate) url += `&end_date=${endDate}`;
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+
+      if (data.success && data.orders.length > 0) {
+        const ordersToExport = data.orders;
+        
+        // Define CSV headers
+        const headers = [
+          'Order Number',
+          'Date',
+          'Customer Name',
+          'Email',
+          'Phone',
+          'Order Status',
+          'Payment Status',
+          'Total Amount',
+          'Product Name',
+          'Qty',
+          'Item Price',
+          'Item Total',
+          'Color',
+          'Size',
+          'Shipping Address'
+        ];
+
+        // Format rows
+        const rows = ordersToExport.map(order => {
+          const addr = order.shipping_address || {};
+          const fullAddress = `${addr.address || ''}, ${addr.city || ''}, ${addr.state || ''}, ${addr.zip || ''}, ${addr.country || ''}`.replace(/,/g, ' ');
+          
+          return [
+            order.order_number,
+            new Date(order.created_at).toLocaleDateString(),
+            `${order.first_name} ${order.last_name}`,
+            order.email,
+            order.phone_number || 'N/A',
+            order.order_status,
+            order.payment_status,
+            order.total_amount,
+            order.product_name || 'N/A',
+            order.item_quantity || 1,
+            order.item_price || order.total_amount,
+            order.item_total || order.total_amount,
+            order.item_color || '',
+            order.item_size || '',
+            fullAddress
+          ];
+        });
+
+        // Create CSV content
+        const csvContent = [
+          headers.join(','),
+          ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+        ].join('\n');
+
+        // Trigger download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url_blob = URL.createObjectURL(blob);
+        link.setAttribute('href', url_blob);
+        link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setToast({ type: 'success', message: 'CSV exported successfully!' });
+      } else {
+        setToast({ type: 'warning', message: 'No data found to export' });
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      setToast({ type: 'error', message: 'Failed to export data' });
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleStatusUpdate = async (orderId, newStatus) => {
@@ -143,8 +251,7 @@ const Orders = () => {
       order.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFilter = filterStatus === 'all' || order.order_status === filterStatus;
-    return matchesSearch && matchesFilter;
+    return matchesSearch;
   });
 
   const formatDate = (dateString) => {
@@ -203,11 +310,22 @@ const Orders = () => {
           />
 
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              Orders Management
-            </h1>
-            <p className="text-gray-600 text-lg">Track and manage all customer orders</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                Orders Management
+              </h1>
+              <p className="text-gray-600 text-lg">Track and manage all customer orders</p>
+            </div>
+            
+            <button
+              onClick={handleExportCSV}
+              disabled={exporting || orders.length === 0}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+            >
+              {exporting ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/20 border-t-white"></div> : <Download size={20} />}
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
           </div>
 
           {/* Stats Grid */}
@@ -225,26 +343,26 @@ const Orders = () => {
 
           {/* Controls */}
           <div className="bg-white rounded-2xl p-6 shadow-lg mb-8 border border-gray-100">
-            <div className="flex flex-col lg:flex-row gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               {/* Search */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <div className="lg:col-span-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
-                  placeholder="Search orders, customers, emails..."
+                  placeholder="Search orders, customers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all text-sm"
                 />
               </div>
 
-              {/* Filter */}
+              {/* Status Filter */}
               <div className="relative">
-                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="pl-12 pr-8 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all min-w-[180px]"
+                  className="w-full pl-11 pr-8 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 appearance-none cursor-pointer transition-all text-sm"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
@@ -253,6 +371,40 @@ const Orders = () => {
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+              </div>
+
+              {/* Date Filters */}
+              <div className="lg:col-span-2 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                    title="Start Date"
+                  />
+                </div>
+                <span className="text-gray-400 font-bold">to</span>
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                    title="End Date"
+                  />
+                </div>
+                {(startDate || endDate) && (
+                   <button 
+                     onClick={() => { setStartDate(''); setEndDate(''); }}
+                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                     title="Clear Dates"
+                   >
+                     <XCircle size={20} />
+                   </button>
+                )}
               </div>
             </div>
           </div>
@@ -328,7 +480,7 @@ const Orders = () => {
                             <select
                               value={order.order_status}
                               onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                              className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                              className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-500 hover:border-violet-300 transition-all"
                               title="Update Status"
                             >
                               <option value="pending">Pending</option>
@@ -347,7 +499,7 @@ const Orders = () => {
                         <div className="text-center">
                           <Package size={48} className="mx-auto text-gray-300 mb-4" />
                           <p className="text-gray-500 text-lg font-medium">No orders found</p>
-                          <p className="text-gray-400">Orders will appear here when customers make purchases</p>
+                          <p className="text-gray-400">Try adjusting your filters or date range</p>
                         </div>
                       </td>
                     </tr>

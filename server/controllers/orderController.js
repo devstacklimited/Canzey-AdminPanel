@@ -404,21 +404,46 @@ export async function getOrderById(req, res) {
  */
 export async function getAllOrders(req, res) {
   try {
-    const { status, customer_id, page = 1, limit = 20 } = req.query;
+    const { status, customer_id, start_date, end_date, include_items, page = 1, limit = 20 } = req.query;
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    let query = `
-      SELECT 
-        o.*,
-        COALESCE(c.first_name, '') as first_name,
-        COALESCE(c.last_name, '') as last_name,
-        COALESCE(c.email, '') as email,
-        (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as items_count
-      FROM orders o
-      LEFT JOIN customers c ON o.customer_id = c.id
-      WHERE 1=1
-    `;
+    let query = '';
+    const isExport = include_items === 'true';
+
+    if (isExport) {
+      query = `
+        SELECT 
+          o.*,
+          COALESCE(c.first_name, '') as first_name,
+          COALESCE(c.last_name, '') as last_name,
+          COALESCE(c.email, '') as email,
+          COALESCE(c.phone_number, '') as phone_number,
+          oi.product_name,
+          oi.quantity as item_quantity,
+          oi.unit_price as item_price,
+          oi.total_price as item_total,
+          oi.color as item_color,
+          oi.size as item_size
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        WHERE 1=1
+      `;
+    } else {
+      query = `
+        SELECT 
+          o.*,
+          COALESCE(c.first_name, '') as first_name,
+          COALESCE(c.last_name, '') as last_name,
+          COALESCE(c.email, '') as email,
+          COALESCE(c.phone_number, '') as phone_number,
+          (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as items_count
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        WHERE 1=1
+      `;
+    }
     const params = [];
 
     if (status) {
@@ -429,6 +454,18 @@ export async function getAllOrders(req, res) {
     if (customer_id) {
       query += ` AND o.customer_id = ?`;
       params.push(customer_id);
+    }
+
+    if (start_date) {
+      query += ` AND o.created_at >= ?`;
+      params.push(start_date);
+    }
+
+    if (end_date) {
+      // Add 23:59:59 to include the whole end day
+      const endDateTime = end_date.includes(' ') ? end_date : `${end_date} 23:59:59`;
+      query += ` AND o.created_at <= ?`;
+      params.push(endDateTime);
     }
 
     query += ` ORDER BY o.created_at DESC LIMIT ? OFFSET ?`;

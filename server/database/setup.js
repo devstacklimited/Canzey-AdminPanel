@@ -450,6 +450,46 @@ export async function setupDatabase() {
         // Column already exists, ignore
       }
     }
+
+    // Rename price to unit_price and subtotal to total_price if needed
+    const columnRenames = [
+      { old: 'price', new: 'unit_price', def: 'DECIMAL(10,2) NOT NULL' },
+      { old: 'subtotal', new: 'total_price', def: 'DECIMAL(10,2) NOT NULL' }
+    ];
+
+    for (const rename of columnRenames) {
+      try {
+        // Check if old column exists and new one doesn't
+        const [oldCols] = await connection.execute(`SHOW COLUMNS FROM order_items LIKE '${rename.old}'`);
+        const [newCols] = await connection.execute(`SHOW COLUMNS FROM order_items LIKE '${rename.new}'`);
+        
+        if (oldCols.length > 0 && newCols.length === 0) {
+          await connection.execute(`ALTER TABLE order_items CHANGE COLUMN ${rename.old} ${rename.new} ${rename.def}`);
+          console.log(`✅ Renamed ${rename.old} to ${rename.new} in order_items`);
+        }
+      } catch (err) {
+        console.error(`❌ Error migrating column ${rename.old}:`, err.message);
+      }
+    }
+
+    // Add color and size if they don't exist
+    const itemsColsToAdd = [
+      { name: 'color', definition: 'VARCHAR(50) AFTER total_price' },
+      { name: 'size', definition: 'VARCHAR(20) AFTER color' },
+      { name: 'product_image', definition: 'VARCHAR(500) AFTER product_sku' }
+    ];
+
+    for (const col of itemsColsToAdd) {
+      try {
+        await connection.execute(`ALTER TABLE order_items ADD COLUMN ${col.name} ${col.definition}`);
+        console.log(`✅ Added ${col.name} column to order_items table`);
+      } catch (err) {
+        if (err.code !== 'ER_DUP_FIELDNAME') {
+          // ignore
+        }
+      }
+    }
+
     console.log('✅ order_items table ready');
 
     // Create product_prizes table
