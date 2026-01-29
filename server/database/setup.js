@@ -124,24 +124,33 @@ export async function setupDatabase() {
         credits_earned INT NOT NULL,
         status ENUM('active', 'used', 'expired') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_winner BOOLEAN DEFAULT FALSE,
+        won_at TIMESTAMP NULL,
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
         INDEX idx_customer_id (customer_id),
         INDEX idx_campaign_id (campaign_id),
         INDEX idx_order_id (order_id),
-        INDEX idx_ticket_number (ticket_number)
+        INDEX idx_ticket_number (ticket_number),
+        INDEX idx_is_winner (is_winner)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
     
-    // Add order_id column if it doesn't exist (for existing databases)
-    try {
-      await connection.execute(`
-        ALTER TABLE campaign_tickets ADD COLUMN order_id INT DEFAULT NULL AFTER customer_id
-      `);
-      console.log('✅ Added order_id column to campaign_tickets table');
-    } catch (err) {
-      if (err.code !== 'ER_DUP_FIELDNAME') {
-        // Column already exists, ignore
+    // Add columns if they don't exist (for existing databases)
+    const columnsToAdd = [
+      { name: 'order_id', definition: 'INT DEFAULT NULL AFTER customer_id' },
+      { name: 'is_winner', definition: 'BOOLEAN DEFAULT FALSE' },
+      { name: 'won_at', definition: 'TIMESTAMP NULL' }
+    ];
+
+    for (const col of columnsToAdd) {
+      try {
+        await connection.execute(`ALTER TABLE campaign_tickets ADD COLUMN ${col.name} ${col.definition}`);
+        console.log(`✅ Added ${col.name} column to campaign_tickets table`);
+      } catch (err) {
+        if (err.code !== 'ER_DUP_FIELDNAME') {
+          console.error(`❌ Error adding column ${col.name}:`, err.message);
+        }
       }
     }
     

@@ -57,3 +57,39 @@ export async function getAllTickets(req, res) {
     });
   }
 }
+
+/**
+ * Mark a ticket as winner (Admin only)
+ */
+export async function markTicketAsWinner(req, res) {
+  try {
+    const { id } = req.params;
+    const { is_winner } = req.body;
+
+    const [result] = await pool.execute(
+      `UPDATE campaign_tickets 
+       SET is_winner = ?, won_at = ? 
+       WHERE id = ?`,
+      [is_winner ? 1 : 0, is_winner ? new Date() : null, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: is_winner ? 'Ticket marked as winner' : 'Winner status removed'
+    });
+
+  } catch (error) {
+    console.error('Error marking ticket as winner:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+}

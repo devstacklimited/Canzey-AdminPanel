@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Ticket, User, Package, Calendar, Award } from 'lucide-react';
+import { Search, Filter, Ticket, User, Package, Calendar, Award, Eye } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import Toast from '../../components/ui/Toast';
 import { API_BASE_URL } from '../../config/api';
+import TicketDetailsModal from './components/TicketDetailsModal';
 import './Tickets.css';
 
 const Tickets = () => {
@@ -11,11 +12,12 @@ const Tickets = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [toast, setToast] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [stats, setStats] = useState({
     totalTickets: 0,
     activeTickets: 0,
     totalCampaigns: 0,
-    fromPurchases: 0
+    winners: 0
   });
 
   useEffect(() => {
@@ -51,14 +53,50 @@ const Tickets = () => {
     const totalTickets = ticketsData.length;
     const activeTickets = ticketsData.filter(t => t.status === 'active').length;
     const uniqueCampaigns = new Set(ticketsData.map(t => t.campaign_id)).size;
-    const fromPurchases = ticketsData.filter(t => t.source === 'purchase').length;
+    const winners = ticketsData.filter(t => t.is_winner).length;
 
     setStats({
       totalTickets,
       activeTickets,
       totalCampaigns: uniqueCampaigns,
-      fromPurchases
+      winners
     });
+  };
+
+  const handleMarkWinner = async (ticketId, isWinner) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/tickets/admin/mark-winner/${ticketId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ is_winner: isWinner })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Update local state
+        const updatedTickets = tickets.map(t => 
+          t.id === ticketId ? { ...t, is_winner: isWinner, won_at: isWinner ? new Date().toISOString() : null } : t
+        );
+        setTickets(updatedTickets);
+        calculateStats(updatedTickets);
+        
+        // Update selected ticket in modal if open
+        if (selectedTicket && selectedTicket.id === ticketId) {
+          setSelectedTicket({ ...selectedTicket, is_winner: isWinner, won_at: isWinner ? new Date().toISOString() : null });
+        }
+
+        setToast({ type: 'success', message: data.message });
+      } else {
+        setToast({ type: 'error', message: data.message });
+      }
+    } catch (error) {
+      console.error('Error marking winner:', error);
+      setToast({ type: 'error', message: 'Failed to update winner status' });
+    }
   };
 
   const filteredTickets = tickets.filter(ticket => {
@@ -68,7 +106,13 @@ const Tickets = () => {
       ticket.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ticket.campaign_title?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFilter = filterStatus === 'all' || ticket.status === filterStatus;
+    let matchesFilter = true;
+    if (filterStatus === 'winners') {
+      matchesFilter = ticket.is_winner === 1 || ticket.is_winner === true;
+    } else if (filterStatus !== 'all') {
+      matchesFilter = ticket.status === filterStatus;
+    }
+    
     return matchesSearch && matchesFilter;
   });
 
@@ -81,16 +125,6 @@ const Tickets = () => {
     });
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'status-active';
-      case 'used': return 'status-used';
-      case 'expired': return 'status-expired';
-      case 'won': return 'status-won';
-      default: return 'status-active';
-    }
-  };
-
   const statsData = [
     {
       icon: <Ticket size={24} />,
@@ -100,9 +134,9 @@ const Tickets = () => {
     },
     {
       icon: <Award size={24} />,
-      title: 'Active Tickets',
-      value: stats.activeTickets.toString(),
-      color: 'from-green-500 to-emerald-600'
+      title: 'Winners',
+      value: stats.winners.toString(),
+      color: 'from-amber-500 to-orange-600'
     },
     {
       icon: <Package size={24} />,
@@ -111,10 +145,10 @@ const Tickets = () => {
       color: 'from-blue-500 to-cyan-600'
     },
     {
-      icon: <User size={24} />,
-      title: 'From Purchases',
-      value: stats.fromPurchases.toString(),
-      color: 'from-pink-500 to-rose-600'
+      icon: <Calendar size={24} />,
+      title: 'Active Tickets',
+      value: stats.activeTickets.toString(),
+      color: 'from-green-500 to-emerald-600'
     }
   ];
 
@@ -135,7 +169,7 @@ const Tickets = () => {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
               Campaign Tickets
             </h1>
-            <p className="text-gray-600 text-lg">View all campaign tickets from orders</p>
+            <p className="text-gray-600 text-lg">Manage tickets and announce winners</p>
           </div>
 
           {/* Stats Grid */}
@@ -159,7 +193,7 @@ const Tickets = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="Search tickets, orders, customers, campaigns..."
+                  placeholder="Search tickets, orders, customers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
@@ -174,11 +208,10 @@ const Tickets = () => {
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="pl-12 pr-8 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent appearance-none bg-white cursor-pointer transition-all min-w-[180px]"
                 >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
+                  <option value="all">All Tickets</option>
+                  <option value="active">Active Only</option>
+                  <option value="winners">Winners</option>
                   <option value="used">Used</option>
-                  <option value="won">Won</option>
-                  <option value="expired">Expired</option>
                 </select>
               </div>
             </div>
@@ -194,15 +227,14 @@ const Tickets = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Campaign</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Customer</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Order</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Source</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center">
+                      <td colSpan="6" className="px-6 py-12 text-center">
                         <div className="flex justify-center items-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
                           <span className="ml-3 text-gray-600">Loading tickets...</span>
@@ -211,11 +243,18 @@ const Tickets = () => {
                     </tr>
                   ) : filteredTickets.length > 0 ? (
                     filteredTickets.map((ticket) => (
-                      <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={ticket.id} className={`hover:bg-gray-50 transition-colors ${ticket.is_winner ? 'bg-amber-50/30' : ''}`}>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <Ticket size={18} className="text-violet-600" />
-                            <span className="font-mono font-semibold text-violet-600">{ticket.ticket_number}</span>
+                            <Ticket size={18} className={ticket.is_winner ? "text-amber-500" : "text-violet-600"} />
+                            <div className="flex flex-col">
+                              <span className={`font-mono font-bold ${ticket.is_winner ? "text-amber-600" : "text-violet-600"}`}>
+                                {ticket.ticket_number}
+                              </span>
+                              {ticket.is_winner ? (
+                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">★ Winner</span>
+                              ) : null}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -223,43 +262,34 @@ const Tickets = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                            <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${ticket.is_winner ? 'from-amber-400 to-orange-500' : 'from-violet-500 to-purple-600'} flex items-center justify-center text-white text-sm font-semibold`}>
                               {ticket.customer_name?.charAt(0) || 'U'}
                             </div>
-                            <span className="text-gray-900">{ticket.customer_name}</span>
+                            <span className="text-gray-900 font-medium">{ticket.customer_name}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          {ticket.order_number ? (
-                            <span className="font-mono text-sm text-gray-600">{ticket.order_number}</span>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
+                          <span className="font-mono text-sm text-gray-500">{ticket.order_number || 'N/A'}</span>
                         </td>
+                        <td className="px-6 py-4 text-gray-600 text-sm">{formatDate(ticket.created_at)}</td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium ${
-                            ticket.source === 'purchase' 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-blue-100 text-blue-700'
-                          }`}>
-                            {ticket.source}
-                          </span>
+                          <div className="flex justify-center">
+                            <button 
+                              onClick={() => setSelectedTicket(ticket)}
+                              className="flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-600 rounded-xl font-bold text-sm hover:bg-violet-600 hover:text-white transition-all border border-violet-100"
+                            >
+                              <Eye size={16} /> Details
+                            </button>
+                          </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}>
-                            {ticket.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">{formatDate(ticket.created_at)}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12">
+                      <td colSpan="6" className="px-6 py-12">
                         <div className="text-center">
                           <Ticket size={48} className="mx-auto text-gray-300 mb-4" />
                           <p className="text-gray-500 text-lg font-medium">No tickets found</p>
-                          <p className="text-gray-400">Tickets will appear here when customers make purchases</p>
                         </div>
                       </td>
                     </tr>
@@ -270,6 +300,14 @@ const Tickets = () => {
           </div>
         </div>
       </div>
+
+      {selectedTicket && (
+        <TicketDetailsModal 
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+          onMarkWinner={handleMarkWinner}
+        />
+      )}
     </Layout>
   );
 };

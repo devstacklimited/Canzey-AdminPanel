@@ -71,7 +71,8 @@ Authorization: Bearer {admin_token}
       "order_number": "ORD-1768088466152-268286374",
       "status": "active",
       "created_at": "2026-01-10T18:41:06.000Z",
-      "expires_at": "2026-02-10T18:41:06.000Z"
+      "is_winner": false,
+      "won_at": null
     }
   ],
   "pagination": {
@@ -97,7 +98,8 @@ Authorization: Bearer {admin_token}
 - `order_number` (string): Order number (if purchased)
 - `status` (string): Ticket status (`active`, `used`, `expired`, `cancelled`)
 - `created_at` (string): ISO timestamp of ticket creation
-- `expires_at` (string): ISO timestamp of ticket expiration
+- `is_winner` (boolean): Whether this ticket has won a campaign
+- `won_at` (string/null): ISO timestamp of when the ticket was marked as winner
 
 **pagination:**
 - `currentPage` (number): Current page number
@@ -149,6 +151,8 @@ Authorization: Bearer {customer_jwt_token}
       "credits_earned": 100,
       "status": "active",
       "created_at": "2026-01-10T18:41:06.000Z",
+      "is_winner": false,
+      "won_at": null,
       "campaign_title": "iPhone 15 Pro Giveaway",
       "campaign_image": "/uploads/campaigns/campaign-123.jpg",
       "campaign_description": "Win the latest iPhone 15 Pro with our exclusive giveaway!",
@@ -178,6 +182,8 @@ Authorization: Bearer {customer_jwt_token}
 - `credits_earned` (number): Credits earned from this ticket
 - `status` (string): Ticket status (`active`, `used`, `expired`)
 - `created_at` (string): ISO timestamp of ticket creation
+- `is_winner` (boolean): Whether this ticket has won
+- `won_at` (string/null): When it won
 
 **Campaign Information:**
 - `campaign_title` (string): Name of the campaign
@@ -208,6 +214,56 @@ Authorization: Bearer {customer_jwt_token}
 **Status Codes:**
 - `200 OK`: Tickets retrieved successfully
 - `401 Unauthorized`: Missing or invalid authentication token
+- `500 Internal Server Error`: Database or server error
+
+---
+
+### 3. Mark Ticket as Winner (Admin)
+
+Mark a specific ticket as a winner or remove its winner status.
+
+**Endpoint:** `POST /api/tickets/admin/mark-winner/:id`
+
+**Authentication:** Required (Admin only)
+
+**URL Parameters:**
+- `id` (number): The unique ID of the ticket
+
+**Body Parameters:**
+- `is_winner` (boolean): `true` to mark as winner, `false` to remove winner status
+
+**Request:**
+```http
+POST /api/tickets/admin/mark-winner/123
+Authorization: Bearer {admin_token}
+Content-Type: application/json
+
+{
+  "is_winner": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Ticket marked as winner"
+}
+```
+
+**Error Responses:**
+```json
+{
+  "success": false,
+  "message": "Ticket not found"
+}
+```
+
+**Status Codes:**
+- `200 OK`: Status updated successfully
+- `401 Unauthorized`: Missing or invalid authentication token
+- `403 Forbidden`: User is not an admin
+- `404 Not Found`: Ticket with ID does not exist
 - `500 Internal Server Error`: Database or server error
 
 ---
