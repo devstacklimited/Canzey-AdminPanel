@@ -54,7 +54,7 @@ export async function firebaseCustomerSignUp(userData) {
     console.log('📝 [FIREBASE SIGNUP] Request received');
     console.log('   📊 User data:', { email: userData.email, first_name: userData.first_name, last_name: userData.last_name });
 
-    const { email, password, first_name, last_name, phone_number, date_of_birth, gender } = userData;
+    const { email, password, first_name, last_name, phone_number, date_of_birth, gender, fcm_token } = userData;
 
     // Validate required fields
     if (!email || !password || !first_name || !last_name) {
@@ -103,9 +103,9 @@ export async function firebaseCustomerSignUp(userData) {
     console.log('💾 [FIREBASE SIGNUP] Storing customer in MySQL...');
     const [result] = await connection.execute(
       `INSERT INTO customers 
-       (first_name, last_name, email, phone_number, date_of_birth, gender, firebase_uid, firebase_email, auth_method, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [first_name, last_name, email, phone_number || null, date_of_birth || null, gender || null, firebaseUser.uid, email, 'firebase', 'active']
+       (first_name, last_name, email, phone_number, date_of_birth, gender, firebase_uid, firebase_email, auth_method, status, fcm_token) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [first_name, last_name, email, phone_number || null, date_of_birth || null, gender || null, firebaseUser.uid, email, 'firebase', 'active', fcm_token || null]
     );
 
     connection.release();
@@ -138,7 +138,7 @@ export async function firebaseCustomerSignUp(userData) {
  * Firebase Customer Sign In
  * Verifies Firebase token and returns customer data
  */
-export async function firebaseCustomerSignIn(firebaseToken) {
+export async function firebaseCustomerSignIn(firebaseToken, fcmToken = null) {
   try {
     console.log('📝 [FIREBASE SIGNIN] Request received');
 
@@ -230,6 +230,15 @@ export async function firebaseCustomerSignIn(firebaseToken) {
     if (customer.status !== 'active') {
       connection.release();
       return { success: false, error: 'Account is not active' };
+    }
+
+    // Update FCM token if provided
+    if (fcmToken) {
+      console.log('📱 [FIREBASE SIGNIN] Updating FCM token');
+      await connection.execute(
+        'UPDATE customers SET fcm_token = ? WHERE id = ?',
+        [fcmToken, customer.id]
+      );
     }
 
     connection.release();

@@ -44,7 +44,7 @@ router.post('/signup', async (req, res) => {
  * Body: { firebase_token }
  */
 router.post('/signin', async (req, res) => {
-  const { firebase_token } = req.body;
+  const { firebase_token, fcm_token } = req.body;
 
   console.log('📨 [FIREBASE SIGNIN API] Request received');
 
@@ -56,7 +56,7 @@ router.post('/signin', async (req, res) => {
     });
   }
 
-  const result = await firebaseCustomerSignIn(firebase_token);
+  const result = await firebaseCustomerSignIn(firebase_token, fcm_token);
 
   if (!result.success) {
     console.log('❌ [FIREBASE SIGNIN API] Failed:', result.error);
@@ -272,6 +272,47 @@ router.get('/credits/history', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while fetching credit history',
+    });
+  }
+});
+
+/**
+ * PUT /api/firebase/customer/fcm-token
+ * Update customer's FCM token (requires our JWT token)
+ * Body: { fcm_token }
+ */
+router.put('/fcm-token', authenticateToken, async (req, res) => {
+  try {
+    console.log('📱 [FCM TOKEN UPDATE API] Request received');
+    console.log('   User ID:', req.user.userId);
+
+    const { fcm_token } = req.body;
+
+    if (!fcm_token) {
+      return res.status(400).json({
+        success: false,
+        message: 'FCM token is required',
+      });
+    }
+
+    const connection = await pool.getConnection();
+    await connection.execute(
+      'UPDATE customers SET fcm_token = ? WHERE id = ?',
+      [fcm_token, req.user.userId]
+    );
+    connection.release();
+
+    console.log('✅ [FCM TOKEN UPDATE API] FCM token updated');
+
+    res.json({
+      success: true,
+      message: 'FCM token updated successfully',
+    });
+  } catch (error) {
+    console.error('❌ [FCM TOKEN UPDATE API] Error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during FCM token update',
     });
   }
 });
