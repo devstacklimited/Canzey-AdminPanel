@@ -336,6 +336,23 @@ const CustomerModal = ({ customer, onClose, onUpdate, onCreate }) => {
               </div>
             </div>
 
+            {!isCreateMode && (
+              <div className="form-group">
+                <label>FCM Token</label>
+                <div className="input-wrapper">
+                  <Lock size={18} />
+                  <input
+                    type="text"
+                    value={customer?.fcm_token || ''}
+                    disabled
+                    className="disabled-input"
+                    placeholder="No FCM token"
+                  />
+                </div>
+                <small className="form-hint">Stored from mobile app for push notifications</small>
+              </div>
+            )}
+
             <div className="form-group">
               <label>Profile Image</label>
               <div className="avatar-upload-container">

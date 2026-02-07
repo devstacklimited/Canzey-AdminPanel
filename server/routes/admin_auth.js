@@ -6,6 +6,7 @@ import {
   updateAdminInfo, 
   verifyToken, 
   listAllCustomers,
+  getCustomerById,
   updateCustomer,
   updateCustomerStatus
 } from '../controllers/adminController.js';
@@ -96,6 +97,43 @@ router.get('/customers', authenticateToken, requireAdmin, async (req, res) => {
     success: true,
     customers: result.customers,
   });
+});
+
+/**
+ * GET /api/admin/customers/:id
+ * Get single customer details (admin only)
+ */
+router.get('/customers/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid customer ID is required'
+      });
+    }
+
+    const result = await getCustomerById(parseInt(id));
+
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        message: result.error
+      });
+    }
+
+    res.json({
+      success: true,
+      customer: result.customer
+    });
+  } catch (error) {
+    console.error('Get customer details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching customer details'
+    });
+  }
 });
 
 /**

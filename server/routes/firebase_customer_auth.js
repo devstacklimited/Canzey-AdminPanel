@@ -14,7 +14,7 @@ const router = express.Router();
  * Body: { email, password, first_name, last_name, phone_number? }
  */
 router.post('/signup', async (req, res) => {
-  const { email, password, first_name, last_name, phone_number } = req.body;
+  const { email, password, first_name, last_name, phone_number, fcm_token } = req.body;
 
   console.log('📨 [FIREBASE SIGNUP API] Request received');
 
@@ -24,6 +24,7 @@ router.post('/signup', async (req, res) => {
     first_name,
     last_name,
     phone_number,
+    fcm_token,
   });
 
   if (!result.success) {
@@ -113,7 +114,7 @@ router.get('/info', authenticateToken, async (req, res) => {
 
     const connection = await pool.getConnection();
     const [customers] = await connection.execute(
-      'SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status, firebase_uid, created_at, updated_at FROM customers WHERE id = ?',
+      'SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status, firebase_uid, created_at, updated_at, fcm_token FROM customers WHERE id = ?',
       [req.user.userId]
     );
     connection.release();

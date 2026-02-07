@@ -87,13 +87,36 @@ export async function listAllCustomers() {
   try {
     const connection = await pool.getConnection();
     const [customers] = await connection.execute(
-      'SELECT id, first_name, last_name, email, phone_number, profile_url, status, firebase_uid, created_at, updated_at FROM customers ORDER BY id ASC'
+      'SELECT id, first_name, last_name, email, phone_number, profile_url, status, firebase_uid, created_at, updated_at, fcm_token FROM customers ORDER BY id ASC'
     );
     connection.release();
     return { success: true, customers };
   } catch (error) {
     console.error('List customers error:', error);
     return { success: false, error: 'Server error while fetching customers' };
+  }
+}
+
+/**
+ * Get customer by ID (for admin panel)
+ */
+export async function getCustomerById(customerId) {
+  try {
+    const connection = await pool.getConnection();
+    const [customers] = await connection.execute(
+      'SELECT id, first_name, last_name, email, phone_number, profile_url, date_of_birth, gender, status, firebase_uid, created_at, updated_at, fcm_token FROM customers WHERE id = ?',
+      [customerId]
+    );
+    connection.release();
+    
+    if (customers.length === 0) {
+      return { success: false, error: 'Customer not found' };
+    }
+    
+    return { success: true, customer: customers[0] };
+  } catch (error) {
+    console.error('Get customer by ID error:', error);
+    return { success: false, error: 'Server error while fetching customer' };
   }
 }
 
