@@ -269,10 +269,10 @@ const Notifications = () => {
                     
                     {searchTerm && getFilteredCustomers().length > 0 && (
                       <div className="dropdown-results">
-                        {getFilteredCustomers().map(customer => (
+                        {getFilteredCustomers().filter(customer => !selectedCustomers.includes(customer.id)).map(customer => (
                           <div 
                             key={customer.id} 
-                            className={`dropdown-item ${!customer.fcm_token ? 'disabled' : 'clickable'} ${selectedCustomers.includes(customer.id) ? 'selected' : ''}`}
+                            className={`dropdown-item ${!customer.fcm_token ? 'disabled' : 'clickable'}`}
                             onClick={() => customer.fcm_token && handleCustomerSelect(customer.id)}
                           >
                             <div className="tile-content">
@@ -297,9 +297,6 @@ const Notifications = () => {
                                 )}
                               </div>
                             </div>
-                            {selectedCustomers.includes(customer.id) && (
-                              <div className="tile-checkmark">✓</div>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -431,21 +428,51 @@ const Notifications = () => {
             <div className={`result-box ${result.success ? 'success' : 'error'}`}>
               <div className="result-header">
                 {result.success ? (
-                  <CheckCircle size={20} className="text-green-500" />
+                  <>
+                    <CheckCircle size={24} className="result-icon success-icon" />
+                    <div className="result-title-section">
+                      <h4>✓ Notification Sent Successfully!</h4>
+                      <p className="result-subtitle">{result.message}</p>
+                    </div>
+                  </>
                 ) : (
-                  <XCircle size={20} className="text-red-500" />
+                  <>
+                    <XCircle size={24} className="result-icon error-icon" />
+                    <div className="result-title-section">
+                      <h4>✗ Failed to Send Notification</h4>
+                      <p className="result-subtitle">{result.message}</p>
+                    </div>
+                  </>
                 )}
-                <h4>{result.success ? 'Success' : 'Error'}</h4>
               </div>
-              <p>{result.message}</p>
-              {result.details && (
-                <div className="result-details">
-                  <pre>{JSON.stringify(result.details, null, 2)}</pre>
+              
+              {result.success && result.details && (
+                <div className="result-details success-details">
+                  <div className="detail-row">
+                    <span className="detail-key">Recipients:</span>
+                    <span className="detail-value">
+                      {result.details.requestedCustomers || result.details.recipients || 'All subscribers'}
+                    </span>
+                  </div>
+                  {result.details.customersWithTokens && (
+                    <div className="detail-row">
+                      <span className="detail-key">With FCM Tokens:</span>
+                      <span className="detail-value">{result.details.customersWithTokens}</span>
+                    </div>
+                  )}
+                  {result.details.messageId && (
+                    <div className="detail-row">
+                      <span className="detail-key">Message ID:</span>
+                      <span className="detail-value detail-mono">{result.details.messageId}</span>
+                    </div>
+                  )}
                 </div>
               )}
-              {result.error && (
+
+              {!result.success && result.error && (
                 <div className="result-error">
-                  <small>Error: {result.error}</small>
+                  <strong>Error Details:</strong>
+                  <p>{result.error}</p>
                 </div>
               )}
             </div>

@@ -1,5 +1,6 @@
 import { sendNotification, DEFAULT_TOPIC } from '../services/notificationService.js';
 import { listAllCustomers } from './adminController.js';
+import pool from '../database/connection.js';
 
 /**
  * Send notification to topic
@@ -73,9 +74,10 @@ export async function sendCustomerNotification(req, res) {
     
     // Get FCM tokens for selected customers
     const connection = await pool.getConnection();
+    const placeholders = customerIds.map(() => '?').join(',');
     const [customers] = await connection.execute(
-      'SELECT id, fcm_token FROM customers WHERE id IN (?) AND status = ? AND fcm_token IS NOT NULL AND fcm_token != ?',
-      [customerIds, 'active', '']
+      `SELECT id, fcm_token FROM customers WHERE id IN (${placeholders}) AND status = ? AND fcm_token IS NOT NULL AND fcm_token != ?`,
+      [...customerIds, 'active', '']
     );
     connection.release();
     

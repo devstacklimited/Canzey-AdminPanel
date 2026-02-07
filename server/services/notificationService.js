@@ -177,49 +177,63 @@ export async function sendToMultipleCustomers(fcmTokens, payload, options = {}) 
       };
     }
 
-    const message = {
-      tokens: validTokens,
-      notification: {
-        title: payload.title,
-        body: payload.body,
-        ...(payload.image && { imageUrl: payload.image })
-      },
-      data: {
-        type: 'bulk',
-        timestamp: new Date().toISOString(),
-        ...payload.data
-      },
-      android: {
-        priority: 'high',
-        notification: {
-          sound: 'default',
-          clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-        }
-      },
-      apns: {
-        payload: {
-          aps: {
-            sound: 'default',
-            badge: 1
-          }
-        }
-      },
-      ...options
-    };
+    let successCount = 0;
+    let failureCount = 0;
+    const messageIds = [];
 
-    const response = await admin.messaging().sendMulticast(message);
-    console.log('✅ [NOTIFICATION] Bulk message sent:', response);
+    // Send to each token individually (compatible with all Firebase versions)
+    for (const token of validTokens) {
+      try {
+        const message = {
+          token,
+          notification: {
+            title: payload.title,
+            body: payload.body,
+            ...(payload.image && { imageUrl: payload.image })
+          },
+          data: {
+            type: 'bulk',
+            timestamp: new Date().toISOString(),
+            ...payload.data
+          },
+          android: {
+            priority: 'high',
+            notification: {
+              sound: 'default',
+              clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+            }
+          },
+          apns: {
+            payload: {
+              aps: {
+                sound: 'default',
+                badge: 1
+              }
+            }
+          },
+          ...options
+        };
+
+        const messageId = await admin.messaging().send(message);
+        messageIds.push(messageId);
+        successCount++;
+      } catch (tokenError) {
+        console.warn(`⚠️ [NOTIFICATION] Failed to send to token ${token}:`, tokenError.message);
+        failureCount++;
+      }
+    }
+
+    console.log(`✅ [NOTIFICATION] Bulk message sent: ${successCount} success, ${failureCount} failed`);
     
     return {
       success: true,
-      messageId: response,
+      messageIds,
       type: 'bulk',
       recipients: {
         total: validTokens.length,
-        success: response.successCount,
-        failed: response.failureCount
-      },
-      details: response
+        success: successCount,
+        failed: failureCount
+      }
     };
   } catch (error) {
     console.error('❌ [NOTIFICATION] Error sending bulk message:', error);
