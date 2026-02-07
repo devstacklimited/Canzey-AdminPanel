@@ -28,6 +28,10 @@ export const API_ENDPOINTS = {
     UPDATE_CUSTOMER: (id) => `${API_BASE_URL}/api/admin/customers/${id}`,
     UPDATE_CUSTOMER_STATUS: (id) => `${API_BASE_URL}/api/admin/customers/${id}/status`,
     CUSTOMER_AVATAR: (id) => `${API_BASE_URL}/api/admin/customers/${id}/avatar`,
+    NOTIFICATIONS_TOPIC: `${API_BASE_URL}/api/admin/notifications/topic`,
+    NOTIFICATIONS_CUSTOMER: `${API_BASE_URL}/api/admin/notifications/customer`,
+    NOTIFICATIONS_CUSTOMERS: `${API_BASE_URL}/api/admin/notifications/customers`,
+    NOTIFICATIONS_TEST: `${API_BASE_URL}/api/admin/notifications/test`,
   },
   
   // Products endpoints
