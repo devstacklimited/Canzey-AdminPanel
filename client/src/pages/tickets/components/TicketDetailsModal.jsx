@@ -75,6 +75,15 @@ const TicketDetailsModal = ({ ticket, onClose, onMarkWinner }) => {
                   <span className="label">Campaign ID</span>
                   <span className="value">#{ticket.campaign_id}</span>
                 </div>
+                <div className="info-row">
+                  <span className="label">Product ID</span>
+                  <span className="value">
+                    <span className="product-id-badge">
+                      <Package size={14} />
+                      {ticket.product_id || 'N/A'}
+                    </span>
+                  </span>
+                </div>
               </div>
             </div>
 

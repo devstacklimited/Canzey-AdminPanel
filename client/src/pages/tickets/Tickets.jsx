@@ -225,6 +225,7 @@ const Tickets = () => {
                   <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Ticket Number</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Campaign</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Product ID</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Customer</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Order</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
@@ -234,7 +235,7 @@ const Tickets = () => {
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center">
+                      <td colSpan="7" className="px-6 py-12 text-center">
                         <div className="flex justify-center items-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
                           <span className="ml-3 text-gray-600">Loading tickets...</span>
@@ -259,6 +260,14 @@ const Tickets = () => {
                         </td>
                         <td className="px-6 py-4">
                           <span className="font-medium text-gray-900">{ticket.campaign_title}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Package size={16} className="text-gray-400" />
+                            <span className="font-mono text-sm font-medium text-violet-600 bg-violet-50 px-2 py-1 rounded">
+                              {ticket.product_id || 'N/A'}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -286,7 +295,7 @@ const Tickets = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12">
+                      <td colSpan="7" className="px-6 py-12">
                         <div className="text-center">
                           <Ticket size={48} className="mx-auto text-gray-300 mb-4" />
                           <p className="text-gray-500 text-lg font-medium">No tickets found</p>
