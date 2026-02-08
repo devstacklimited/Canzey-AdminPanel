@@ -46,7 +46,10 @@ const Notifications = () => {
     body: '',
     data: '',
     image: '',
-    topic: 'canzey-topic'
+    topic: 'canzey-topic',
+    route: '',
+    product_id: '',
+    order_id: ''
   });
   const [result, setResult] = useState(null);
 
@@ -78,6 +81,37 @@ const Notifications = () => {
     }));
   };
 
+  const buildNotificationData = () => {
+    const data = {};
+    
+    // Add route if selected
+    if (formData.route) {
+      data.route = formData.route;
+    }
+    
+    // Add product_id if product detail route
+    if (formData.route === '/product-detail' && formData.product_id) {
+      data.product_id = formData.product_id;
+    }
+    
+    // Add order_id if order detail route
+    if (formData.route === '/order-details' && formData.order_id) {
+      data.order_id = formData.order_id;
+    }
+    
+    // Add custom JSON data if provided
+    if (formData.data) {
+      try {
+        const customData = JSON.parse(formData.data);
+        Object.assign(data, customData);
+      } catch (error) {
+        console.error('Invalid JSON in data field:', error);
+      }
+    }
+    
+    return Object.keys(data).length > 0 ? data : undefined;
+  };
+
   const handleSendNotification = async (type) => {
     setLoading(true);
     setResult(null);
@@ -92,7 +126,7 @@ const Notifications = () => {
             topic: formData.topic,
             title: formData.title,
             body: formData.body,
-            data: formData.data ? JSON.parse(formData.data) : undefined,
+            data: buildNotificationData(),
             image: formData.image || undefined
           };
           break;
@@ -112,7 +146,7 @@ const Notifications = () => {
             customerIds: selectedCustomers,
             title: formData.title,
             body: formData.body,
-            data: formData.data ? JSON.parse(formData.data) : undefined,
+            data: buildNotificationData(),
             image: formData.image || undefined
           };
           break;
@@ -144,7 +178,10 @@ const Notifications = () => {
           body: '',
           data: '',
           image: '',
-          topic: 'canzey-topic'
+          topic: 'canzey-topic',
+          route: '',
+          product_id: '',
+          order_id: ''
         });
         setSelectedCustomers([]);
       } else {
@@ -390,15 +427,66 @@ const Notifications = () => {
               </div>
 
               <div className="form-group">
-                <label>Custom Data (JSON, Optional)</label>
+                <label>Route (Optional)</label>
+                <select
+                  name="route"
+                  value={formData.route || ''}
+                  onChange={handleInputChange}
+                  className="route-select"
+                >
+                  <option value="">Default (Open App)</option>
+                  <option value="/bottom-ecom">🏠 Home/Shop</option>
+                  <option value="/bottom-prize">🎁 Prize/Draws</option>
+                  <option value="/shop">🛍️ Shop Page</option>
+                  <option value="/product-detail">📦 Product Details</option>
+                  <option value="/ecom-cart">🛒 Shopping Cart</option>
+                  <option value="/ecom-favorites">❤️ Favorites</option>
+                  <option value="/orders">📋 Orders List</option>
+                  <option value="/order-details">📄 Order Details</option>
+                  <option value="/account">👤 Profile/Account</option>
+                  <option value="/settings">⚙️ Settings</option>
+                </select>
+                <small>Choose where user goes when they tap the notification</small>
+              </div>
+
+              {formData.route === '/product-detail' && (
+                <div className="form-group">
+                  <label>Product ID (Required for Product Details)</label>
+                  <input
+                    type="text"
+                    name="product_id"
+                    value={formData.product_id || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter product ID"
+                  />
+                  <small>The specific product to show</small>
+                </div>
+              )}
+
+              {formData.route === '/order-details' && (
+                <div className="form-group">
+                  <label>Order ID (Required for Order Details)</label>
+                  <input
+                    type="text"
+                    name="order_id"
+                    value={formData.order_id || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter order ID"
+                  />
+                  <small>The specific order to show</small>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Data (JSON - Optional)</label>
                 <textarea
                   name="data"
                   value={formData.data}
                   onChange={handleInputChange}
-                  placeholder='{"key": "value", "type": "promotion"}'
-                  rows={3}
+                  placeholder='{"key": "value"}'
+                  rows="3"
                 />
-                <small>JSON format for additional data</small>
+                <small>Optional custom data in JSON format</small>
               </div>
 
               <div className="form-actions">
