@@ -86,7 +86,7 @@ export async function createCampaign(campaignData) {
 /**
  * Get all campaigns (admin only)
  */
-export async function listAllCampaigns() {
+export async function listAllCampaignsAdmin() {
   try {
     console.log('📝 [LIST CAMPAIGNS] Request received');
     
@@ -154,6 +154,59 @@ export async function listAllCampaigns() {
 }
 
 /**
+ * Get all campaigns (including closed ones - for Flutter app)
+ */
+export async function listAllCampaigns() {
+  try {
+    console.log('📝 [LIST ALL CAMPAIGNS] Request received');
+    
+    const connection = await pool.getConnection();
+    const [campaigns] = await connection.execute(
+      `SELECT id, title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, start_at, end_at, created_at, category, status
+       FROM campaigns 
+       ORDER BY created_at DESC`
+    );
+
+    // Fetch linked products for all campaigns
+    const campaignIds = campaigns.map(c => c.id);
+    let productsByCampaign = {};
+    
+    if (campaignIds.length > 0) {
+      const [products] = await connection.execute(
+        `SELECT id, name, main_image_url, price, campaign_id 
+         FROM products 
+         WHERE campaign_id IN (${campaignIds.join(',')})`
+      );
+      
+      for (const product of products) {
+        if (!productsByCampaign[product.campaign_id]) {
+          productsByCampaign[product.campaign_id] = [];
+        }
+        productsByCampaign[product.campaign_id].push({
+          id: product.id,
+          name: product.name,
+          main_image_url: product.main_image_url,
+          price: product.price
+        });
+      }
+    }
+    connection.release();
+
+    // Attach products to each campaign
+    const campaignsWithProducts = campaigns.map(campaign => ({
+      ...campaign,
+      products: productsByCampaign[campaign.id] || []
+    }));
+    
+    console.log('✅ [LIST ALL CAMPAIGNS] Found', campaigns.length, 'campaigns (including closed)');
+    return { success: true, campaigns: campaignsWithProducts };
+  } catch (error) {
+    console.error('❌ [LIST ALL CAMPAIGNS] Error:', error.message);
+    return { success: false, error: 'Server error while fetching campaigns' };
+  }
+}
+
+/**
  * Get active campaigns (public - for Flutter app)
  */
 export async function listActiveCampaigns() {
@@ -162,7 +215,7 @@ export async function listActiveCampaigns() {
     
     const connection = await pool.getConnection();
     const [campaigns] = await connection.execute(
-      `SELECT id, title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, start_at, end_at, created_at, category
+      `SELECT id, title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, start_at, end_at, created_at, category, status
        FROM campaigns 
        WHERE status = 'active' 
        AND (start_at IS NULL OR start_at <= NOW()) 

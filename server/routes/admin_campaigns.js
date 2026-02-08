@@ -1,5 +1,5 @@
 import express from 'express';
-import { createCampaign, listAllCampaigns, updateCampaign, deleteCampaign } from '../controllers/campaignController.js';
+import { createCampaign, listAllCampaignsAdmin, updateCampaign, deleteCampaign } from '../controllers/campaignController.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 
@@ -42,7 +42,7 @@ router.post('/', authenticateToken, requireAdmin, upload.array('images', 5), asy
  * Get all campaigns (admin only)
  */
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
-  const result = await listAllCampaigns();
+  const result = await listAllCampaignsAdmin();
 
   if (!result.success) {
     return res.status(500).json({
