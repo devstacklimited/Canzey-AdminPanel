@@ -34,7 +34,7 @@ export async function createCampaign(campaignData) {
       [
         title || null, 
         description || null, 
-        category || 'featured',
+        (category && category !== 'undefined') ? category : 'featured',
         image_url || null, 
         ticket_price || 0, 
         credits_per_ticket || 0, 
