@@ -437,6 +437,7 @@ const Notifications = () => {
                   <option value="">Default (Open App)</option>
                   <option value="/bottom-ecom">🏠 Home/Shop</option>
                   <option value="/bottom-prize">🎁 Prize/Draws</option>
+                  <option value="/prize-draw">🎁 Prize/Draws</option>
                   <option value="/shop">🛍️ Shop Page</option>
                   <option value="/product-detail">📦 Product Details</option>
                   <option value="/ecom-cart">🛒 Shopping Cart</option>
