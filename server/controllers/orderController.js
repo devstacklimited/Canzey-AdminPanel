@@ -213,13 +213,14 @@ export async function createOrder(req, res) {
 
             await connection.query(
               `INSERT INTO campaign_tickets 
-               (campaign_id, customer_id, order_id, ticket_number, 
+               (campaign_id, customer_id, order_id, product_id, ticket_number, 
                 quantity, total_price, credits_earned)
-               VALUES (?, ?, ?, ?, ?, ?, ?)`,
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
               [
                 itemData.campaign_id,
                 customer_id,
                 orderId,
+                itemData.product_id, // ✅ ADD product_id
                 ticketNumber,
                 1,
                 itemData.price,
