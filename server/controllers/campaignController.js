@@ -19,7 +19,8 @@ export async function createCampaign(campaignData) {
       max_tickets_per_user, 
       status = 'active',
       start_at,
-      end_at 
+      end_at,
+      use_end_date = true
     } = campaignData;
 
     if (!title) {
@@ -29,8 +30,8 @@ export async function createCampaign(campaignData) {
     const connection = await pool.getConnection();
     
     const [result] = await connection.execute(
-      `INSERT INTO campaigns (title, description, category, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, status, start_at, end_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO campaigns (title, description, category, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, status, start_at, end_at, use_end_date) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         title || null, 
         description || null, 
@@ -41,7 +42,8 @@ export async function createCampaign(campaignData) {
         max_tickets_per_user || null, 
         status || 'active', 
         start_at || null, 
-        end_at || null
+        end_at || null,
+        use_end_date === 'false' ? 0 : 1
       ]
     );
     
@@ -74,7 +76,8 @@ export async function createCampaign(campaignData) {
         max_tickets_per_user,
         status,
         start_at,
-        end_at
+        end_at,
+        use_end_date
       } 
     };
   } catch (error) {
@@ -92,7 +95,10 @@ export async function listAllCampaignsAdmin() {
     
     const connection = await pool.getConnection();
     const [campaigns] = await connection.execute(
-      'SELECT * FROM campaigns ORDER BY created_at DESC'
+      `SELECT c.*, 
+        (SELECT COUNT(*) FROM product_prizes pp WHERE pp.campaign_id = c.id AND pp.tickets_remaining > 0 AND pp.is_active = 1) as active_prizes_count
+       FROM campaigns c
+       ORDER BY c.created_at DESC`
     );
 
     // Fetch linked products for each campaign
@@ -162,9 +168,10 @@ export async function listAllCampaigns() {
     
     const connection = await pool.getConnection();
     const [campaigns] = await connection.execute(
-      `SELECT id, title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, start_at, end_at, created_at, category, status
-       FROM campaigns 
-       ORDER BY created_at DESC`
+      `SELECT c.*, 
+        (SELECT COUNT(*) FROM product_prizes pp WHERE pp.campaign_id = c.id AND pp.tickets_remaining > 0 AND pp.is_active = 1) as active_prizes_count
+       FROM campaigns c
+       ORDER BY c.created_at DESC`
     );
 
     // Fetch linked products for all campaigns
@@ -215,12 +222,14 @@ export async function listActiveCampaigns() {
     
     const connection = await pool.getConnection();
     const [campaigns] = await connection.execute(
-      `SELECT id, title, description, image_url, ticket_price, credits_per_ticket, max_tickets_per_user, start_at, end_at, created_at, category, status
-       FROM campaigns 
-       WHERE status = 'active' 
-       AND (start_at IS NULL OR start_at <= NOW()) 
-       AND (end_at IS NULL OR end_at >= NOW())
-       ORDER BY created_at DESC`
+      `SELECT c.*, 
+        (SELECT COUNT(*) FROM product_prizes pp WHERE pp.campaign_id = c.id AND pp.tickets_remaining > 0 AND pp.is_active = 1) as active_prizes_count
+       FROM campaigns c
+       WHERE c.status = 'active' 
+       AND (c.start_at IS NULL OR c.start_at <= NOW()) 
+       AND (c.use_end_date = 0 OR c.end_at IS NULL OR c.end_at >= NOW())
+       HAVING active_prizes_count > 0
+       ORDER BY c.created_at DESC`
     );
 
     // Fetch linked products for active campaigns
@@ -283,7 +292,8 @@ export async function updateCampaign(campaignId, updateData) {
       max_tickets_per_user, 
       status,
       start_at,
-      end_at 
+      end_at,
+      use_end_date
     } = updateData;
 
     const connection = await pool.getConnection();
@@ -291,7 +301,7 @@ export async function updateCampaign(campaignId, updateData) {
     await connection.execute(
       `UPDATE campaigns 
        SET title = ?, description = ?, category = ?, image_url = ?, ticket_price = ?, credits_per_ticket = ?, 
-           max_tickets_per_user = ?, status = ?, start_at = ?, end_at = ?
+           max_tickets_per_user = ?, status = ?, start_at = ?, end_at = ?, use_end_date = ?
        WHERE id = ?`,
       [
         title || null, 
@@ -304,6 +314,7 @@ export async function updateCampaign(campaignId, updateData) {
         status || null, 
         start_at || null, 
         end_at || null, 
+        use_end_date === 'false' || use_end_date === false ? 0 : 1,
         campaignId
       ]
     );

@@ -16,7 +16,8 @@ const Campaigns = () => {
     category: 'featured',
     status: 'active',
     start_at: '',
-    end_at: ''
+    end_at: '',
+    use_end_date: true
   });
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -52,10 +53,10 @@ const Campaigns = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -104,6 +105,7 @@ const Campaigns = () => {
       formDataToSend.append('status', formData.status);
       formDataToSend.append('start_at', formData.start_at || '');
       formDataToSend.append('end_at', formData.end_at || '');
+      formDataToSend.append('use_end_date', formData.use_end_date);
       
       // Add existing images if editing
       if (editingCampaign && existingImages.length > 0) {
@@ -132,7 +134,8 @@ const Campaigns = () => {
           description: '',
           status: 'active',
           start_at: '',
-          end_at: ''
+          end_at: '',
+          use_end_date: true
         });
         setSelectedImages([]);
         setImagePreviews([]);
@@ -155,7 +158,8 @@ const Campaigns = () => {
       category: campaign.category || 'featured',
       status: campaign.status,
       start_at: campaign.start_at ? new Date(campaign.start_at).toISOString().slice(0, 16) : '',
-      end_at: campaign.end_at ? new Date(campaign.end_at).toISOString().slice(0, 16) : ''
+      end_at: campaign.end_at ? new Date(campaign.end_at).toISOString().slice(0, 16) : '',
+      use_end_date: campaign.use_end_date !== 0 && campaign.use_end_date !== false
     });
     setSelectedImages([]);
     setImagePreviews([]);
@@ -199,7 +203,8 @@ const Campaigns = () => {
       description: '',
       status: 'active',
       start_at: '',
-      end_at: ''
+      end_at: '',
+      use_end_date: true
     });
     setSelectedImages([]);
     setImagePreviews([]);
@@ -296,8 +301,20 @@ const Campaigns = () => {
                   </span>
                 </td>
                 <td>{campaign.start_at ? new Date(campaign.start_at).toLocaleDateString() : 'No limit'}</td>
-                <td>{campaign.end_at ? new Date(campaign.end_at).toLocaleDateString() : 'No limit'}</td>
-                <td>{getStatusBadge(campaign.status)}</td>
+                <td>
+                  {campaign.end_at ? new Date(campaign.end_at).toLocaleDateString() : 'No limit'}
+                  {campaign.use_end_date ? (
+                    <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 'bold' }}>• End date active</div>
+                  ) : (
+                    <div style={{ fontSize: '10px', color: '#666' }}>• Date ignored</div>
+                  )}
+                </td>
+                <td>
+                  {getStatusBadge(campaign.status)}
+                  {campaign.active_prizes_count === 0 && campaign.status === 'active' && (
+                    <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'bold' }}>• Sold Out</div>
+                  )}
+                </td>
                 <td>
                   <div className="action-buttons">
                     <button 
@@ -476,7 +493,37 @@ const Campaigns = () => {
                     name="end_at"
                     value={formData.end_at}
                     onChange={handleInputChange}
+                    disabled={!formData.use_end_date}
+                    style={{
+                      opacity: formData.use_end_date ? 1 : 0.6,
+                      background: formData.use_end_date ? 'white' : '#f1f5f9'
+                    }}
                   />
+                  <div style={{ marginTop: '12px' }}>
+                    <label 
+                      className={`switch-container ${formData.use_end_date ? 'active' : ''}`}
+                      htmlFor="use_end_date"
+                    >
+                      <div className="switch">
+                        <input
+                          type="checkbox"
+                          id="use_end_date"
+                          name="use_end_date"
+                          checked={formData.use_end_date}
+                          onChange={handleInputChange}
+                        />
+                        <span className="slider"></span>
+                      </div>
+                      <div className="switch-label-group">
+                        <span className="switch-label-main">End Date Active</span>
+                        <span className="switch-label-sub">
+                          {formData.use_end_date 
+                            ? "Prize will hide after end date" 
+                            : "End date is ignored (stays until sold out)"}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </div>
 
