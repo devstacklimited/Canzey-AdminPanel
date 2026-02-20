@@ -33,8 +33,15 @@ const DrawCard = ({ draw, activeTab, onViewParticipants, getImageUrl, formatDate
         
         <div className="draw-info-row">
           <Calendar size={16} />
-          <span>Internal Draw: {formatDate(draw.draw_date)}</span>
+          <span>Campaign End Date: {formatDate(draw.draw_date)}</span>
         </div>
+
+        {draw.end_date && (
+          <div className="draw-info-row draw-end-date-row">
+            <Calendar size={16} />
+            <span>🔴 Prize Ends: {formatDate(draw.end_date)}</span>
+          </div>
+        )}
 
         {activeTab !== 'past' ? (
           <button 

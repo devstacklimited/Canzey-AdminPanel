@@ -132,6 +132,15 @@
     margin-bottom: 0.75rem;
 }
 
+.draw-end-date-row {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.draw-end-date-row svg {
+    color: #dc2626;
+}
+
 .draw-card-footer {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
