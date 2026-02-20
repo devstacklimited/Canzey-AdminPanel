@@ -502,6 +502,7 @@ export async function setupDatabase() {
         tickets_sold INT DEFAULT 0,
         tickets_remaining INT GENERATED ALWAYS AS (tickets_required - tickets_sold) STORED,
         countdown_start_tickets INT DEFAULT 0,
+        draw_date DATETIME DEFAULT NULL,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

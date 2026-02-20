@@ -466,6 +466,18 @@ const ProductModal = ({
                   />
                   <small>Show countdown after this many tickets sold</small>
                 </div>
+                <div className="ticket-input-group">
+                  <label htmlFor="draw_date">Draw Date & Time (Fixed)</label>
+                  <input
+                    type="datetime-local"
+                    id="draw_date"
+                    name="draw_date"
+                    value={formData.draw_date ? formData.draw_date.slice(0, 16) : ''}
+                    onChange={onInputChange}
+                    className="ticket-input"
+                  />
+                  <small>Empty = "Announced Shortly"</small>
+                </div>
               </div>
               <div className="ticket-preview">
                 <div className="ticket-preview-info">

@@ -103,10 +103,11 @@ export async function listAllCampaignsAdmin() {
 
     // Fetch linked products for each campaign
     const [products] = await connection.execute(
-      `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining
+      `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining, pp.draw_date
        FROM products p
        LEFT JOIN product_prizes pp ON p.id = pp.product_id
-       WHERE p.campaign_id IS NOT NULL AND p.status = 'active'`
+       WHERE p.campaign_id IS NOT NULL AND p.status = 'active' 
+       AND (pp.tickets_remaining IS NULL OR pp.tickets_remaining > 0)`
     );
 
     // Fetch campaign images
@@ -127,7 +128,8 @@ export async function listAllCampaignsAdmin() {
         id: product.id,
         name: product.name,
         main_image_url: product.main_image_url,
-        price: product.price
+        price: product.price,
+        draw_date: product.draw_date
       });
     }
 

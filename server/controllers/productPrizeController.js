@@ -12,7 +12,8 @@ export async function attachPrizeToProduct(prizeData) {
       product_id, 
       campaign_id, 
       tickets_required,
-      countdown_start_tickets = 0
+      countdown_start_tickets = 0,
+      draw_date = null
     } = prizeData;
 
     if (!product_id || !campaign_id || !tickets_required) {
@@ -53,18 +54,18 @@ export async function attachPrizeToProduct(prizeData) {
       // Update existing mapping
       const [updateResult] = await connection.execute(
         `UPDATE product_prizes 
-         SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, is_active = 1
+         SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, draw_date = ?, is_active = 1
          WHERE id = ?`,
-        [campaign_id, tickets_required, countdown_start_tickets, existing[0].id]
+        [campaign_id, tickets_required, countdown_start_tickets, draw_date, existing[0].id]
       );
       result = { insertId: existing[0].id, affectedRows: updateResult.affectedRows };
       console.log('✅ [ATTACH PRIZE] Prize mapping updated for product', product_id);
     } else {
       // Create new product-prize mapping
       const [insertResult] = await connection.execute(
-        `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets) 
-         VALUES (?, ?, ?, ?)`,
-        [product_id, campaign_id, tickets_required, countdown_start_tickets]
+        `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets, draw_date) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [product_id, campaign_id, tickets_required, countdown_start_tickets, draw_date]
       );
       result = insertResult;
       console.log('✅ [ATTACH PRIZE] New prize mapping created for product', product_id);
@@ -86,7 +87,8 @@ export async function attachPrizeToProduct(prizeData) {
         tickets_required,
         tickets_sold: 0,
         tickets_remaining: tickets_required,
-        countdown_start_tickets
+        countdown_start_tickets,
+        draw_date
       }
     };
   } catch (error) {
@@ -107,7 +109,7 @@ export async function getAllProductPrizes() {
     const [productPrizes] = await connection.execute(`
       SELECT 
         pp.id, pp.product_id, pp.campaign_id, pp.tickets_required, 
-        pp.tickets_sold, pp.tickets_remaining, pp.countdown_start_tickets,
+        pp.tickets_sold, pp.tickets_remaining, pp.countdown_start_tickets, pp.draw_date,
         pp.is_active, pp.created_at, pp.updated_at,
         p.name as product_name, p.main_image_url,
         c.title as campaign_title, c.image_url as campaign_image
@@ -143,6 +145,7 @@ export async function updateProductPrize(id, updateData) {
     const { 
       tickets_required,
       countdown_start_tickets,
+      draw_date,
       is_active
     } = updateData;
 
@@ -150,11 +153,12 @@ export async function updateProductPrize(id, updateData) {
     
     const [result] = await connection.execute(
       `UPDATE product_prizes 
-       SET tickets_required = ?, countdown_start_tickets = ?, is_active = ?, updated_at = NOW()
+       SET tickets_required = ?, countdown_start_tickets = ?, draw_date = ?, is_active = ?, updated_at = NOW()
        WHERE id = ?`,
       [
         tickets_required, 
         countdown_start_tickets, 
+        draw_date,
         is_active ? 1 : 0,
         id
       ]
@@ -281,7 +285,7 @@ export async function getProductPrizeInfo(productId) {
     const [productPrize] = await connection.execute(`
       SELECT 
         pp.id, pp.tickets_required, pp.tickets_sold, pp.tickets_remaining,
-        pp.countdown_start_tickets, pp.is_active,
+        pp.countdown_start_tickets, pp.draw_date, pp.is_active,
         c.title as campaign_title, c.image_url as campaign_image
       FROM product_prizes pp
       JOIN campaigns c ON pp.campaign_id = c.id
