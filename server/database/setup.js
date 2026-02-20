@@ -158,6 +158,19 @@ export async function setupDatabase() {
         }
       }
     }
+
+    // Backfill product_id from order_items if it's currently NULL
+    try {
+      await connection.execute(`
+        UPDATE campaign_tickets ct
+        JOIN order_items oi ON ct.order_id = oi.order_id AND ct.campaign_id = oi.campaign_id
+        SET ct.product_id = oi.product_id
+        WHERE ct.product_id IS NULL
+      `);
+      console.log('✅ Backfilled product_id for existing campaign tickets');
+    } catch (err) {
+      console.log('ℹ️ Could not backfill product_id (might be empty):', err.message);
+    }
     
     console.log('✅ campaign_tickets table ready');
 
