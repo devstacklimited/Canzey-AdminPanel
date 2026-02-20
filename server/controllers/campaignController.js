@@ -103,9 +103,10 @@ export async function listAllCampaignsAdmin() {
 
     // Fetch linked products for each campaign
     const [products] = await connection.execute(
-      `SELECT id, name, main_image_url, price, campaign_id 
-       FROM products 
-       WHERE campaign_id IS NOT NULL AND status = 'active'`
+      `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining
+       FROM products p
+       LEFT JOIN product_prizes pp ON p.id = pp.product_id
+       WHERE p.campaign_id IS NOT NULL AND p.status = 'active'`
     );
 
     // Fetch campaign images
@@ -180,9 +181,11 @@ export async function listAllCampaigns() {
     
     if (campaignIds.length > 0) {
       const [products] = await connection.execute(
-        `SELECT id, name, main_image_url, price, campaign_id 
-         FROM products 
-         WHERE campaign_id IN (${campaignIds.join(',')})`
+        `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining
+         FROM products p
+         LEFT JOIN product_prizes pp ON p.id = pp.product_id
+         WHERE p.campaign_id IN (${campaignIds.join(',')}) AND p.status = 'active'
+         AND (pp.tickets_remaining IS NULL OR pp.tickets_remaining > 0)`
       );
       
       for (const product of products) {
@@ -238,9 +241,11 @@ export async function listActiveCampaigns() {
     
     if (campaignIds.length > 0) {
       const [products] = await connection.execute(
-        `SELECT id, name, main_image_url, price, campaign_id 
-         FROM products 
-         WHERE campaign_id IN (${campaignIds.join(',')}) AND status = 'active'`
+        `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining
+         FROM products p
+         INNER JOIN product_prizes pp ON p.id = pp.product_id
+         WHERE p.campaign_id IN (${campaignIds.join(',')}) AND p.status = 'active'
+         AND pp.tickets_remaining > 0 AND pp.is_active = 1`
       );
       
       for (const product of products) {

@@ -58,6 +58,7 @@ Content-Type: application/json
       "status": "active",
       "start_at": "2025-11-01T00:00:00.000Z",
       "end_at": "2025-11-30T23:59:59.000Z",
+      "use_end_date": true,
       "images": [
         {
           "id": 10,
@@ -117,6 +118,13 @@ Each campaign/prize has a category to help users find what they're interested in
 - Products are linked via `campaign_id` field in the products table.
 - When listing campaigns/prizes, the `products` array shows all linked products.
 - Use the `images` array to show a **gallery** for each prize.
+
+### Intelligent Hiding Logic
+
+Campaigns are automatically filtered by the backend based on:
+1.  **Availability**: Must have `status = 'active'` and `start_at <= NOW()`.
+2.  **Date Limit**: If `use_end_date` is `true`, the prize hides as soon as `end_at` passes. If `use_end_date` is `false`, the prize **remains visible** regardless of the end date.
+3.  **Stock Limit**: A prize automatically hides if it is **sold out** (no tickets remaining), regardless of dates.
 
 ---
 
@@ -359,6 +367,7 @@ Prizes now support **up to 5 images** each:
 | status | enum | No | `active`, `inactive`, `closed` (default: active) |
 | start_at | datetime | No | When prize becomes available |
 | end_at | datetime | No | When prize ends |
+| use_end_date | boolean | No | Whether to hide prize when `end_at` passes (default: true) |
 
 **Postman Example:**
 
@@ -378,6 +387,7 @@ Prizes now support **up to 5 images** each:
    status: "active"
    start_at: "2025-12-01T00:00:00"
    end_at: "2025-12-31T23:59:59"
+   use_end_date: "true"
    ```
 
 **Response:**
@@ -398,6 +408,7 @@ Prizes now support **up to 5 images** each:
     "status": "active",
     "start_at": "2025-12-01T00:00:00",
     "end_at": "2025-12-31T23:59:59",
+    "use_end_date": true,
     "images": [
       {
         "id": 10,

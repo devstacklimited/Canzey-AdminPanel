@@ -14,9 +14,13 @@ export async function listProducts() {
     const [products] = await connection.execute(`
       SELECT 
         p.*,
-        (SELECT tickets_required FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as tickets_required,
-        (SELECT countdown_start_tickets FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as countdown_start_tickets
+        pp.tickets_required,
+        pp.tickets_remaining,
+        pp.countdown_start_tickets
       FROM products p
+      LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
+      WHERE p.status = 'active'
+      AND (p.campaign_id IS NULL OR (pp.tickets_remaining IS NULL OR pp.tickets_remaining > 0))
       ORDER BY p.created_at DESC
     `);
 
