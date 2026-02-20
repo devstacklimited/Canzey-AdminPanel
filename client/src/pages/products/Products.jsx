@@ -36,6 +36,7 @@ const Products = () => {
     tickets_required: '',
     countdown_start_tickets: '',
     draw_date: '',
+    prize_end_date: '',
     colors: [],
     sizes: []
   });
@@ -269,6 +270,7 @@ const Products = () => {
       formDataToSend.append('tickets_required', formData.tickets_required || '');
       formDataToSend.append('countdown_start_tickets', formData.countdown_start_tickets || '');
       formDataToSend.append('draw_date', formData.draw_date || '');
+      formDataToSend.append('prize_end_date', formData.prize_end_date || '');
       formDataToSend.append('colors', JSON.stringify(formData.colors || []));
       formDataToSend.append('sizes', JSON.stringify(formData.sizes || []));
       
@@ -320,6 +322,7 @@ const Products = () => {
     let tickets = product.tickets_required || '';
     let countdown = product.countdown_start_tickets || '';
     let drawDate = product.draw_date || '';
+    let prizeEndDate = product.prize_end_date || '';
 
     // If prize info is missing from list view, try fetching individually
     if (!tickets && product.campaign_id) {
@@ -335,7 +338,8 @@ const Products = () => {
             tickets = prizeInfo.tickets_required;
             countdown = prizeInfo.countdown_start_tickets;
             drawDate = prizeInfo.draw_date;
-            console.log('🎯 [DEBUG] Found prize info via secondary fetch:', { tickets, countdown, drawDate });
+            prizeEndDate = prizeInfo.end_date;
+            console.log('🎯 [DEBUG] Found prize info via secondary fetch:', { tickets, countdown, drawDate, prizeEndDate });
           }
         }
       } catch (err) {
@@ -362,6 +366,7 @@ const Products = () => {
       tickets_required: tickets || '',
       countdown_start_tickets: countdown || '',
       draw_date: drawDate || '',
+      prize_end_date: prizeEndDate || '',
       colors: product.colors || [],
       sizes: product.sizes || []
     });
@@ -396,6 +401,7 @@ const Products = () => {
       tickets_required: '',
       countdown_start_tickets: '',
       draw_date: '',
+      prize_end_date: '',
       colors: [],
       sizes: []
     });

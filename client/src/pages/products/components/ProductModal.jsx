@@ -478,6 +478,18 @@ const ProductModal = ({
                   />
                   <small>Empty = "Announced Shortly"</small>
                 </div>
+                <div className="ticket-input-group">
+                  <label htmlFor="prize_end_date">🔴 Prize Ends On (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    id="prize_end_date"
+                    name="prize_end_date"
+                    value={formData.prize_end_date ? formData.prize_end_date.slice(0, 16) : ''}
+                    onChange={onInputChange}
+                    className="ticket-input"
+                  />
+                  <small>If set, this prize moves to "Ready for Draw" when this date passes — even if not sold out</small>
+                </div>
               </div>
               <div className="ticket-preview">
                 <div className="ticket-preview-info">

@@ -527,6 +527,7 @@ export async function setupDatabase() {
         tickets_remaining INT GENERATED ALWAYS AS (tickets_required - tickets_sold) STORED,
         countdown_start_tickets INT DEFAULT 0,
         draw_date DATETIME DEFAULT NULL,
+        end_date DATETIME DEFAULT NULL,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -540,16 +541,20 @@ export async function setupDatabase() {
     `);
     console.log('✅ product_prizes table ready');
 
-    // migration: Add draw_date column if it doesn't exist
-    try {
-      await connection.execute(`
-        ALTER TABLE product_prizes ADD COLUMN draw_date DATETIME DEFAULT NULL AFTER countdown_start_tickets
-      `);
-      console.log('✅ Added draw_date column to product_prizes table');
-    } catch (err) {
-      if (err.code !== 'ER_DUP_FIELDNAME') {
-        // Ignore "column already exists", log others
-        console.log('ℹ️ draw_date column already exists');
+    // Migration logic for product_prizes
+    const prizeColsToAdd = [
+      { name: 'draw_date', definition: 'DATETIME DEFAULT NULL AFTER countdown_start_tickets' },
+      { name: 'end_date', definition: 'DATETIME DEFAULT NULL AFTER draw_date' }
+    ];
+
+    for (const col of prizeColsToAdd) {
+      try {
+        await connection.execute(`ALTER TABLE product_prizes ADD COLUMN ${col.name} ${col.definition}`);
+        console.log(`✅ Added ${col.name} column to product_prizes table`);
+      } catch (err) {
+        if (err.code !== 'ER_DUP_FIELDNAME') {
+          console.error(`❌ Error adding column ${col.name} to product_prizes:`, err.message);
+        }
       }
     }
 

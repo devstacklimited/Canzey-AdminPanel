@@ -519,6 +519,16 @@
   text-transform: none;
 }
 
+/* Red styling for Prize End Date */
+.detail-end-date-info {
+  background: #fff5f5 !important;
+  border-color: #fed7d7 !important;
+}
+
+.detail-end-date-info .detail-info-label {
+  color: #c53030 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .detail-modal {

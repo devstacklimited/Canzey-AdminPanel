@@ -44,8 +44,10 @@ export async function getDraws(req, res) {
       WHERE 
         -- Sold out
         (pp.tickets_remaining <= 0 OR 
-         -- Or Expired
-         (c.use_end_date = 1 AND c.end_at IS NOT NULL AND c.end_at <= NOW()))
+         -- Or Campaign Expired
+         (c.use_end_date = 1 AND c.end_at IS NOT NULL AND c.end_at <= NOW()) OR
+         -- Or Prize-level End Date reached
+         (pp.end_date IS NOT NULL AND pp.end_date <= NOW()))
         -- And no winner picked yet for this specific prize
         AND NOT EXISTS (
           SELECT 1 FROM campaign_tickets ct 
@@ -72,6 +74,7 @@ export async function getDraws(req, res) {
         c.status = 'active'
         AND pp.tickets_remaining > 0
         AND (c.use_end_date = 0 OR c.end_at IS NULL OR c.end_at > NOW())
+        AND (pp.end_date IS NULL OR pp.end_date > NOW()) -- Prize end date check
         AND NOT EXISTS (
           SELECT 1 FROM campaign_tickets ct 
           WHERE ct.product_id = pp.product_id 

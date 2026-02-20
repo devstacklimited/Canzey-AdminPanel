@@ -237,6 +237,15 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
                             </div>
                           </div>
                         )}
+
+                        {productPrize.end_date && (
+                          <div className="detail-draw-date-info detail-end-date-info">
+                            <div className="detail-info-label">
+                              <Calendar size={12} />
+                              🔴 Prize Ends: {formatDate(productPrize.end_date)}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -14,10 +14,12 @@ export async function listProducts() {
     const [products] = await connection.execute(`
       SELECT 
         p.*,
+        pp.campaign_id,
         pp.tickets_required,
         pp.tickets_remaining,
         pp.countdown_start_tickets,
-        pp.draw_date
+        pp.draw_date,
+        pp.end_date as prize_end_date
       FROM products p
       LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
       WHERE p.status != 'deleted'
@@ -287,6 +289,15 @@ export async function createProduct(productData) {
       return isNaN(parsed) ? null : parsed;
     };
 
+    const toMysqlDatetime = (val) => {
+      if (!val || val === '' || val === 'null' || val === 'undefined') return null;
+      try {
+        const d = new Date(val);
+        if (isNaN(d.getTime())) return null;
+        return d.toISOString().slice(0, 19).replace('T', ' ');
+      } catch { return null; }
+    };
+
     const parsedCampaignId = safeInt(productData.campaign_id);
     const parsedTickets = safeInt(productData.tickets_required);
 
@@ -335,9 +346,9 @@ export async function createProduct(productData) {
       });
       
       await connection.execute(
-        `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets, draw_date)
-         VALUES (?, ?, ?, ?, ?)`,
-        [productId, parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0, productData.draw_date || null]
+        `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets, draw_date, end_date)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [productId, parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0, toMysqlDatetime(productData.draw_date), toMysqlDatetime(productData.prize_end_date)]
       );
     } else {
       console.log('⚠️ [CREATE PRODUCT] NOT saving prize data. Reason:');
@@ -382,7 +393,8 @@ export async function getProductById(productId) {
         p.*, 
         (SELECT tickets_required FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as tickets_required,
         (SELECT countdown_start_tickets FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as countdown_start_tickets,
-        (SELECT draw_date FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as draw_date
+        (SELECT draw_date FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as draw_date,
+        (SELECT end_date FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as prize_end_date
        FROM products p 
        WHERE p.id = ?`,
       [productId]
@@ -488,6 +500,18 @@ export async function updateProduct(productId, productData) {
       return isNaN(parsed) ? null : parsed;
     };
 
+    // Convert ISO datetime string to MySQL DATETIME format: 'YYYY-MM-DD HH:MM:SS'
+    const toMysqlDatetime = (val) => {
+      if (!val || val === '' || val === 'null' || val === 'undefined') return null;
+      try {
+        const d = new Date(val);
+        if (isNaN(d.getTime())) return null;
+        return d.toISOString().slice(0, 19).replace('T', ' ');
+      } catch {
+        return null;
+      }
+    };
+
     const parsedCampaignId = safeInt(productData.campaign_id);
     const parsedTickets = safeInt(productData.tickets_required);
 
@@ -546,9 +570,9 @@ export async function updateProduct(productId, productData) {
         
         await connection.execute(
           `UPDATE product_prizes 
-           SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, draw_date = ?, is_active = 1
+           SET campaign_id = ?, tickets_required = ?, countdown_start_tickets = ?, draw_date = ?, end_date = ?, is_active = 1
            WHERE id = ?`,
-          [parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0, productData.draw_date || null, existing[0].id]
+          [parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0, toMysqlDatetime(productData.draw_date), toMysqlDatetime(productData.prize_end_date), existing[0].id]
         );
       } else {
         console.log('🏆 [UPDATE PRODUCT] Inserting new prize for product:', productId, 'with values:', {
@@ -559,9 +583,9 @@ export async function updateProduct(productId, productData) {
         });
         
         await connection.execute(
-          `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets, draw_date)
-           VALUES (?, ?, ?, ?, ?)`,
-          [productId, parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0, productData.draw_date || null]
+          `INSERT INTO product_prizes (product_id, campaign_id, tickets_required, countdown_start_tickets, draw_date, end_date)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [productId, parsedCampaignId, parsedTickets, safeInt(productData.countdown_start_tickets) || 0, toMysqlDatetime(productData.draw_date), toMysqlDatetime(productData.prize_end_date)]
         );
       }
     } else {

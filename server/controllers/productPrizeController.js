@@ -110,6 +110,7 @@ export async function getAllProductPrizes() {
       SELECT 
         pp.id, pp.product_id, pp.campaign_id, pp.tickets_required, 
         pp.tickets_sold, pp.tickets_remaining, pp.countdown_start_tickets, pp.draw_date,
+        pp.end_date,
         pp.is_active, pp.created_at, pp.updated_at,
         p.name as product_name, p.main_image_url,
         c.title as campaign_title, c.image_url as campaign_image
