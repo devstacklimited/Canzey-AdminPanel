@@ -126,6 +126,10 @@ export async function getPrizeTicketPool(req, res) {
     });
   } catch (error) {
     console.error('Error fetching ticket pool:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error fetching pool',
+      error: error.message 
+    });
   }
 }

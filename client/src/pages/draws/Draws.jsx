@@ -64,9 +64,11 @@ const Draws = () => {
         console.warn('⚠️ [FRONTIER] API returned success:false', response.data.message);
       }
     } catch (error) {
-      console.error('❌ [FRONTIER] Error fetching ticket pool:', error);
+      const errorMsg = error.response?.data?.error || error.message;
+      console.error('❌ [FRONTIER] Error fetching ticket pool:', errorMsg);
       if (error.response) {
-        console.error('❌ [FRONTIER] Error details:', error.response.data);
+        console.error('❌ [FRONTIER] Server Status:', error.response.status);
+        console.error('❌ [FRONTIER] Response Data:', error.response.data);
       }
     } finally {
       setLoadingPool(false);
