@@ -123,8 +123,8 @@
 .product-status-alerts {
   display: flex;
   position: relative;
-  height: 20px;
-  min-width: 80px;
+  height: 22px;
+  min-width: 100px;
 }
 
 .sold-out-badge,
@@ -146,6 +146,21 @@
   background: #374151;
   color: white;
   animation: fadeOutIn 4s infinite;
+}
+
+.prize-end-date-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  white-space: nowrap;
+  background: #0891b2;
+  color: white;
 }
 
 .set-draw-badge {

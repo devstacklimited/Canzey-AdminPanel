@@ -488,9 +488,18 @@ const Products = () => {
                     </td>
                     <td className="product-name">
                       {product.name}
-                      {product.campaign_id && product.tickets_remaining === 0 && (
+                      {product.campaign_id && (
+                        (product.tickets_remaining !== null && product.tickets_remaining !== undefined && product.tickets_remaining <= 0) ||
+                        (product.prize_end_date && new Date(product.prize_end_date) <= new Date())
+                      ) && (
                         <div className="product-status-alerts">
-                          <span className="sold-out-badge">SOLD OUT</span>
+                          {product.prize_end_date ? (
+                            <span className="prize-end-date-badge">
+                              🗓 {new Date(product.prize_end_date) <= new Date() ? 'Ended' : 'Ends'} {new Date(product.prize_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          ) : (
+                            <span className="sold-out-badge">SOLD OUT</span>
+                          )}
                           {!product.draw_date && (
                             <span className="set-draw-badge animated-badge">SET DRAW TIME</span>
                           )}
