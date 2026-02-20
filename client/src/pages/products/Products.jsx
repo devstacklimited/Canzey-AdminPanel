@@ -480,7 +480,12 @@ const Products = () => {
                         </div>
                       )}
                     </td>
-                    <td className="product-name">{product.name}</td>
+                    <td className="product-name">
+                      {product.name}
+                      {product.campaign_id && product.tickets_remaining === 0 && (
+                        <span className="sold-out-badge">SOLD OUT</span>
+                      )}
+                    </td>
                     <td>{product.sku || '-'}</td>
                     <td>
                       {product.sale_price ? (

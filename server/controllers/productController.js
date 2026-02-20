@@ -20,8 +20,7 @@ export async function listProducts() {
         pp.draw_date
       FROM products p
       LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
-      WHERE p.status = 'active'
-      AND (p.campaign_id IS NULL OR (pp.tickets_remaining IS NULL OR pp.tickets_remaining > 0))
+      WHERE p.status != 'deleted'
       ORDER BY p.created_at DESC
     `);
 
