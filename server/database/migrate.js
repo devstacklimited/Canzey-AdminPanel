@@ -103,6 +103,18 @@ async function migrate() {
       console.log('⏭️  image_url column already exists in campaigns table');
     }
 
+    // Add use_end_date column to campaigns table if it doesn't exist
+    if (!campaignColumnNames.includes('use_end_date')) {
+      console.log('📝 Adding use_end_date column to campaigns table...');
+      await connection.execute(`
+        ALTER TABLE campaigns 
+        ADD COLUMN use_end_date BOOLEAN DEFAULT TRUE AFTER end_at
+      `);
+      console.log('✅ use_end_date column added to campaigns table');
+    } else {
+      console.log('⏭️  use_end_date column already exists in campaigns table');
+    }
+
     console.log('✅ ALTER migration completed successfully!');
   } catch (error) {
     console.error('❌ Migration error:', error.message);
