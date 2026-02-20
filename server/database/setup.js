@@ -8,14 +8,19 @@ dotenv.config();
  * Setup database - create database, tables, and seed admin user
  */
 export async function setupDatabase() {
+  const dbConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || '',
+  };
+
+  console.log('📡 [DB SETUP] Connecting to:', dbConfig.host, 'as', dbConfig.user);
+  console.log('🔑 [DB SETUP] Password provided:', !!dbConfig.password);
+
   try {
     // First, connect without database to create it
-    const tempConnection = await mysql.createConnection({
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 3306,
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || '',
-    });
+    const tempConnection = await mysql.createConnection(dbConfig);
 
     const dbName = process.env.DB_NAME || 'canzey-app-db';
 
@@ -29,10 +34,7 @@ export async function setupDatabase() {
 
     // Now connect to the database and create tables
     const connection = await mysql.createConnection({
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 3306,
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || '',
+      ...dbConfig,
       database: dbName,
     });
 
