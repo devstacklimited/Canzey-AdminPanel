@@ -1,5 +1,5 @@
 import React from 'react';
-import { Ticket, Calendar, ChevronRight } from 'lucide-react';
+import { Ticket, Calendar, ChevronRight, Clock } from 'lucide-react';
 
 const DrawCard = ({ draw, activeTab, onViewParticipants, getImageUrl, formatDate }) => {
   const getStatusLabel = () => {
@@ -13,6 +13,10 @@ const DrawCard = ({ draw, activeTab, onViewParticipants, getImageUrl, formatDate
     return 'status-ready';
   };
 
+  const isSoldOut = draw.tickets_remaining !== undefined
+    ? draw.tickets_remaining <= 0
+    : draw.tickets_sold >= draw.tickets_required;
+
   return (
     <div className="draw-card">
       <div className="draw-card-image">
@@ -20,26 +24,52 @@ const DrawCard = ({ draw, activeTab, onViewParticipants, getImageUrl, formatDate
         <span className={`draw-status-badge ${getStatusClass()}`}>
           {getStatusLabel()}
         </span>
+        {isSoldOut && activeTab !== 'past' && (
+          <span className="sold-out-overlay-badge">SOLD OUT</span>
+        )}
       </div>
       
       <div className="draw-card-content">
         <p className="draw-card-prize">{draw.campaign_title}</p>
         <h3 className="draw-card-title">{draw.product_name}</h3>
         
-        <div className="draw-info-row">
+        {/* Tickets Sold Row */}
+        <div className={`draw-info-row ${isSoldOut && activeTab !== 'past' ? 'sold-out-row' : ''}`}>
           <Ticket size={16} />
-          <span>{draw.tickets_sold || 0} / {draw.tickets_required} Tickets Sold</span>
+          <span>
+            {draw.tickets_sold || 0} / {draw.tickets_required} Tickets Sold
+            {isSoldOut && activeTab !== 'past' && (
+              <span className="inline-sold-out-badge"> · SOLD OUT</span>
+            )}
+          </span>
         </div>
         
+        {/* Campaign End Date */}
         <div className="draw-info-row">
           <Calendar size={16} />
-          <span>Campaign End Date: {formatDate(draw.draw_date)}</span>
+          <span>Campaign End Date: {formatDate(draw.campaign_end_at)}</span>
         </div>
 
+        {/* Prize End Date — always show if set, even when sold out */}
         {draw.end_date && (
           <div className="draw-info-row draw-end-date-row">
             <Calendar size={16} />
             <span>🔴 Prize Ends: {formatDate(draw.end_date)}</span>
+          </div>
+        )}
+
+        {/* Draw Date — show if set */}
+        {draw.draw_date && (
+          <div className="draw-info-row draw-draw-date-row">
+            <Clock size={16} />
+            <span>🎯 Draw Date: {formatDate(draw.draw_date)}</span>
+          </div>
+        )}
+
+        {!draw.draw_date && isSoldOut && activeTab !== 'past' && (
+          <div className="draw-info-row draw-missing-date-row">
+            <Clock size={16} />
+            <span>⚠️ Draw Date: Not Set</span>
           </div>
         )}
 

@@ -141,6 +141,67 @@
     color: #dc2626;
 }
 
+/* Draw Date Row */
+.draw-draw-date-row {
+    color: #0891b2;
+    font-weight: 600;
+}
+
+.draw-draw-date-row svg {
+    color: #0891b2;
+}
+
+/* Missing Draw Date Warning */
+.draw-missing-date-row {
+    color: #d97706;
+    font-weight: 600;
+}
+
+.draw-missing-date-row svg {
+    color: #d97706;
+}
+
+/* Sold Out styling */
+.sold-out-overlay-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 2rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: rgba(220, 38, 38, 0.9);
+    color: white;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+}
+
+.sold-out-row {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.sold-out-row svg {
+    color: #dc2626;
+}
+
+.inline-sold-out-badge {
+    display: inline-block;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.1rem 0.45rem;
+    border-radius: 0.4rem;
+    margin-left: 0.25rem;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid #fecaca;
+}
+
 .draw-card-footer {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
