@@ -516,6 +516,19 @@ export async function setupDatabase() {
     `);
     console.log('✅ product_prizes table ready');
 
+    // migration: Add draw_date column if it doesn't exist
+    try {
+      await connection.execute(`
+        ALTER TABLE product_prizes ADD COLUMN draw_date DATETIME DEFAULT NULL AFTER countdown_start_tickets
+      `);
+      console.log('✅ Added draw_date column to product_prizes table');
+    } catch (err) {
+      if (err.code !== 'ER_DUP_FIELDNAME') {
+        // Ignore "column already exists", log others
+        console.log('ℹ️ draw_date column already exists');
+      }
+    }
+
     // Seed master admin user
     await seedMasterAdmin(connection);
 
