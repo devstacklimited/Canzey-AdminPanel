@@ -109,7 +109,7 @@ export async function getPrizeTicketPool(req, res) {
         ct.*,
         COALESCE(CONCAT(cust.first_name, ' ', cust.last_name), 'Unknown') as customer_name,
         cust.email as customer_email,
-        cust.phone as customer_phone,
+        cust.phone_number as customer_phone,
         o.order_number
       FROM campaign_tickets ct
       LEFT JOIN customers cust ON ct.customer_id = cust.id
