@@ -183,7 +183,7 @@ export async function listAllCampaigns() {
     
     if (campaignIds.length > 0) {
       const [products] = await connection.execute(
-        `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining
+        `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining, pp.draw_date
          FROM products p
          LEFT JOIN product_prizes pp ON p.id = pp.product_id
          WHERE p.campaign_id IN (${campaignIds.join(',')}) AND p.status = 'active'
@@ -198,7 +198,8 @@ export async function listAllCampaigns() {
           id: product.id,
           name: product.name,
           main_image_url: product.main_image_url,
-          price: product.price
+          price: product.price,
+          draw_date: product.draw_date
         });
       }
     }
@@ -243,7 +244,7 @@ export async function listActiveCampaigns() {
     
     if (campaignIds.length > 0) {
       const [products] = await connection.execute(
-        `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining
+        `SELECT p.id, p.name, p.main_image_url, p.price, p.campaign_id, pp.tickets_remaining, pp.draw_date
          FROM products p
          INNER JOIN product_prizes pp ON p.id = pp.product_id
          WHERE p.campaign_id IN (${campaignIds.join(',')}) AND p.status = 'active'
@@ -258,7 +259,8 @@ export async function listActiveCampaigns() {
           id: product.id,
           name: product.name,
           main_image_url: product.main_image_url,
-          price: product.price
+          price: product.price,
+          draw_date: product.draw_date
         });
       }
     }

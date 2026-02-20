@@ -137,7 +137,7 @@ MIT
 cd /var/www/Canzey-AdminPanel
 
 # Pull latest code from GitHub
-git pull origin farhan-1
+git pull origin main
 
 # Create/update the .env with correct API URL
 echo "VITE_API_URL=https://admin.canzey.com" > /var/www/Canzey-AdminPanel/client/.env
