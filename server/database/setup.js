@@ -120,6 +120,7 @@ export async function setupDatabase() {
         campaign_id INT NOT NULL,
         customer_id INT NOT NULL,
         order_id INT DEFAULT NULL,
+        product_id INT DEFAULT NULL,
         ticket_number VARCHAR(50) UNIQUE NOT NULL,
         quantity INT NOT NULL DEFAULT 1,
         total_price DECIMAL(10,2) NOT NULL,
@@ -132,6 +133,7 @@ export async function setupDatabase() {
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
         INDEX idx_customer_id (customer_id),
         INDEX idx_campaign_id (campaign_id),
+        INDEX idx_product_id (product_id),
         INDEX idx_order_id (order_id),
         INDEX idx_ticket_number (ticket_number),
         INDEX idx_is_winner (is_winner)
@@ -141,6 +143,7 @@ export async function setupDatabase() {
     // Add columns if they don't exist (for existing databases)
     const columnsToAdd = [
       { name: 'order_id', definition: 'INT DEFAULT NULL AFTER customer_id' },
+      { name: 'product_id', definition: 'INT DEFAULT NULL AFTER order_id' },
       { name: 'is_winner', definition: 'BOOLEAN DEFAULT FALSE' },
       { name: 'won_at', definition: 'TIMESTAMP NULL' }
     ];

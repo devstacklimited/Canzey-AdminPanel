@@ -120,17 +120,82 @@
   gap: 0.5rem;
 }
 
-.sold-out-badge {
-  background: #ef4444;
-  color: white;
+.product-status-alerts {
+  display: flex;
+  position: relative;
+  height: 20px;
+  min-width: 80px;
+}
+
+.sold-out-badge,
+.set-draw-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  display: inline-block;
   line-height: 1;
+  white-space: nowrap;
+}
+
+.sold-out-badge {
+  background: #374151;
+  color: white;
+  animation: fadeOutIn 4s infinite;
+}
+
+.set-draw-badge {
+  background: #ef4444;
+  color: white;
+  animation: fadeInOut 4s infinite;
+}
+
+@keyframes fadeInOut {
+
+  0%,
+  45% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  50%,
+  95% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes fadeOutIn {
+
+  0%,
+  45% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  50%,
+  95% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toggle-switch input:disabled+.slider {
+  display: none;
 }
 
 .price-display {

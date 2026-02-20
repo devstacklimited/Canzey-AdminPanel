@@ -483,7 +483,12 @@ const Products = () => {
                     <td className="product-name">
                       {product.name}
                       {product.campaign_id && product.tickets_remaining === 0 && (
-                        <span className="sold-out-badge">SOLD OUT</span>
+                        <div className="product-status-alerts">
+                          <span className="sold-out-badge">SOLD OUT</span>
+                          {!product.draw_date && (
+                            <span className="set-draw-badge animated-badge">SET DRAW TIME</span>
+                          )}
+                        </div>
                       )}
                     </td>
                     <td>{product.sku || '-'}</td>
@@ -511,14 +516,6 @@ const Products = () => {
                       <button className="btn-icon" onClick={() => handleEdit(product)}>
                         <Edit size={18} />
                       </button>
-                      <label className="toggle-switch">
-                        <input 
-                          type="checkbox" 
-                          checked={product.status === 'active'}
-                          onChange={() => handleStatusToggle(product.id, product.status)}
-                        />
-                        <span className="slider"></span>
-                      </label>
                     </td>
                   </tr>
                 ))}

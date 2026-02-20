@@ -153,6 +153,7 @@ const Draws = () => {
           loading={loadingPool}
           onPickWinner={onPickWinner}
           activeTab={activeTab}
+          formatDate={formatDate}
         />
       </div>
     </Layout>
