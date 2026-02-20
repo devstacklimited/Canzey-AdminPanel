@@ -102,20 +102,23 @@ export async function getDraws(req, res) {
 export async function getPrizeTicketPool(req, res) {
   try {
     const { productId, campaignId } = req.params;
+    console.log(`🔍 [POOL] Fetching tickets for Product: ${productId}, Campaign: ${campaignId}`);
 
     const [tickets] = await pool.execute(`
       SELECT 
         ct.*,
-        CONCAT(cust.first_name, ' ', cust.last_name) as customer_name,
+        COALESCE(CONCAT(cust.first_name, ' ', cust.last_name), 'Unknown') as customer_name,
         cust.email as customer_email,
         cust.phone as customer_phone,
         o.order_number
       FROM campaign_tickets ct
-      JOIN customers cust ON ct.customer_id = cust.id
-      JOIN orders o ON ct.order_id = o.id
+      LEFT JOIN customers cust ON ct.customer_id = cust.id
+      LEFT JOIN orders o ON ct.order_id = o.id
       WHERE ct.product_id = ? AND ct.campaign_id = ?
       ORDER BY ct.created_at ASC
     `, [productId, campaignId]);
+
+    console.log(`✅ [POOL] Found ${tickets.length} tickets`);
 
     res.json({
       success: true,

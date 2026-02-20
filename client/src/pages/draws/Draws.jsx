@@ -39,20 +39,35 @@ const Draws = () => {
   };
 
   const handleViewParticipants = async (draw) => {
+    console.log('🚀 [FRONTIER] View Participants clicked for:', draw.product_name);
+    console.log('📍 [FRONTIER] Target Product ID:', draw.product_id, '| Campaign ID:', draw.campaign_id);
+    
     setLoadingPool(true);
     setSelectedDraw(draw);
     setShowPoolModal(true);
-    setTicketPool([]); // Reset pool while loading
+    setTicketPool([]); 
+    
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/admin/draws/pool/${draw.product_id}/${draw.campaign_id}`,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
+      const url = `${import.meta.env.VITE_API_URL}/api/admin/draws/pool/${draw.product_id}/${draw.campaign_id}`;
+      console.log('🔗 [FRONTIER] Requesting URL:', url);
+
+      const response = await axios.get(url, { 
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+      });
+      
+      console.log('📦 [FRONTIER] Full API Response:', response.data);
+      
       if (response.data.success) {
+        console.log('✅ [FRONTIER] Successfully fetched', response.data.tickets?.length || 0, 'tickets');
         setTicketPool(response.data.tickets);
+      } else {
+        console.warn('⚠️ [FRONTIER] API returned success:false', response.data.message);
       }
     } catch (error) {
-      console.error('Error fetching ticket pool:', error);
+      console.error('❌ [FRONTIER] Error fetching ticket pool:', error);
+      if (error.response) {
+        console.error('❌ [FRONTIER] Error details:', error.response.data);
+      }
     } finally {
       setLoadingPool(false);
     }

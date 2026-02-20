@@ -161,15 +161,21 @@ export async function setupDatabase() {
 
     // Backfill product_id from order_items if it's currently NULL
     try {
+      // We look for any order_item in that same order/campaign to link the ticket to a product
       await connection.execute(`
         UPDATE campaign_tickets ct
-        JOIN order_items oi ON ct.order_id = oi.order_id AND ct.campaign_id = oi.campaign_id
-        SET ct.product_id = oi.product_id
-        WHERE ct.product_id IS NULL
+        SET ct.product_id = (
+          SELECT oi.product_id 
+          FROM order_items oi 
+          WHERE oi.order_id = ct.order_id 
+          AND oi.campaign_id = ct.campaign_id
+          LIMIT 1
+        )
+        WHERE ct.product_id IS NULL AND ct.order_id IS NOT NULL
       `);
       console.log('✅ Backfilled product_id for existing campaign tickets');
     } catch (err) {
-      console.log('ℹ️ Could not backfill product_id (might be empty):', err.message);
+      console.log('ℹ️ Could not backfill product_id:', err.message);
     }
     
     console.log('✅ campaign_tickets table ready');
