@@ -1,0 +1,333 @@
+.draws-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.draws-header {
+    margin-bottom: 2rem;
+}
+
+.draws-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.draws-subtitle {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.draws-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 0.5rem;
+    background: #f1f5f9;
+    border-radius: 1rem;
+    width: fit-content;
+}
+
+.draw-tab {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    color: #64748b;
+}
+
+.draw-tab.active {
+    background: white;
+    color: #6366f1;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.draws-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.draw-card {
+    background: white;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+    border: 1px solid #f1f5f9;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.draw-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+.draw-card-image {
+    height: 200px;
+    position: relative;
+}
+
+.draw-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.draw-status-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+}
+
+.status-ready {
+    color: #059669;
+}
+
+.status-winner {
+    color: #6366f1;
+}
+
+.draw-card-content {
+    padding: 1.5rem;
+}
+
+.draw-card-prize {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6366f1;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.draw-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.draw-info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.draw-card-footer {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.winner-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.winner-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+}
+
+.winner-details p:first-child {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.875rem;
+}
+
+.winner-details p:last-child {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.view-pool-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.view-pool-btn:hover {
+    background: #4f46e5;
+}
+
+/* Modal Styling */
+.pool-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.pool-modal-content {
+    background: white;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    border-radius: 2rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pool-modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pool-modal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.ticket-pool-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pool-participant-row {
+    background: #f8fafc;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.pool-participant-row:hover {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+}
+
+.participant-name {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1rem;
+}
+
+.participant-ticket {
+    font-family: monospace;
+    color: #6366f1;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.participant-contact {
+    text-align: center;
+}
+
+.participant-contact p:first-child {
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.875rem;
+}
+
+.participant-contact p:last-child {
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+.participant-order small {
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.ticket-pool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.pool-ticket-card {
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 1rem;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.ticket-number {
+    font-family: monospace;
+    font-weight: 700;
+    color: #6366f1;
+    font-size: 0.875rem;
+}
+
+.ticket-owner {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.pool-modal-footer {
+    padding: 1.5rem 2rem;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.pick-winner-btn {
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}

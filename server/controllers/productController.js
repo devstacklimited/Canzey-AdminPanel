@@ -382,7 +382,8 @@ export async function getProductById(productId) {
       `SELECT 
         p.*, 
         (SELECT tickets_required FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as tickets_required,
-        (SELECT countdown_start_tickets FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as countdown_start_tickets
+        (SELECT countdown_start_tickets FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as countdown_start_tickets,
+        (SELECT draw_date FROM product_prizes WHERE product_id = p.id ORDER BY id DESC LIMIT 1) as draw_date
        FROM products p 
        WHERE p.id = ?`,
       [productId]

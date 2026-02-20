@@ -78,13 +78,15 @@ Content-Type: application/json
           "id": 5,
           "name": "iPhone 16 Pro Max",
           "main_image_url": "/uploads/products/product-123.jpg",
-          "price": "1199.00"
+          "price": "1199.00",
+          "draw_date": "2025-12-25T18:00:00.000Z"
         },
         {
           "id": 6,
           "name": "iPhone 16 Case",
           "main_image_url": "/uploads/products/product-456.jpg",
-          "price": "49.00"
+          "price": "49.00",
+          "draw_date": null
         }
       ]
     }
@@ -121,10 +123,18 @@ Each campaign/prize has a category to help users find what they're interested in
 
 ### Intelligent Hiding Logic
 
-Campaigns are automatically filtered by the backend based on:
+Campaigns and products are automatically filtered by the backend based on:
 1.  **Availability**: Must have `status = 'active'` and `start_at <= NOW()`.
-2.  **Date Limit**: If `use_end_date` is `true`, the prize hides as soon as `end_at` passes. If `use_end_date` is `false`, the prize **remains visible** regardless of the end date.
-3.  **Stock Limit**: A prize automatically hides if it is **sold out** (no tickets remaining), regardless of dates.
+2.  **Date Limit**: If `use_end_date` is `true`, the campaign hides as soon as `end_at` passes. If `use_end_date` is `false`, it **remains visible** regardless of the end date.
+3.  **Stock Limit (IMPORTANT)**: 
+    *   **Products**: A product automatically disappears from all lists as soon as its tickets are **sold out** (`tickets_remaining = 0`).
+    *   **Campaigns**: A campaign automatically hides if **all** of its linked products are sold out.
+
+### Draw Date Management
+
+Each product linked to a prize has an optional `draw_date`:
+- **Fixed Date**: If set, this is the exact time the winner will be announced.
+- **Null Value**: If `draw_date` is `null`, the Flutter app should display: **"Draw date will be announced shortly."**
 
 ---
 

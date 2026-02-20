@@ -15,6 +15,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { icon: Tag, label: 'Promos', path: '/promos' },
     { icon: Ticket, label: 'Tickets', path: '/tickets' },
     { icon: Users, label: 'Canzey Customers', path: '/customers' },
+    { icon: Trophy, label: 'Lucky Draws', path: '/draws' },
     { icon: Bell, label: 'Notifications Sender', path: '/notifications' },
     { icon: Users, label: 'Users', path: '/users' },
     { icon: User, label: 'Profile', path: '/profile' },

@@ -228,6 +228,15 @@ const CampaignDetailModal = ({ campaign, isOpen, onClose, onEdit, onDelete }) =>
                             </small>
                           </div>
                         )}
+                        
+                        {productPrize.draw_date && (
+                          <div className="detail-draw-date-info">
+                            <div className="detail-info-label">
+                              <Calendar size={12} />
+                              Draw Date: {formatDate(productPrize.draw_date)}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

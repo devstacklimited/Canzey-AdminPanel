@@ -15,6 +15,7 @@ import Promos from './pages/promos/Promos'
 import Tickets from './pages/tickets/Tickets'
 import Banners from './pages/banners/Banners'
 import Notifications from './pages/notifications/Notifications'
+import Draws from './pages/draws/Draws'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +95,11 @@ function App() {
             <Route path="/notifications" element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            } />
+            <Route path="/draws" element={
+              <ProtectedRoute>
+                <Draws />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

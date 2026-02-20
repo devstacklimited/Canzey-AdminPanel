@@ -35,6 +35,7 @@ const Products = () => {
     campaign_id: '',
     tickets_required: '',
     countdown_start_tickets: '',
+    draw_date: '',
     colors: [],
     sizes: []
   });
@@ -267,6 +268,7 @@ const Products = () => {
       formDataToSend.append('campaign_id', formData.campaign_id || '');
       formDataToSend.append('tickets_required', formData.tickets_required || '');
       formDataToSend.append('countdown_start_tickets', formData.countdown_start_tickets || '');
+      formDataToSend.append('draw_date', formData.draw_date || '');
       formDataToSend.append('colors', JSON.stringify(formData.colors || []));
       formDataToSend.append('sizes', JSON.stringify(formData.sizes || []));
       
@@ -315,14 +317,15 @@ const Products = () => {
   const handleEdit = async (product) => {
     console.log('📝 [DEBUG] Editing product:', product.id, product.name);
     
-    let tickets = product.tickets_required;
-    let countdown = product.countdown_start_tickets;
+    let tickets = product.tickets_required || '';
+    let countdown = product.countdown_start_tickets || '';
+    let drawDate = product.draw_date || '';
 
-    // If data is missing from the list, fetch it directly (Smart Edit)
-    if (tickets === undefined || tickets === null || tickets === '') {
+    // If prize info is missing from list view, try fetching individually
+    if (!tickets && product.campaign_id) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/admin/product-prizes`, {
+        const response = await fetch(`${API_BASE_URL}/api/admin/product-prizes?product_id=${product.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -331,7 +334,8 @@ const Products = () => {
           if (prizeInfo) {
             tickets = prizeInfo.tickets_required;
             countdown = prizeInfo.countdown_start_tickets;
-            console.log('🎯 [DEBUG] Found prize info via secondary fetch:', { tickets, countdown });
+            drawDate = prizeInfo.draw_date;
+            console.log('🎯 [DEBUG] Found prize info via secondary fetch:', { tickets, countdown, drawDate });
           }
         }
       } catch (err) {
@@ -357,6 +361,7 @@ const Products = () => {
       campaign_id: product.campaign_id || '',
       tickets_required: tickets || '',
       countdown_start_tickets: countdown || '',
+      draw_date: drawDate || '',
       colors: product.colors || [],
       sizes: product.sizes || []
     });
@@ -390,6 +395,7 @@ const Products = () => {
       campaign_id: '',
       tickets_required: '',
       countdown_start_tickets: '',
+      draw_date: '',
       colors: [],
       sizes: []
     });
