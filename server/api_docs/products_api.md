@@ -75,6 +75,11 @@ Authorization: Bearer <your-admin-token>
       "is_customized": false,
       "tags": "New Arrival,Best Seller",
       "campaign_id": 1,
+      "tickets_required": 100,
+      "tickets_remaining": 45,
+      "countdown_start_tickets": 20,
+      "draw_date": "2026-03-01T13:00:00.000Z",
+      "prize_end_date": "2026-02-28T23:59:59.000Z",
       "main_image_url": "/uploads/products/product-1234567890-123.jpg",
       "status": "active",
       "created_at": "2024-01-15T10:30:00.000Z",
@@ -88,35 +93,28 @@ Authorization: Bearer <your-admin-token>
         }
       ],
       "colors": [
-        {
-          "id": 1,
-          "name": "Black",
-          "code": "#000000",
-          "stock_quantity": 25
-        },
-        {
-          "id": 2,
-          "name": "White",
-          "code": "#FFFFFF",
-          "stock_quantity": 25
-        }
+        { "id": 1, "name": "Black", "code": "#000000", "stock_quantity": 25 },
+        { "id": 2, "name": "White", "code": "#FFFFFF", "stock_quantity": 25 }
       ],
       "sizes": [
-        {
-          "id": 1,
-          "size": "128GB",
-          "stock_quantity": 30
-        },
-        {
-          "id": 2,
-          "size": "256GB",
-          "stock_quantity": 20
-        }
+        { "id": 1, "size": "128GB", "stock_quantity": 30 },
+        { "id": 2, "size": "256GB", "stock_quantity": 20 }
       ]
     }
   ]
 }
 ```
+
+### Prize Fields Explained
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `campaign_id` | integer\|null | Prize/campaign this product is linked to. `null` = not a prize product |
+| `tickets_required` | integer\|null | Total tickets needed to trigger a draw |
+| `tickets_remaining` | integer\|null | Tickets left to sell. `0` = **SOLD OUT** |
+| `countdown_start_tickets` | integer\|null | Show countdown timer when this many tickets remain |
+| `draw_date` | datetime\|null | Fixed draw date. If `null` → show "Announced Shortly" |
+| `prize_end_date` | datetime\|null | Prize hard deadline. If passed → prize has ended |
 
 ---
 
@@ -155,6 +153,11 @@ Authorization: Bearer <your-admin-token>
     "is_customized": false,
     "tags": "New Arrival,Best Seller",
     "campaign_id": 1,
+    "tickets_required": 100,
+    "tickets_remaining": 45,
+    "countdown_start_tickets": 20,
+    "draw_date": "2026-03-01T13:00:00.000Z",
+    "prize_end_date": "2026-02-28T23:59:59.000Z",
     "main_image_url": "/uploads/products/product-1234567890-123.jpg",
     "status": "active",
     "created_at": "2024-01-15T10:30:00.000Z",
@@ -301,7 +304,31 @@ Same as Create Product, plus:
 
 ---
 
-## 5. Delete Product
+## 5a. Update Product Status Only
+
+Quickly toggle a product between `active` and `inactive` without a full update.
+
+- **Method:** `PATCH`
+- **URL:** `/api/admin/products/:id/status`
+- **Auth:** Required (Admin)
+
+### Request Body
+
+```json
+{ "status": "inactive" }
+```
+
+Allowed values: `active`, `inactive`
+
+### Response Example
+
+```json
+{ "success": true }
+```
+
+---
+
+## 6. Delete Product
 
 Soft delete a product (sets status to 'inactive').
 
@@ -485,13 +512,19 @@ https://admin.canzey.com/uploads/products/product-1234567890-123.jpg
 
 When a product has a `campaign_id`, you can get full prize details (including **multiple images** and **linked products**) from the Campaigns/Prize API.
 
-### 1. Get All Active Prizes with Linked Products
+> ⚠️ **Important:** The public `/api/campaigns` endpoint **automatically hides** prizes/products that are:
+> - **Sold out** (`tickets_remaining <= 0`)
+> - **Prize end date has passed** (`prize_end_date <= NOW()`)
+>
+> This means Flutter only sees **available** prizes. The admin panel shows everything including sold-out/expired items with status tags.
+
+### 1. Get All Available Prizes with Linked Products (Flutter)
 
 ```http
 GET https://admin.canzey.com/api/campaigns
 ```
 
-Response includes all active prizes with their products and images:
+Response includes only **available** prizes with their products and images:
 
 ```json
 {
@@ -510,12 +543,6 @@ Response includes all active prizes with their products and images:
           "image_url": "/uploads/campaigns/campaign-123.jpg",
           "is_primary": true,
           "sort_order": 0
-        },
-        {
-          "id": 11,
-          "image_url": "/uploads/campaigns/campaign-123-side.jpg",
-          "is_primary": false,
-          "sort_order": 1
         }
       ],
       "products": [
@@ -523,7 +550,8 @@ Response includes all active prizes with their products and images:
           "id": 5,
           "name": "iPhone 16 Pro Max",
           "main_image_url": "/uploads/products/product-123.jpg",
-          "price": "1199.00"
+          "price": "1199.00",
+          "draw_date": "2026-03-01T13:00:00.000Z"
         }
       ]
     }

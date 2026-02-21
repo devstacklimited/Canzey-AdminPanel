@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Trophy } from 'lucide-react';
+import { Trophy, X, Star, Ticket } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import DrawCard from './components/DrawCard';
 import ParticipantModal from './components/ParticipantModal';
@@ -14,6 +14,8 @@ const Draws = () => {
   const [ticketPool, setTicketPool] = useState([]);
   const [loadingPool, setLoadingPool] = useState(false);
   const [showPoolModal, setShowPoolModal] = useState(false);
+  const [pickingWinner, setPickingWinner] = useState(false);
+  const [winnerResult, setWinnerResult] = useState(null);
 
   useEffect(() => {
     fetchDraws();
@@ -39,41 +41,51 @@ const Draws = () => {
   };
 
   const handleViewParticipants = async (draw) => {
-    console.log('🚀 [FRONTIER] View Participants clicked for:', draw.product_name);
-    console.log('📍 [FRONTIER] Target Product ID:', draw.product_id, '| Campaign ID:', draw.campaign_id);
-    
     setLoadingPool(true);
     setSelectedDraw(draw);
     setShowPoolModal(true);
-    setTicketPool([]); 
-    
+    setTicketPool([]);
     try {
       const url = `${import.meta.env.VITE_API_URL}/api/admin/draws/pool/${draw.product_id}/${draw.campaign_id}`;
-      console.log('🔗 [FRONTIER] Requesting URL:', url);
-
-      const response = await axios.get(url, { 
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      
-      console.log('📦 [FRONTIER] Full API Response:', response.data);
-      
       if (response.data.success) {
-        console.log('✅ [FRONTIER] Successfully fetched', response.data.tickets?.length || 0, 'tickets');
         setTicketPool(response.data.tickets);
-      } else {
-        console.warn('⚠️ [FRONTIER] API returned success:false', response.data.message);
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.message;
-      console.error('❌ [FRONTIER] Error fetching ticket pool:', errorMsg);
-      if (error.response) {
-        console.error('❌ [FRONTIER] Server Status:', error.response.status);
-        console.error('❌ [FRONTIER] Response Data:', error.response.data);
-      }
+      console.error('Error fetching ticket pool:', error);
     } finally {
       setLoadingPool(false);
     }
   };
+
+  // 🎯 Mark a SPECIFIC ticket as winner — called when admin clicks "Pick as Winner" on a row
+  const onPickWinner = async (draw, ticket) => {
+    if (!window.confirm(`Mark "${ticket.customer_name}" (${ticket.ticket_number}) as the winner for "${draw.product_name}"?`)) return;
+
+    setPickingWinner(true);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/tickets/admin/mark-winner/${ticket.id}`,
+        { is_winner: true },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+
+      setShowPoolModal(false);
+      setWinnerResult({ winner: ticket, draw });
+
+      await fetchDraws();
+      setTimeout(() => setActiveTab('past'), 500);
+
+    } catch (error) {
+      console.error('Error marking winner:', error);
+      alert('Failed to mark winner. Please try again.');
+    } finally {
+      setPickingWinner(false);
+    }
+  };
+
 
   const getImageUrl = (url) => {
     if (!url) return 'https://via.placeholder.com/400x300?text=No+Image';
@@ -84,17 +96,9 @@ const Draws = () => {
   const formatDate = (dateString) => {
     if (!dateString) return 'Not Set';
     return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
-  };
-
-  const onPickWinner = (draw) => {
-    // Logic for picking winner will go here
-    alert(`Picking winner for ${draw.product_name}... (Functionality coming soon)`);
   };
 
   if (loading) {
@@ -108,8 +112,8 @@ const Draws = () => {
     );
   }
 
-  const currentList = activeTab === 'active' ? draws.active : 
-                     activeTab === 'upcoming' ? draws.upcoming : 
+  const currentList = activeTab === 'active' ? draws.active :
+                     activeTab === 'upcoming' ? draws.upcoming :
                      draws.past;
 
   return (
@@ -121,22 +125,13 @@ const Draws = () => {
         </div>
 
         <div className="draws-tabs">
-          <button 
-            className={`draw-tab ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={() => setActiveTab('active')}
-          >
+          <button className={`draw-tab ${activeTab === 'active' ? 'active' : ''}`} onClick={() => setActiveTab('active')}>
             Active ({draws.active.length})
           </button>
-          <button 
-            className={`draw-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
-            onClick={() => setActiveTab('upcoming')}
-          >
+          <button className={`draw-tab ${activeTab === 'upcoming' ? 'active' : ''}`} onClick={() => setActiveTab('upcoming')}>
             Ready for Draw ({draws.upcoming.length})
           </button>
-          <button 
-            className={`draw-tab ${activeTab === 'past' ? 'active' : ''}`}
-            onClick={() => setActiveTab('past')}
-          >
+          <button className={`draw-tab ${activeTab === 'past' ? 'active' : ''}`} onClick={() => setActiveTab('past')}>
             Past Results ({draws.past.length})
           </button>
         </div>
@@ -150,7 +145,7 @@ const Draws = () => {
         ) : (
           <div className="draws-grid">
             {currentList.map((draw) => (
-              <DrawCard 
+              <DrawCard
                 key={`${draw.product_id}-${draw.campaign_id}`}
                 draw={draw}
                 activeTab={activeTab}
@@ -162,16 +157,56 @@ const Draws = () => {
           </div>
         )}
 
-        <ParticipantModal 
+        <ParticipantModal
           isOpen={showPoolModal}
           onClose={() => setShowPoolModal(false)}
           draw={selectedDraw}
           participants={ticketPool}
           loading={loadingPool}
+          pickingWinner={pickingWinner}
           onPickWinner={onPickWinner}
           activeTab={activeTab}
           formatDate={formatDate}
         />
+
+        {/* 🏆 Winner Reveal Overlay */}
+        {winnerResult && (
+          <div className="winner-reveal-overlay" onClick={() => setWinnerResult(null)}>
+            <div className="winner-reveal-card" onClick={e => e.stopPropagation()}>
+              <button className="winner-reveal-close" onClick={() => setWinnerResult(null)}>
+                <X size={20} />
+              </button>
+              <div className="winner-reveal-confetti">🎉 🎊 🎉 🎊 🎉</div>
+              <div className="winner-reveal-trophy">🏆</div>
+              <h2 className="winner-reveal-title">We Have a Winner!</h2>
+              <p className="winner-reveal-prize">{winnerResult.draw.campaign_title}</p>
+              <img
+                className="winner-reveal-product-img"
+                src={getImageUrl(winnerResult.draw.product_image)}
+                alt={winnerResult.draw.product_name}
+              />
+              <h3 className="winner-reveal-product">{winnerResult.draw.product_name}</h3>
+              <div className="winner-reveal-winner-box">
+                <div className="winner-reveal-avatar">
+                  {winnerResult.winner.customer_name?.[0]?.toUpperCase()}
+                </div>
+                <div className="winner-reveal-winner-info">
+                  <p className="winner-reveal-name">{winnerResult.winner.customer_name}</p>
+                  <div className="winner-reveal-ticket">
+                    <Ticket size={14} />
+                    {winnerResult.winner.ticket_number}
+                  </div>
+                </div>
+              </div>
+              <p className="winner-reveal-message">
+                🎉 Congratulations! The lucky ticket has been drawn. Please contact the winner to arrange prize delivery.
+              </p>
+              <button className="winner-reveal-done-btn" onClick={() => setWinnerResult(null)}>
+                <Star size={16} /> View Past Results
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

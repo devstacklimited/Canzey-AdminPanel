@@ -331,7 +331,7 @@
 
 .pool-table-header {
     display: grid;
-    grid-template-columns: 140px 1.2fr 1.5fr 1fr;
+    grid-template-columns: 160px 1.2fr 1.5fr 1fr;
     gap: 1rem;
     padding: 0.75rem 1.25rem;
     background: #f1f5f9;
@@ -342,6 +342,12 @@
     color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+/* 5-column layout when action column is present */
+.pool-table-header:has(div:nth-child(5)),
+.pool-participant-row:has(.participant-action) {
+    grid-template-columns: 160px 1.2fr 1.5fr 1fr 130px;
 }
 
 .ticket-pool-list {
@@ -355,7 +361,7 @@
     padding: 1rem 1.25rem;
     border-radius: 1rem;
     display: grid;
-    grid-template-columns: 140px 1.2fr 1.5fr 1fr;
+    grid-template-columns: 160px 1.2fr 1.5fr 1fr;
     gap: 1rem;
     align-items: center;
     border: 1px solid #f1f5f9;
@@ -508,4 +514,441 @@
         border-top: 1px solid #f1f5f9;
         padding-top: 0.75rem;
     }
+}
+
+/* ── Status live badge ── */
+.status-live {
+    color: #16a34a;
+}
+
+/* ── Ticket Progress Bar ── */
+.draw-ticket-progress {
+    margin-bottom: 1rem;
+}
+
+.draw-ticket-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.draw-ticket-sold {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #6366f1;
+}
+
+.draw-ticket-total {
+    color: #94a3b8;
+}
+
+.draw-progress-bar {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 0.25rem;
+}
+
+.draw-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #a855f7);
+    border-radius: 99px;
+    transition: width 0.5s ease;
+}
+
+.draw-progress-pct {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #a855f7;
+}
+
+/* ── Past winner card ── */
+.draw-card-past {
+    border: 2px solid #fbbf24;
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.past-winner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 60%);
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+}
+
+.past-trophy-icon {
+    color: #fbbf24;
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+}
+
+.past-winner-section {
+    margin-top: 0.5rem;
+}
+
+.past-congrats-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    letter-spacing: 0.03em;
+}
+
+.congrats-star {
+    color: #f59e0b;
+    flex-shrink: 0;
+}
+
+.past-winner-box {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    background: #f8faff;
+    border: 1.5px solid #e0e7ff;
+    border-radius: 1rem;
+    padding: 0.875rem 1rem;
+    margin-bottom: 0.875rem;
+}
+
+.past-winner-avatar {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+}
+
+.past-winner-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.past-winner-name {
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 1rem;
+    margin: 0 0 0.25rem 0;
+}
+
+.past-winner-ticket {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: #6366f1;
+    background: #eef2ff;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.4rem;
+    width: fit-content;
+}
+
+.past-draw-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.past-draw-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.past-draw-meta-row svg {
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+/* ── Pool count badge ── */
+.pool-count {
+    display: inline-block;
+    margin: 0.35rem 0 0 0;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 2rem;
+}
+
+/* ── Pick winner button disabled state ── */
+.pick-winner-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.spin-icon {
+    animation: spin 1s linear infinite;
+}
+
+/* ── Winner Reveal Overlay ── */
+.winner-reveal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.winner-reveal-card {
+    background: white;
+    border-radius: 2rem;
+    padding: 2.5rem 2rem 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(60px) scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.winner-reveal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.winner-reveal-confetti {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.2em;
+}
+
+.winner-reveal-trophy {
+    font-size: 4rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.6));
+}
+
+.winner-reveal-title {
+    font-size: 1.75rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 0.25rem;
+}
+
+.winner-reveal-prize {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 1rem;
+}
+
+.winner-reveal-product-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.winner-reveal-product {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 1.25rem;
+}
+
+.winner-reveal-winner-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.875rem;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 2px solid #86efac;
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.winner-reveal-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 900;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.winner-reveal-winner-info {
+    text-align: left;
+}
+
+.winner-reveal-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #064e3b;
+    margin: 0 0 0.3rem;
+}
+
+.winner-reveal-ticket {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: white;
+    color: #059669;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.4rem;
+    border: 1px solid #bbf7d0;
+}
+
+.winner-reveal-message {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.winner-reveal-done-btn {
+    width: 100%;
+    padding: 0.875rem;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    border: none;
+    border-radius: 0.875rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.35);
+}
+
+.winner-reveal-done-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(99, 102, 241, 0.45);
+}
+
+/* ── Loading state ── */
+.draws-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    gap: 1rem;
+    color: #64748b;
+}
+
+.loader {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f1f5f9;
+    border-top: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ── Per-row Pick as Winner button ── */
+.participant-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.row-mark-winner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.row-mark-winner-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.35);
+}
+
+.row-mark-winner-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }

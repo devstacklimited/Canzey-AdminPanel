@@ -1,6 +1,6 @@
-import { X, Trophy, User, Mail, Phone, Calendar, Hash } from 'lucide-react';
+import { X, Trophy, User, Mail, Phone, Calendar, Hash, CheckCircle, Loader } from 'lucide-react';
 
-const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, onPickWinner, activeTab, formatDate }) => {
+const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, pickingWinner, onPickWinner, activeTab, formatDate }) => {
   if (!isOpen) return null;
 
   return (
@@ -9,13 +9,16 @@ const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, onPick
         <div className="pool-modal-header">
           <div>
             <h2>Participants List</h2>
-            <p className="pool-subtitle">{draw?.product_name} - {draw?.campaign_title}</p>
+            <p className="pool-subtitle">{draw?.product_name} — {draw?.campaign_title}</p>
+            {participants.length > 0 && (
+              <p className="pool-count">{participants.length} ticket{participants.length !== 1 ? 's' : ''} in the pool</p>
+            )}
           </div>
           <button className="close-btn" onClick={onClose}>
             <X size={24} />
           </button>
         </div>
-        
+
         <div className="pool-modal-body">
           {loading ? (
             <div className="modal-loader-container">
@@ -31,9 +34,10 @@ const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, onPick
             <div className="ticket-pool-list">
               <div className="pool-table-header">
                 <div>Ticket INFO</div>
-                <div>Customer Details</div>
-                <div>Phone & Email</div>
+                <div>Customer</div>
+                <div>Phone &amp; Email</div>
                 <div>Purchase Date</div>
+                {activeTab === 'upcoming' && <div>Action</div>}
               </div>
               {participants.map((t) => (
                 <div key={t.id} className="pool-participant-row">
@@ -69,6 +73,24 @@ const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, onPick
                       <p>{formatDate(t.created_at)}</p>
                     </div>
                   </div>
+
+                  {/* Mark as Winner button — only visible on upcoming tab */}
+                  {activeTab === 'upcoming' && (
+                    <div className="participant-action">
+                      <button
+                        className="row-mark-winner-btn"
+                        onClick={() => onPickWinner(draw, t)}
+                        disabled={pickingWinner}
+                        title="Mark this ticket as winner"
+                      >
+                        {pickingWinner ? (
+                          <Loader size={14} className="spin-icon" />
+                        ) : (
+                          <><CheckCircle size={14} /> Pick as Winner</>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -76,14 +98,7 @@ const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, onPick
         </div>
 
         <div className="pool-modal-footer">
-          <button className="cancel-btn" onClick={onClose}>
-            Close
-          </button>
-          {activeTab === 'upcoming' && participants.length > 0 && (
-            <button className="pick-winner-btn" onClick={() => onPickWinner(draw)}>
-              Pick a Winner <Trophy size={18} />
-            </button>
-          )}
+          <button className="cancel-btn" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
