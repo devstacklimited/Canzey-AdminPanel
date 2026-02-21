@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Package, Search, Zap, Clock, Trophy, LayoutGrid, Ticket } from 'lucide-react';
+import { Plus, Edit, Package, Search, Zap, Clock, Trophy, LayoutGrid, Ticket, Lock, Eye } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import ProductModal from './components/ProductModal';
 import Toast from '../../components/ui/Toast';
@@ -13,6 +13,7 @@ const Products = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [drawTab, setDrawTab] = useState('all');
+  const [isLocked, setIsLocked] = useState(false); // true when viewing a past-draw product
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [selectedImages, setSelectedImages] = useState([]);
@@ -417,6 +418,13 @@ const Products = () => {
     setShowModal(true);
   };
 
+  // Open modal in VIEW-ONLY mode for past/locked draws
+  const handleView = (product) => {
+    handleEdit(product);
+    setIsLocked(true);
+  };
+
+
   // ── Draw tab classification ──────────────────────────────────────────────
   const now = new Date();
 
@@ -664,9 +672,20 @@ const Products = () => {
                       )}
 
                       <td className="actions">
-                        <button className="btn-icon" onClick={() => handleEdit(product)}>
-                          <Edit size={18} />
-                        </button>
+                        {isPastDraw(product) || isReadyForDraw(product) ? (
+                          // Locked: draw completed or draw date passed
+                          <button
+                            className="btn-icon btn-icon-locked"
+                            onClick={() => handleView(product)}
+                            title={isPastDraw(product) ? 'Draw completed — view only' : 'Draw date passed — view only'}
+                          >
+                            <Lock size={16} />
+                          </button>
+                        ) : (
+                          <button className="btn-icon" onClick={() => { setIsLocked(false); handleEdit(product); }}>
+                            <Edit size={18} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -679,7 +698,7 @@ const Products = () => {
         {/* Product Modal */}
         <ProductModal
           show={showModal}
-          onClose={() => setShowModal(false)}
+          onClose={() => { setShowModal(false); setIsLocked(false); }}
           onSubmit={handleSubmit}
           formData={formData}
           onInputChange={handleInputChange}
@@ -691,6 +710,7 @@ const Products = () => {
           onRemoveNewImage={removeNewImage}
           loading={loading}
           isEditing={!!editingProduct}
+          isLocked={isLocked}
           onDelete={() => handleDelete(editingProduct?.id)}
           onAddColor={handleAddColor}
           onRemoveColor={handleRemoveColor}

@@ -442,7 +442,7 @@
     color: white;
     font-size: 10px;
     font-weight: bold;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .color-swatch {
@@ -451,7 +451,7 @@
     border-radius: 50%;
     flex-shrink: 0;
     position: relative;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .color-name {
@@ -744,9 +744,49 @@
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .ticket-config-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
+}
+
+/* ── Locked / Read-Only View Styles ── */
+.modal-body input:disabled,
+.modal-body select:disabled,
+.modal-body textarea:disabled,
+.modal-body button:disabled {
+    cursor: not-allowed;
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #64748b !important;
+    opacity: 0.8;
+}
+
+.disabled-view {
+    cursor: not-allowed !important;
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.option-btn:disabled:hover {
+    border-color: #e2e8f0 !important;
+    background: #f8fafc !important;
+}
+
+.option-btn.selected:disabled {
+    background: #94a3b8 !important;
+    border-color: #94a3b8 !important;
+    box-shadow: none !important;
+}
+
+.file-input:disabled {
+    cursor: not-allowed;
+}
+
+.file-input-wrapper:has(.file-input:disabled):hover {
+    border-color: var(--border-color);
+    background: var(--bg-secondary);
 }

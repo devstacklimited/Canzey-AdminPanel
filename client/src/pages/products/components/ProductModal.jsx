@@ -51,6 +51,7 @@ const ProductModal = ({
   onRemoveNewImage,
   loading,
   isEditing,
+  isLocked = false,   // ← read-only mode for past/completed draws
   onDelete,
   onAddColor,
   onRemoveColor,
@@ -151,11 +152,34 @@ const ProductModal = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{isEditing ? 'Edit Product' : 'Create Product'}</h2>
+          <h2>
+            {isLocked ? (
+              <>🔒 View Product <span style={{fontSize:'0.75rem',fontWeight:500,color:'#92400e',background:'#fef3c7',padding:'2px 8px',borderRadius:'0.4rem',verticalAlign:'middle'}}>Draw Completed — Read Only</span></>
+            ) : (
+              isEditing ? 'Edit Product' : 'Create Product'
+            )}
+          </h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={onSubmit} className="modal-body">
+        {/* 🔒 Locked banner */}
+        {isLocked && (
+          <div style={{
+            background: '#fef3c7',
+            borderBottom: '1px solid #fde68a',
+            padding: '0.6rem 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.85rem',
+            color: '#92400e',
+            fontWeight: 600
+          }}>
+            🔒 This draw has been completed or its date has passed. Editing and deletion are disabled.
+          </div>
+        )}
+
+        <form onSubmit={isLocked ? (e) => e.preventDefault() : onSubmit} className="modal-body">
           <div className="form-group">
             <label>Product Name *</label>
             <input
@@ -164,6 +188,7 @@ const ProductModal = ({
               value={formData.name}
               onChange={onInputChange}
               required
+              disabled={isLocked}
             />
           </div>
 
@@ -175,6 +200,7 @@ const ProductModal = ({
                 name="sku"
                 value={formData.sku}
                 onChange={onInputChange}
+                disabled={isLocked}
               />
             </div>
 
@@ -185,6 +211,7 @@ const ProductModal = ({
                 name="slug"
                 value={formData.slug}
                 onChange={onInputChange}
+                disabled={isLocked}
               />
             </div>
           </div>
@@ -196,6 +223,7 @@ const ProductModal = ({
               value={formData.description}
               onChange={onInputChange}
               rows="3"
+              disabled={isLocked}
             />
           </div>
 
@@ -209,6 +237,7 @@ const ProductModal = ({
                 onChange={onInputChange}
                 step="0.01"
                 required
+                disabled={isLocked}
               />
             </div>
 
@@ -220,6 +249,7 @@ const ProductModal = ({
                 value={formData.sale_price}
                 onChange={onInputChange}
                 step="0.01"
+                disabled={isLocked}
               />
             </div>
           </div>
@@ -232,6 +262,7 @@ const ProductModal = ({
                 name="stock_quantity"
                 value={formData.stock_quantity}
                 onChange={onInputChange}
+                disabled={isLocked}
               />
             </div>
 
@@ -241,6 +272,7 @@ const ProductModal = ({
                 name="status"
                 value={formData.status}
                 onChange={onInputChange}
+                disabled={isLocked}
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -255,6 +287,7 @@ const ProductModal = ({
               name="category"
               value={formData.category || ''}
               onChange={onInputChange}
+              disabled={isLocked}
             >
               <option value="">Select Category</option>
               <option value="Electronics">Electronics</option>
@@ -275,6 +308,7 @@ const ProductModal = ({
               name="sub_category"
               value={formData.sub_category || ''}
               onChange={onInputChange}
+              disabled={isLocked}
             >
               <option value="">Select Sub-Category</option>
               <optgroup label="Clothing">
@@ -326,6 +360,7 @@ const ProductModal = ({
                 name="for_gender"
                 value={formData.for_gender || ''}
                 onChange={onInputChange}
+                disabled={isLocked}
               >
                 <option value="">Select</option>
                 <option value="Men">Men</option>
@@ -340,12 +375,13 @@ const ProductModal = ({
               <button
                 type="button"
                 className={`option-btn customization-btn ${formData.is_customized ? 'selected' : ''}`}
-                onClick={() => onInputChange({
+                onClick={() => !isLocked && onInputChange({
                   target: {
                     name: 'is_customized',
                     value: !formData.is_customized
                   }
                 })}
+                disabled={isLocked}
               >
                 {formData.is_customized ? '✓ Customizable' : 'Not Customizable'}
               </button>
@@ -358,8 +394,8 @@ const ProductModal = ({
             <div className="prize-selector">
               {/* Selected Prize Display */}
               <div 
-                className="prize-selector-trigger"
-                onClick={() => setShowPrizeDropdown(!showPrizeDropdown)}
+                className={`prize-selector-trigger ${isLocked ? 'disabled-view' : ''}`}
+                onClick={() => !isLocked && setShowPrizeDropdown(!showPrizeDropdown)}
               >
                 {getSelectedPrize() ? (
                   <div className="prize-selected">
@@ -449,6 +485,7 @@ const ProductModal = ({
                     placeholder="e.g., 1000"
                     min="1"
                     className="ticket-input"
+                    disabled={isLocked}
                   />
                   <small>Total tickets needed to win this prize</small>
                 </div>
@@ -463,6 +500,7 @@ const ProductModal = ({
                     placeholder="e.g., 100"
                     min="0"
                     className="ticket-input"
+                    disabled={isLocked}
                   />
                   <small>Show countdown after this many tickets sold</small>
                 </div>
@@ -475,6 +513,7 @@ const ProductModal = ({
                     value={formData.draw_date ? formData.draw_date.slice(0, 16) : ''}
                     onChange={onInputChange}
                     className="ticket-input"
+                    disabled={isLocked}
                   />
                   <small>Empty = "Announced Shortly"</small>
                 </div>
@@ -487,6 +526,7 @@ const ProductModal = ({
                     value={formData.prize_end_date ? formData.prize_end_date.slice(0, 16) : ''}
                     onChange={onInputChange}
                     className="ticket-input"
+                    disabled={isLocked}
                   />
                   <small>If set, this prize moves to "Ready for Draw" when this date passes — even if not sold out</small>
                 </div>
@@ -517,7 +557,8 @@ const ProductModal = ({
                   key={tag}
                   type="button"
                   className={`option-btn tag-btn ${isTagAdded(tag) ? 'selected' : ''}`}
-                  onClick={() => toggleTag(tag)}
+                  onClick={() => !isLocked && toggleTag(tag)}
+                  disabled={isLocked}
                 >
                   {tag}
                 </button>
@@ -534,8 +575,9 @@ const ProductModal = ({
                   key={color.name}
                   type="button"
                   className={`option-btn color-btn ${isColorAdded(color.name) ? 'selected' : ''}`}
-                  onClick={() => togglePredefinedColor(color)}
+                  onClick={() => !isLocked && togglePredefinedColor(color)}
                   title={color.name}
+                  disabled={isLocked}
                 >
                   <span 
                     className="color-swatch" 
@@ -556,7 +598,8 @@ const ProductModal = ({
                   key={size}
                   type="button"
                   className={`option-btn size-btn ${isSizeAdded(size) ? 'selected' : ''}`}
-                  onClick={() => togglePredefinedSize(size)}
+                  onClick={() => !isLocked && togglePredefinedSize(size)}
+                  disabled={isLocked}
                 >
                   {size}
                 </button>
@@ -575,13 +618,15 @@ const ProductModal = ({
                   {existingImages.map((imageUrl, index) => (
                     <div key={index} className="image-preview-item">
                       <img src={getImageUrl(imageUrl)} alt={`Existing ${index + 1}`} />
-                      <button
-                        type="button"
-                        className="remove-image-btn"
-                        onClick={() => onRemoveExistingImage(index)}
-                      >
-                        <X size={16} />
-                      </button>
+                      {!isLocked && (
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => onRemoveExistingImage(index)}
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -596,13 +641,15 @@ const ProductModal = ({
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="image-preview-item">
                       <img src={preview} alt={`Preview ${index + 1}`} />
-                      <button
-                        type="button"
-                        className="remove-image-btn"
-                        onClick={() => onRemoveNewImage(index)}
-                      >
-                        <X size={16} />
-                      </button>
+                      {!isLocked && (
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => onRemoveNewImage(index)}
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -618,6 +665,7 @@ const ProductModal = ({
                 multiple
                 onChange={onImageChange}
                 className="file-input"
+                disabled={isLocked}
               />
               <label htmlFor="image-upload" className="file-input-label">
                 <Package size={20} />
@@ -630,7 +678,8 @@ const ProductModal = ({
           </div>
 
           <div className="modal-footer">
-            {isEditing && (
+            {/* Delete button — hidden when locked */}
+            {isEditing && !isLocked && (
               <button 
                 type="button" 
                 className="btn btn-danger mr-auto" 
@@ -642,11 +691,14 @@ const ProductModal = ({
               </button>
             )}
             <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancel
+              {isLocked ? 'Close' : 'Cancel'}
             </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
-            </button>
+            {/* Save button — hidden when locked */}
+            {!isLocked && (
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
+              </button>
+            )}
           </div>
         </form>
       </div>
