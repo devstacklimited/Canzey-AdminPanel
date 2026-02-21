@@ -12,6 +12,10 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  // ⚠️ Return DATETIME columns as plain strings, not JS Date objects.
+  // Without this, mysql2 converts to UTC Date objects which shifts times
+  // when serialized to JSON (e.g. 05:00 stored → 03:00 returned in UTC-2).
+  dateStrings: true,
 });
 
 export default pool;

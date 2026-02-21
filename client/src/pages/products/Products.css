@@ -34,6 +34,77 @@
   margin-bottom: 2rem;
 }
 
+/* ── Draw status tabs ── */
+.products-draw-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.products-draw-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.products-draw-tab:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #f5f3ff;
+}
+
+.products-draw-tab.active {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+/* Count pill */
+.tab-count {
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 99px;
+  min-width: 1.4rem;
+  text-align: center;
+}
+
+.products-draw-tab.active .tab-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+/* Per-tab accent when not active */
+.products-draw-tab:not(.active) .tab-count-active {
+  background: #ede9fe;
+  color: #6366f1;
+}
+
+.products-draw-tab:not(.active) .tab-count-upcoming {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.products-draw-tab:not(.active) .tab-count-past {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+
+
 .search-box {
   flex: 1;
   position: relative;
@@ -601,4 +672,104 @@
   .products-table-container {
     overflow-x: auto;
   }
+}
+
+/* ── Past draw row highlight ── */
+tr.row-past-draw td:first-child {
+  border-left: 3px solid #fbbf24;
+}
+
+/* ── Winner cell ── */
+.winner-cell {
+  vertical-align: middle;
+}
+
+.winner-cell-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.winner-cell-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.winner-cell-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.winner-cell-name {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #1e293b;
+}
+
+.winner-cell-ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: #6366f1;
+  background: #eef2ff;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.35rem;
+  width: fit-content;
+}
+
+.winner-cell-date {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Active draw: ticket progress bar in table cell ── */
+.tickets-progress-cell {
+  min-width: 130px;
+}
+
+.tickets-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tickets-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.tickets-pct {
+  color: #6366f1;
+  font-weight: 700;
+}
+
+.tickets-progress-bar {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.tickets-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  border-radius: 99px;
+  transition: width 0.4s ease;
 }

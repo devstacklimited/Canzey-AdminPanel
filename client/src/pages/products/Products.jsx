@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Package, Search } from 'lucide-react';
+import { Plus, Edit, Package, Search, Zap, Clock, Trophy, LayoutGrid, Ticket } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 import ProductModal from './components/ProductModal';
 import Toast from '../../components/ui/Toast';
@@ -12,6 +12,7 @@ const Products = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [drawTab, setDrawTab] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [selectedImages, setSelectedImages] = useState([]);
@@ -416,10 +417,48 @@ const Products = () => {
     setShowModal(true);
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ── Draw tab classification ──────────────────────────────────────────────
+  const now = new Date();
+
+  const isPastDraw = (p) =>
+    p.campaign_id && p.has_winner === 1;
+
+
+  const isReadyForDraw = (p) =>
+    p.campaign_id &&
+    !isPastDraw(p) &&
+    (
+      (p.tickets_remaining !== null && p.tickets_remaining !== undefined && p.tickets_remaining <= 0) ||
+      (p.prize_end_date && new Date(p.prize_end_date) <= now) ||
+      (p.draw_date      && new Date(p.draw_date)      <= now)   // ← draw date has passed
+    );
+
+  const isActiveDraw = (p) =>
+    p.campaign_id &&
+    !isPastDraw(p) &&
+    !isReadyForDraw(p) &&
+    p.tickets_remaining > 0 &&
+    (!p.draw_date || new Date(p.draw_date) > now);   // ← future draw date only
+
+
+  const tabCounts = {
+    all:      products.length,
+    active:   products.filter(isActiveDraw).length,
+    upcoming: products.filter(isReadyForDraw).length,
+    past:     products.filter(isPastDraw).length,
+  };
+
+  const filteredProducts = products
+    .filter(product => {
+      if (drawTab === 'active')   return isActiveDraw(product);
+      if (drawTab === 'upcoming') return isReadyForDraw(product);
+      if (drawTab === 'past')     return isPastDraw(product);
+      return true; // 'all'
+    })
+    .filter(product =>
+      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   return (
     <Layout>
@@ -446,6 +485,38 @@ const Products = () => {
           </button>
         </div>
 
+        {/* ── Draw Status Tabs ── */}
+        <div className="products-draw-tabs">
+          <button
+            className={`products-draw-tab ${drawTab === 'all' ? 'active' : ''}`}
+            onClick={() => setDrawTab('all')}
+          >
+            <LayoutGrid size={15} /> All Products
+            <span className="tab-count">{tabCounts.all}</span>
+          </button>
+          <button
+            className={`products-draw-tab ${drawTab === 'active' ? 'active' : ''}`}
+            onClick={() => setDrawTab('active')}
+          >
+            <Zap size={15} /> Active Draw
+            <span className="tab-count tab-count-active">{tabCounts.active}</span>
+          </button>
+          <button
+            className={`products-draw-tab ${drawTab === 'upcoming' ? 'active' : ''}`}
+            onClick={() => setDrawTab('upcoming')}
+          >
+            <Clock size={15} /> Ready for Draw
+            <span className="tab-count tab-count-upcoming">{tabCounts.upcoming}</span>
+          </button>
+          <button
+            className={`products-draw-tab ${drawTab === 'past' ? 'active' : ''}`}
+            onClick={() => setDrawTab('past')}
+          >
+            <Trophy size={15} /> Past Draws
+            <span className="tab-count tab-count-past">{tabCounts.past}</span>
+          </button>
+        </div>
+
         <div className="products-filters">
           <div className="search-box">
             <Search size={20} />
@@ -469,78 +540,137 @@ const Products = () => {
                   <th>Name</th>
                   <th>SKU</th>
                   <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
+                  {/* Past Draws: replace Stock+Status with Winner column */}
+                  {drawTab === 'past' ? (
+                    <th colSpan={2}>🏆 Winner</th>
+                  ) : (
+                    <>
+                      <th>{drawTab === 'active' ? 'Tickets' : 'Stock'}</th>
+                      <th>Status</th>
+                    </>
+                  )}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map(product => (
-                  <tr key={product.id}>
-                    <td>
-                      {product.main_image_url ? (
-                        <img src={getImageUrl(product.main_image_url)} alt={product.name} className="product-image" />
-                      ) : (
-                        <div className="product-image-placeholder">
-                          <Package size={20} />
-                        </div>
-                      )}
-                    </td>
-                    <td className="product-name">
-                      {product.name}
-                      {product.campaign_id && (
-                        <div className="product-status-alerts">
-                          {/* SOLD OUT tag */}
-                          {product.tickets_remaining !== null && product.tickets_remaining !== undefined && product.tickets_remaining <= 0 && (
-                            <span className="tag-badge tag-sold-out">SOLD OUT</span>
-                          )}
-                          {/* End Date tag — show Ended or Ends */}
-                          {product.prize_end_date ? (
-                            <span className={`tag-badge ${new Date(product.prize_end_date) <= new Date() ? 'tag-ended' : 'tag-ending'}`}>
-                              🗓 {new Date(product.prize_end_date) <= new Date() ? 'Ended' : 'Ends'} {new Date(product.prize_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
+                {filteredProducts.map(product => {
+                  const sold = (product.tickets_required ?? 0) - (product.tickets_remaining ?? 0);
+                  const pct  = product.tickets_required > 0
+                    ? Math.min(100, Math.round((sold / product.tickets_required) * 100))
+                    : 0;
+                  const wonDate = product.winner_won_at
+                    ? new Date(product.winner_won_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : null;
+
+                  return (
+                    <tr key={product.id} className={product.has_winner === 1 ? 'row-past-draw' : ''}>
+                      <td>
+                        {product.main_image_url ? (
+                          <img src={getImageUrl(product.main_image_url)} alt={product.name} className="product-image" />
+                        ) : (
+                          <div className="product-image-placeholder">
+                            <Package size={20} />
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Name + prize badges */}
+                      <td className="product-name">
+                        {product.name}
+                        {product.campaign_id && drawTab !== 'past' && (
+                          <div className="product-status-alerts">
+                            {product.tickets_remaining !== null && product.tickets_remaining !== undefined && product.tickets_remaining <= 0 && (
+                              <span className="tag-badge tag-sold-out">SOLD OUT</span>
+                            )}
+                            {product.prize_end_date ? (
+                              <span className={`tag-badge ${new Date(product.prize_end_date) <= new Date() ? 'tag-ended' : 'tag-ending'}`}>
+                                🗓 {new Date(product.prize_end_date) <= new Date() ? 'Ended' : 'Ends'} {new Date(product.prize_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </span>
+                            ) : (
+                              <span className="tag-badge tag-no-date">No End Date</span>
+                            )}
+                            {product.draw_date ? (
+                              <span className="tag-badge tag-draw-set">
+                                🎯 Draw: {new Date(product.draw_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </span>
+                            ) : (
+                              <span className="tag-badge tag-no-draw">No Draw Date</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      <td>{product.sku || '-'}</td>
+
+                      <td>
+                        {product.sale_price ? (
+                          <div className="price-display">
+                            <span className="sale-price">${product.sale_price}</span>
+                            <span className="original-price">${product.price}</span>
+                          </div>
+                        ) : (
+                          <span>${product.price}</span>
+                        )}
+                      </td>
+
+                      {/* ── Past Draws: winner cell ── */}
+                      {drawTab === 'past' ? (
+                        <td colSpan={2} className="winner-cell">
+                          {product.winner_name ? (
+                            <div className="winner-cell-inner">
+                              <div className="winner-cell-avatar">
+                                {product.winner_name[0]?.toUpperCase()}
+                              </div>
+                              <div className="winner-cell-info">
+                                <span className="winner-cell-name">{product.winner_name}</span>
+                                <span className="winner-cell-ticket">
+                                  <Ticket size={12} /> {product.winner_ticket}
+                                </span>
+                                {wonDate && <span className="winner-cell-date">Won {wonDate}</span>}
+                              </div>
+                            </div>
                           ) : (
-                            <span className="tag-badge tag-no-date">No End Date</span>
+                            <span className="tag-badge tag-no-date">—</span>
                           )}
-                          {/* Draw Date tag */}
-                          {product.draw_date ? (
-                            <span className="tag-badge tag-draw-set">
-                              🎯 Draw: {new Date(product.draw_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </span>
-                          ) : (
-                            <span className="tag-badge tag-no-draw">No Draw Date</span>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                    <td>{product.sku || '-'}</td>
-                    <td>
-                      {product.sale_price ? (
-                        <div className="price-display">
-                          <span className="sale-price">${product.sale_price}</span>
-                          <span className="original-price">${product.price}</span>
-                        </div>
+                        </td>
                       ) : (
-                        <span>${product.price}</span>
+                        <>
+                          {/* ── Active: ticket progress bar ── */}
+                          {drawTab === 'active' ? (
+                            <td className="tickets-progress-cell">
+                              <div className="tickets-progress-wrap">
+                                <div className="tickets-progress-labels">
+                                  <span>{sold}/{product.tickets_required}</span>
+                                  <span className="tickets-pct">{pct}%</span>
+                                </div>
+                                <div className="tickets-progress-bar">
+                                  <div className="tickets-progress-fill" style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            </td>
+                          ) : (
+                            <td>
+                              <span className={`stock-badge ${product.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                                {product.stock_quantity}
+                              </span>
+                            </td>
+                          )}
+                          <td>
+                            <span className={`status-badge status-${product.status}`}>
+                              {product.status}
+                            </span>
+                          </td>
+                        </>
                       )}
-                    </td>
-                    <td>
-                      <span className={`stock-badge ${product.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                        {product.stock_quantity}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge status-${product.status}`}>
-                        {product.status}
-                      </span>
-                    </td>
-                    <td className="actions">
-                      <button className="btn-icon" onClick={() => handleEdit(product)}>
-                        <Edit size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+
+                      <td className="actions">
+                        <button className="btn-icon" onClick={() => handleEdit(product)}>
+                          <Edit size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

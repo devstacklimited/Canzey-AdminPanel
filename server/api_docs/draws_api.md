@@ -1,240 +1,295 @@
 # Draws API – Flutter Guide
 
-Public endpoint to show the **Prize Draws** screen in the Flutter app.
-
-## Base URL
-
-```
-https://admin.canzey.com/api/draws
-```
-
-**Authentication:** Not required (public)
+Public endpoint to show the **Prize Draws** screen in the Flutter app.  
+No authentication required.
 
 ---
 
-## GET /api/draws
+## Endpoint
 
-Returns all draws grouped into 3 categories:
-
-| Category | Description |
-|----------|-------------|
-| `active` | Live draws — tickets still being sold |
-| `upcoming` | Ready to draw — sold out or expired, winner not yet picked |
-| `past` | Completed draws — winner already announced |
-
-### Request
-
-```http
+```
 GET https://admin.canzey.com/api/draws
 ```
 
-No headers or body required.
-
 ---
 
-### Response Example
+## Response Structure
 
 ```json
 {
   "success": true,
-  "active": [
-    {
-      "id": 3,
-      "product_id": 5,
-      "campaign_id": 2,
-      "product_name": "iPhone 16 Pro Max",
-      "product_image": "/uploads/products/product-123.jpg",
-      "product_description": "Latest iPhone with titanium frame",
-      "campaign_title": "Tech Giveaway March",
-      "campaign_image": "/uploads/campaigns/campaign-456.jpg",
-      "tickets_required": 100,
-      "tickets_remaining": 37,
-      "countdown_start_tickets": 20,
-      "draw_date": "2026-03-01T13:00:00.000Z",
-      "prize_end_date": null,
-      "campaign_end_at": null,
-      "use_end_date": 0,
-      "ticket_price": "10.00",
-      "credits_per_ticket": 50
-    }
-  ],
-  "upcoming": [
-    {
-      "id": 2,
-      "product_id": 4,
-      "campaign_id": 1,
-      "product_name": "PS5 Console",
-      "product_image": "/uploads/products/product-789.jpg",
-      "product_description": "Sony PlayStation 5",
-      "campaign_title": "Gaming Giveaway",
-      "campaign_image": "/uploads/campaigns/campaign-001.jpg",
-      "tickets_required": 50,
-      "tickets_remaining": 0,
-      "draw_date": "2026-02-25T18:00:00.000Z",
-      "prize_end_date": "2026-02-20T00:00:00.000Z",
-      "campaign_end_at": null,
-      "use_end_date": 0
-    }
-  ],
-  "past": [
-    {
-      "id": 1,
-      "product_id": 2,
-      "campaign_id": 1,
-      "product_name": "MacBook Pro M3",
-      "product_image": "/uploads/products/product-321.jpg",
-      "product_description": "Apple MacBook Pro with M3 chip",
-      "campaign_title": "January Giveaway",
-      "campaign_image": "/uploads/campaigns/campaign-100.jpg",
-      "tickets_required": 200,
-      "tickets_remaining": 0,
-      "draw_date": "2026-01-31T20:00:00.000Z",
-      "prize_end_date": null,
-      "winner_ticket": "TKT-AB12C-XY99Z",
-      "winner_name": "Ahmed K.",
-      "draw_completed_at": "2026-01-31T20:05:00.000Z"
-    }
-  ]
+  "active":   [ ...draw objects ],
+  "upcoming": [ ...draw objects ],
+  "past":     [ ...draw objects ]
 }
 ```
 
+| Array | Meaning | Flutter Tab |
+|-------|---------|------------|
+| `active` | Tickets still being sold — draw hasn't happened yet | **"Active"** or **"Live"** |
+| `upcoming` | Sold out / expired — waiting for winner to be announced | **"Ready for Draw"** |
+| `past` | Winner already chosen | **"Past Results"** |
+
 ---
 
-## Field Reference
+## `active` — Live Draws
 
-### Common Fields (all categories)
+Prizes where tickets are **still being sold** and no winner has been picked.
+
+### Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | integer | Prize record ID (`product_prizes.id`) |
-| `product_id` | integer | ID of the product being given away |
-| `campaign_id` | integer | ID of the campaign/prize |
+| `id` | int | Prize record ID |
+| `product_id` | int | Product ID |
+| `campaign_id` | int | Campaign/Prize ID |
 | `product_name` | string | Name of the product |
-| `product_image` | string | URL of product image |
-| `product_description` | string | Product description |
-| `campaign_title` | string | Title of the campaign/prize |
-| `campaign_image` | string | Campaign cover image URL |
-| `tickets_required` | integer | Total tickets needed to trigger draw |
-| `tickets_remaining` | integer | Tickets left (`0` = sold out) |
-| `draw_date` | datetime\|null | Scheduled draw date. `null` → show "Draw date announced shortly" |
-| `prize_end_date` | datetime\|null | Hard deadline for the prize |
-
-### Active-only Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `countdown_start_tickets` | integer | Show countdown when this many tickets remain |
-| `ticket_price` | string | Price per ticket in currency |
-| `credits_per_ticket` | integer | Credits earned per ticket purchase |
+| `product_image` | string | Relative image URL — prepend base URL |
+| `product_description` | string\|null | Product description |
+| `campaign_title` | string | Campaign/prize title |
+| `campaign_image` | string\|null | Campaign cover image URL |
+| `tickets_required` | int | Total tickets to trigger a draw |
+| `tickets_remaining` | int | Tickets still available to buy |
+| `countdown_start_tickets` | int\|null | Show countdown when remaining ≤ this value |
+| `draw_date` | datetime\|null | Scheduled draw date. `null` → "Draw date announced shortly" |
+| `prize_end_date` | datetime\|null | Hard deadline. `null` = no deadline |
 | `campaign_end_at` | datetime\|null | Campaign end date |
-| `use_end_date` | boolean | Whether campaign uses end date |
+| `ticket_price` | string | Price per ticket (e.g. `"10.00"`) |
+| `credits_per_ticket` | int | Credits earned per ticket purchase |
 
-### Past-only Fields
+### Example
+
+```json
+{
+  "id": 3,
+  "product_id": 5,
+  "campaign_id": 2,
+  "product_name": "iPhone 16 Pro Max",
+  "product_image": "/uploads/products/product-123.jpg",
+  "product_description": "Latest iPhone with titanium frame",
+  "campaign_title": "Tech Giveaway March",
+  "campaign_image": "/uploads/campaigns/campaign-456.jpg",
+  "tickets_required": 100,
+  "tickets_remaining": 37,
+  "countdown_start_tickets": 20,
+  "draw_date": "2026-03-01T13:00:00.000Z",
+  "prize_end_date": null,
+  "campaign_end_at": null,
+  "ticket_price": "10.00",
+  "credits_per_ticket": 50
+}
+```
+
+### Flutter UI Tips
+
+```dart
+// Progress bar
+final int sold = draw['tickets_required'] - draw['tickets_remaining'];
+final double progress = sold / draw['tickets_required']; // 0.0 → 1.0
+
+// Draw date label
+String drawLabel = draw['draw_date'] != null
+    ? 'Draw: ${formatDate(draw['draw_date'])}'
+    : 'Draw date announced shortly';
+
+// Countdown
+final bool showCountdown =
+    draw['tickets_remaining'] <= (draw['countdown_start_tickets'] ?? 0);
+
+// Image URL
+final String imageUrl = 'https://admin.canzey.com${draw['product_image']}';
+```
+
+---
+
+## `upcoming` — Ready for Draw
+
+Prizes that are **sold out or expired** and are waiting for the winner to be announced. No winner yet.
+
+### Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `id` | int | Prize record ID |
+| `product_id` | int | Product ID |
+| `campaign_id` | int | Campaign/Prize ID |
+| `product_name` | string | Name of the product |
+| `product_image` | string | Relative image URL |
+| `product_description` | string\|null | Product description |
+| `campaign_title` | string | Campaign/prize title |
+| `campaign_image` | string\|null | Campaign cover image |
+| `tickets_required` | int | Total tickets |
+| `tickets_remaining` | int | `0` if sold out |
+| `draw_date` | datetime\|null | Scheduled draw date. `null` → "Draw date announced shortly" |
+| `prize_end_date` | datetime\|null | Prize deadline (if applicable) |
+| `campaign_end_at` | datetime\|null | Campaign expiry date |
+| `use_end_date` | int | `1` = campaign uses end date, `0` = no end date |
+
+### Example
+
+```json
+{
+  "id": 2,
+  "product_id": 4,
+  "campaign_id": 1,
+  "product_name": "PS5 Console",
+  "product_image": "/uploads/products/product-789.jpg",
+  "product_description": "Sony PlayStation 5 Digital Edition",
+  "campaign_title": "Gaming Giveaway",
+  "campaign_image": "/uploads/campaigns/campaign-001.jpg",
+  "tickets_required": 50,
+  "tickets_remaining": 0,
+  "draw_date": "2026-02-25T18:00:00.000Z",
+  "prize_end_date": "2026-02-20T00:00:00.000Z",
+  "campaign_end_at": null,
+  "use_end_date": 0
+}
+```
+
+### Flutter UI Tips
+
+```dart
+// Why is it in upcoming?
+final bool isSoldOut    = draw['tickets_remaining'] == 0;
+final bool isPrizeEnded = draw['prize_end_date'] != null &&
+    DateTime.parse(draw['prize_end_date']).isBefore(DateTime.now());
+final bool isCampEnded  = draw['use_end_date'] == 1 &&
+    draw['campaign_end_at'] != null &&
+    DateTime.parse(draw['campaign_end_at']).isBefore(DateTime.now());
+
+// Status label
+String status = isSoldOut ? 'SOLD OUT' : 'EXPIRED';
+
+// Draw date label
+String drawLabel = draw['draw_date'] != null
+    ? 'Draw: ${formatDate(draw['draw_date'])}'
+    : 'Draw date announced shortly';
+```
+
+---
+
+## `past` — Past Results
+
+Prizes where the **winner has been chosen** and announced.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | int | Prize record ID |
+| `product_id` | int | Product ID |
+| `campaign_id` | int | Campaign/Prize ID |
+| `product_name` | string | Name of the product |
+| `product_image` | string | Relative image URL |
+| `product_description` | string\|null | Product description |
+| `campaign_title` | string | Campaign/prize title |
+| `campaign_image` | string\|null | Campaign cover image |
+| `tickets_required` | int | Total tickets that were sold |
+| `tickets_remaining` | int | Tickets remaining at draw time |
+| `draw_date` | datetime\|null | Scheduled draw date |
+| `prize_end_date` | datetime\|null | Prize deadline |
 | `winner_ticket` | string | Winning ticket number (e.g. `TKT-AB12C-XY99Z`) |
-| `winner_name` | string | Winner's name (privacy: last name shortened to first letter e.g. `Ahmed K.`) |
-| `draw_completed_at` | datetime | When the draw was completed |
+| `winner_name` | string | Winner's name — **privacy masked** (e.g. `"Ahmed K."`) |
+| `draw_completed_at` | datetime | When the winner was officially announced |
+
+### Example
+
+```json
+{
+  "id": 1,
+  "product_id": 2,
+  "campaign_id": 1,
+  "product_name": "MacBook Pro M3",
+  "product_image": "/uploads/products/product-321.jpg",
+  "product_description": "Apple MacBook Pro with M3 chip",
+  "campaign_title": "January Giveaway",
+  "campaign_image": "/uploads/campaigns/campaign-100.jpg",
+  "tickets_required": 200,
+  "tickets_remaining": 0,
+  "draw_date": "2026-01-31T20:00:00.000Z",
+  "prize_end_date": null,
+  "winner_ticket": "TKT-AB12C-XY99Z",
+  "winner_name": "Ahmed K.",
+  "draw_completed_at": "2026-01-31T20:05:33.000Z"
+}
+```
+
+### Flutter UI Tips
+
+```dart
+// Congratulations card
+Text('🏆 ${draw['winner_name']} won ${draw['product_name']}!')
+
+// Winning ticket
+Text('Ticket: ${draw['winner_ticket']}')
+
+// Draw date
+Text('Draw completed: ${formatDate(draw['draw_completed_at'])}')
+```
 
 ---
 
-## Accessing Images
-
-All image URLs are relative. Prepend the base URL:
-
-```
-https://admin.canzey.com/uploads/products/product-123.jpg
-https://admin.canzey.com/uploads/campaigns/campaign-456.jpg
-```
-
----
-
-## Flutter Usage Examples
-
-### Fetch All Draws
+## Full Flutter Service
 
 ```dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-Future<Map<String, dynamic>> fetchDraws() async {
-  final response = await http.get(
-    Uri.parse('https://admin.canzey.com/api/draws'),
-  );
+const String baseUrl = 'https://admin.canzey.com';
 
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
-  } else {
-    throw Exception('Failed to load draws');
+class DrawsService {
+  Future<Map<String, List<dynamic>>> fetchDraws() async {
+    final response = await http.get(Uri.parse('$baseUrl/api/draws'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load draws');
+    }
+
+    final data = jsonDecode(response.body);
+
+    return {
+      'active':   List<dynamic>.from(data['active']  ?? []),
+      'upcoming': List<dynamic>.from(data['upcoming'] ?? []),
+      'past':     List<dynamic>.from(data['past']    ?? []),
+    };
   }
-}
 
-// Usage
-final data = await fetchDraws();
-final List active   = data['active'];    // Live draws
-final List upcoming = data['upcoming'];  // Ready to pick
-final List past     = data['past'];      // Winners announced
-```
+  String imageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    return '$baseUrl$path';
+  }
 
----
+  String drawDateLabel(String? drawDate) {
+    if (drawDate == null) return 'Draw date announced shortly';
+    final date = DateTime.parse(drawDate).toLocal();
+    return 'Draw: ${date.day} ${_month(date.month)} ${date.year}';
+  }
 
-### Display Logic by Tab
-
-```dart
-// ACTIVE TAB — "Live Draws"
-// Show: product_name, product_image, campaign_title
-// Show: tickets_remaining / tickets_required (progress bar)
-// Show: draw_date if set, else "Draw date announced shortly"
-// Show: prize_end_date if set (countdown timer)
-// Show: ticket_price, credits_per_ticket
-
-// UPCOMING TAB — "Coming Soon" / "Ready to Draw"  
-// Show: product_name, product_image, campaign_title
-// Show: "SOLD OUT" badge (tickets_remaining == 0)
-// Show: draw_date if set, else "Draw date announced shortly"
-
-// PAST TAB — "Past Winners"
-// Show: product_name, product_image, campaign_title
-// Show: winner_name (already privacy-masked e.g. "Ahmed K.")
-// Show: winner_ticket
-// Show: draw_completed_at (formatted date)
-```
-
----
-
-### Progress Bar (Active Draws)
-
-```dart
-// Calculate sold percentage for progress bar
-final int totalTickets    = draw['tickets_required'];
-final int remaining       = draw['tickets_remaining'];
-final int sold            = totalTickets - remaining;
-final double progress     = sold / totalTickets;  // 0.0 to 1.0
-
-// Show countdown when tickets_remaining <= countdown_start_tickets
-final bool showCountdown  = remaining <= (draw['countdown_start_tickets'] ?? 0);
-```
-
----
-
-### Draw Date Display
-
-```dart
-String drawDateLabel(String? drawDate) {
-  if (drawDate == null) return 'Draw date announced shortly';
-  final date = DateTime.parse(drawDate);
-  return 'Draw: ${DateFormat('MMM d, yyyy – h:mm a').format(date)}';
+  String _month(int m) =>
+      ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m - 1];
 }
 ```
 
 ---
 
-## Draw Categories Summary
+## State Logic Summary
 
-| State | `tickets_remaining` | Has winner | Appears in |
-|-------|---------------------|-----------|------------|
-| Live — tickets available | `> 0` | No | `active` |
-| Sold out — awaiting draw | `= 0` | No | `upcoming` |
-| Prize expired — awaiting draw | Any | No | `upcoming` |
-| Draw completed | Any | ✅ Yes | `past` |
+| Condition | `tickets_remaining` | Has winner | Array |
+|-----------|---------------------|-----------|-------|
+| Tickets still available | `> 0` | ❌ | `active` |
+| All tickets sold | `0` | ❌ | `upcoming` |
+| Prize end date passed | any | ❌ | `upcoming` |
+| Campaign end date passed | any | ❌ | `upcoming` |
+| Winner announced | any | ✅ | `past` |
+
+---
+
+## Image URLs
+
+All `product_image` and `campaign_image` values are **relative paths**. Always prefix with the base URL:
+
+```
+https://admin.canzey.com/uploads/products/product-123.jpg
+https://admin.canzey.com/uploads/campaigns/campaign-456.jpg
+```

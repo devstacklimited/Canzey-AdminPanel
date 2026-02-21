@@ -19,12 +19,26 @@ export async function listProducts() {
         pp.tickets_remaining,
         pp.countdown_start_tickets,
         pp.draw_date,
-        pp.end_date as prize_end_date
+        pp.end_date as prize_end_date,
+        CASE WHEN ct_win.id IS NOT NULL THEN 1 ELSE 0 END as has_winner,
+        ct_win.ticket_number  as winner_ticket,
+        ct_win.won_at         as winner_won_at,
+        CONCAT(cust_win.first_name, ' ', cust_win.last_name) as winner_name,
+        cust_win.email        as winner_email
       FROM products p
-      LEFT JOIN product_prizes pp ON p.id = pp.product_id AND pp.is_active = 1
+      LEFT JOIN product_prizes pp
+        ON p.id = pp.product_id AND pp.is_active = 1
+      LEFT JOIN campaign_tickets ct_win
+        ON ct_win.product_id  = pp.product_id
+       AND ct_win.campaign_id = pp.campaign_id
+       AND ct_win.is_winner   = 1
+      LEFT JOIN customers cust_win
+        ON cust_win.id = ct_win.customer_id
       WHERE p.status != 'deleted'
       ORDER BY p.created_at DESC
     `);
+
+
 
     // Log a few products to see if prize data is attached
     if (products.length > 0) {
@@ -289,13 +303,14 @@ export async function createProduct(productData) {
       return isNaN(parsed) ? null : parsed;
     };
 
+    // ⚠️ Store exactly what the user typed (no UTC conversion)
+    // datetime-local input sends "2026-02-22T05:00" — we strip the T and store as-is
     const toMysqlDatetime = (val) => {
       if (!val || val === '' || val === 'null' || val === 'undefined') return null;
-      try {
-        const d = new Date(val);
-        if (isNaN(d.getTime())) return null;
-        return d.toISOString().slice(0, 19).replace('T', ' ');
-      } catch { return null; }
+      // Replace the T separator → MySQL datetime format: "2026-02-22 05:00:00"
+      const clean = String(val).trim().replace('T', ' ');
+      // Pad seconds if missing (datetime-local gives HH:MM, MySQL wants HH:MM:SS)
+      return clean.length === 16 ? clean + ':00' : clean.slice(0, 19);
     };
 
     const parsedCampaignId = safeInt(productData.campaign_id);
@@ -500,17 +515,13 @@ export async function updateProduct(productId, productData) {
       return isNaN(parsed) ? null : parsed;
     };
 
-    // Convert ISO datetime string to MySQL DATETIME format: 'YYYY-MM-DD HH:MM:SS'
+    // ⚠️ Store exactly what the user typed — no UTC conversion
     const toMysqlDatetime = (val) => {
       if (!val || val === '' || val === 'null' || val === 'undefined') return null;
-      try {
-        const d = new Date(val);
-        if (isNaN(d.getTime())) return null;
-        return d.toISOString().slice(0, 19).replace('T', ' ');
-      } catch {
-        return null;
-      }
+      const clean = String(val).trim().replace('T', ' ');
+      return clean.length === 16 ? clean + ':00' : clean.slice(0, 19);
     };
+
 
     const parsedCampaignId = safeInt(productData.campaign_id);
     const parsedTickets = safeInt(productData.tickets_required);
