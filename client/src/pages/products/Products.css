@@ -116,98 +116,72 @@
   font-weight: 600;
   color: #1f2937;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
 .product-status-alerts {
   display: flex;
-  position: relative;
-  height: 22px;
-  min-width: 100px;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
 }
 
-.sold-out-badge,
-.set-draw-badge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 0.15rem 0.5rem;
+/* Base tag style */
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  line-height: 1;
+  letter-spacing: 0.04em;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
-.sold-out-badge {
-  background: #374151;
-  color: white;
-  animation: fadeOutIn 4s infinite;
+/* SOLD OUT — dark charcoal */
+.tag-sold-out {
+  background: #1f2937;
+  color: #fff;
 }
 
-.prize-end-date-badge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  white-space: nowrap;
-  background: #0891b2;
-  color: white;
+/* Ended — red (end date passed) */
+.tag-ended {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
 }
 
-.set-draw-badge {
-  background: #ef4444;
-  color: white;
-  animation: fadeInOut 4s infinite;
+/* Ends — teal (end date in future) */
+.tag-ending {
+  background: #cffafe;
+  color: #0e7490;
+  border: 1px solid #67e8f9;
 }
 
-@keyframes fadeInOut {
-
-  0%,
-  45% {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-
-  50%,
-  95% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
+/* No End Date — neutral grey */
+.tag-no-date {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
 }
 
-@keyframes fadeOutIn {
-
-  0%,
-  45% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  50%,
-  95% {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Draw Date set — indigo */
+.tag-draw-set {
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
 }
+
+/* No Draw Date — amber warning */
+.tag-no-draw {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
 
 .toggle-switch input:disabled+.slider {
   display: none;

@@ -489,19 +489,26 @@ const Products = () => {
                     <td className="product-name">
                       {product.name}
                       {product.campaign_id && (
-                        (product.tickets_remaining !== null && product.tickets_remaining !== undefined && product.tickets_remaining <= 0) ||
-                        (product.prize_end_date && new Date(product.prize_end_date) <= new Date())
-                      ) && (
                         <div className="product-status-alerts">
+                          {/* SOLD OUT tag */}
+                          {product.tickets_remaining !== null && product.tickets_remaining !== undefined && product.tickets_remaining <= 0 && (
+                            <span className="tag-badge tag-sold-out">SOLD OUT</span>
+                          )}
+                          {/* End Date tag — show Ended or Ends */}
                           {product.prize_end_date ? (
-                            <span className="prize-end-date-badge">
+                            <span className={`tag-badge ${new Date(product.prize_end_date) <= new Date() ? 'tag-ended' : 'tag-ending'}`}>
                               🗓 {new Date(product.prize_end_date) <= new Date() ? 'Ended' : 'Ends'} {new Date(product.prize_end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                           ) : (
-                            <span className="sold-out-badge">SOLD OUT</span>
+                            <span className="tag-badge tag-no-date">No End Date</span>
                           )}
-                          {!product.draw_date && (
-                            <span className="set-draw-badge animated-badge">SET DRAW TIME</span>
+                          {/* Draw Date tag */}
+                          {product.draw_date ? (
+                            <span className="tag-badge tag-draw-set">
+                              🎯 Draw: {new Date(product.draw_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          ) : (
+                            <span className="tag-badge tag-no-draw">No Draw Date</span>
                           )}
                         </div>
                       )}
