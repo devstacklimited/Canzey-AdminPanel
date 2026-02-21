@@ -529,6 +529,70 @@
   color: #c53030 !important;
 }
 
+/* Category Separators and Styles */
+.detail-products-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-top: 20px;
+}
+
+.product-category-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.product-category-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+}
+
+.active-category {
+  color: #16a34a;
+  border-bottom-color: #22c55e;
+}
+
+.completed-category {
+  color: #64748b;
+  border-bottom-color: #cbd5e1;
+}
+
+/* Grayscale effect for completed products */
+.completed-card {
+  background: #f8fafc !important;
+  opacity: 0.9;
+  border-style: dashed !important;
+}
+
+.completed-card:hover {
+  border-color: #94a3b8 !important;
+}
+
+.detail-product-image.grayscale {
+  filter: grayscale(1);
+}
+
+.detail-product-status.completed {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.ticket-progress-bar.completed {
+  background: #e2e8f0;
+}
+
+.ticket-progress-fill.gray {
+  background: #94a3b8 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .detail-modal {

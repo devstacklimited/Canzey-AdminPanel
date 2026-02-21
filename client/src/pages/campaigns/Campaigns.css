@@ -49,7 +49,54 @@
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
 }
 
-/* Category Badges */
+/* Draw status tabs */
+.campaigns-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.campaigns-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.campaigns-tab:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f0f4ff;
+}
+
+.campaigns-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.tab-count {
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.campaigns-tab.active .tab-count {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .category-badge {
   display: inline-block;
   padding: 4px 8px;

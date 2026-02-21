@@ -24,6 +24,7 @@ const Campaigns = () => {
   const [existingImages, setExistingImages] = useState([]);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [activeTab, setActiveTab] = useState('active');
 
   useEffect(() => {
     fetchCampaigns();
@@ -50,6 +51,21 @@ const Campaigns = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const isCampaignActive = (c) => c.status === 'active' && c.active_prizes_count > 0;
+  const isCampaignCompleted = (c) => c.status === 'closed' || (c.status === 'active' && c.active_prizes_count === 0);
+
+  const filteredCampaigns = campaigns.filter(c => {
+    if (activeTab === 'active') return isCampaignActive(c);
+    if (activeTab === 'completed') return isCampaignCompleted(c);
+    return true; // 'all'
+  });
+
+  const counts = {
+    all: campaigns.length,
+    active: campaigns.filter(isCampaignActive).length,
+    completed: campaigns.filter(isCampaignCompleted).length
   };
 
   const handleInputChange = (e) => {
@@ -260,6 +276,27 @@ const Campaigns = () => {
         </button>
       </div>
 
+      <div className="campaigns-tabs">
+        <button 
+          className={`campaigns-tab ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          All Prizes <span className="tab-count">{counts.all}</span>
+        </button>
+        <button 
+          className={`campaigns-tab ${activeTab === 'active' ? 'active' : ''}`}
+          onClick={() => setActiveTab('active')}
+        >
+          Active <span className="tab-count">{counts.active}</span>
+        </button>
+        <button 
+          className={`campaigns-tab ${activeTab === 'completed' ? 'active' : ''}`}
+          onClick={() => setActiveTab('completed')}
+        >
+          Sold Out / Ended <span className="tab-count">{counts.completed}</span>
+        </button>
+      </div>
+
       <div className="campaigns-table-container">
         <table className="campaigns-table">
           <thead>
@@ -274,7 +311,7 @@ const Campaigns = () => {
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((campaign) => (
+            {filteredCampaigns.map((campaign) => (
               <tr key={campaign.id}>
                 <td>
                   <div className="campaign-image-cell">
