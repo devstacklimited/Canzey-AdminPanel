@@ -132,37 +132,16 @@ PORT=5000
 
 MIT
 
-
-# Navigate to the correct directory where PM2 runs from
 cd /var/www/Canzey-AdminPanel
-
-# Pull latest code from GitHub
 git pull origin main
-
-# Create/update the .env with correct API URL
 echo "VITE_API_URL=https://admin.canzey.com" > /var/www/Canzey-AdminPanel/client/.env
-
-# Install backend dependencies (if package.json changed)
 cd /var/www/Canzey-AdminPanel/server
 npm install
-
-# Restart backend with PM2
 pm2 restart canzey-backend
-
-# Install frontend dependencies (if package.json changed)
 cd /var/www/Canzey-AdminPanel/client
 npm install
-
-# Build frontend for production
 npm run build
-
-# Deploy built files to web directory
 cp -r dist/* /home/canzey/admin.canzey.com/
-
-# Set correct ownership
 chown -R canzey:canzey /home/canzey/admin.canzey.com/
-
-# Show PM2 status
 pm2 status
-
 echo "✅ Deployment complete!"
