@@ -307,26 +307,51 @@ export async function updateCampaign(campaignId, updateData) {
 
     const connection = await pool.getConnection();
     
-    await connection.execute(
-      `UPDATE campaigns 
-       SET title = ?, description = ?, category = ?, image_url = ?, ticket_price = ?, credits_per_ticket = ?, 
-           max_tickets_per_user = ?, status = ?, start_at = ?, end_at = ?, use_end_date = ?
-       WHERE id = ?`,
-      [
-        title || null, 
-        description || null, 
-        category || null,
-        image_url || null, 
-        ticket_price !== undefined ? ticket_price : 0, 
-        credits_per_ticket !== undefined ? credits_per_ticket : 0, 
-        max_tickets_per_user !== undefined ? max_tickets_per_user : null, 
-        status || null, 
-        start_at || null, 
-        end_at || null, 
-        use_end_date === 'false' || use_end_date === false ? 0 : 1,
-        campaignId
-      ]
-    );
+    // Only update image_url if a new image was uploaded, otherwise keep existing
+    if (image_url) {
+      // New image uploaded - update image_url
+      await connection.execute(
+        `UPDATE campaigns 
+         SET title = ?, description = ?, category = ?, image_url = ?, ticket_price = ?, credits_per_ticket = ?, 
+             max_tickets_per_user = ?, status = ?, start_at = ?, end_at = ?, use_end_date = ?
+         WHERE id = ?`,
+        [
+          title || null, 
+          description || null, 
+          category || null,
+          image_url,
+          ticket_price !== undefined ? ticket_price : 0, 
+          credits_per_ticket !== undefined ? credits_per_ticket : 0, 
+          max_tickets_per_user !== undefined ? max_tickets_per_user : null, 
+          status || null, 
+          start_at || null, 
+          end_at || null, 
+          use_end_date === 'false' || use_end_date === false ? 0 : 1,
+          campaignId
+        ]
+      );
+    } else {
+      // No new image - do NOT touch image_url column, keep existing
+      await connection.execute(
+        `UPDATE campaigns 
+         SET title = ?, description = ?, category = ?, ticket_price = ?, credits_per_ticket = ?, 
+             max_tickets_per_user = ?, status = ?, start_at = ?, end_at = ?, use_end_date = ?
+         WHERE id = ?`,
+        [
+          title || null, 
+          description || null, 
+          category || null,
+          ticket_price !== undefined ? ticket_price : 0, 
+          credits_per_ticket !== undefined ? credits_per_ticket : 0, 
+          max_tickets_per_user !== undefined ? max_tickets_per_user : null, 
+          status || null, 
+          start_at || null, 
+          end_at || null, 
+          use_end_date === 'false' || use_end_date === false ? 0 : 1,
+          campaignId
+        ]
+      );
+    }
 
     // Handle images: delete old ones and insert new ones if new images uploaded
     if (image_urls && image_urls.length > 0) {
