@@ -96,7 +96,7 @@ async function start() {
       // console.log('   GET    /api/health           - Health check');
     });
   } catch (err) {
-    console.error('❌ Failed to start server:', err);
+    console.error('❌ Failed to start server::', err);
     process.exit(1);
   }
 }
