@@ -310,18 +310,18 @@ const Orders = () => {
           />
 
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 Orders Management
               </h1>
-              <p className="text-gray-600 text-lg">Track and manage all customer orders</p>
+              <p className="text-gray-500 text-sm sm:text-lg">Track and manage all customer orders</p>
             </div>
             
             <button
               onClick={handleExportCSV}
               disabled={exporting || orders.length === 0}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-all shadow-lg active:scale-95 disabled:opacity-50 w-full md:w-auto"
             >
               {exporting ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/20 border-t-white"></div> : <Download size={20} />}
               {exporting ? 'Exporting...' : 'Export CSV'}
@@ -329,27 +329,27 @@ const Orders = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
             {statsData.map((stat, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-4`}>
+              <div key={index} className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-3 md:mb-4`}>
                   {stat.icon}
                 </div>
-                <p className="text-gray-600 text-sm mb-1">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-gray-500 text-xs md:text-sm mb-1 font-medium">{stat.title}</p>
+                <p className="text-lg md:text-2xl font-bold text-gray-900 leading-tight">{stat.value}</p>
               </div>
             ))}
           </div>
 
           {/* Controls */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg mb-8 border border-gray-100">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-md mb-8 border border-gray-100">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               {/* Search */}
               <div className="lg:col-span-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
-                  placeholder="Search orders, customers..."
+                  placeholder="Search orders..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all text-sm"
@@ -374,7 +374,7 @@ const Orders = () => {
               </div>
 
               {/* Date Filters */}
-              <div className="lg:col-span-2 flex items-center gap-2">
+              <div className="lg:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="relative flex-1">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                   <input
@@ -385,7 +385,7 @@ const Orders = () => {
                     title="Start Date"
                   />
                 </div>
-                <span className="text-gray-400 font-bold">to</span>
+                <span className="text-gray-400 font-bold text-center">to</span>
                 <div className="relative flex-1">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                   <input
@@ -399,10 +399,10 @@ const Orders = () => {
                 {(startDate || endDate) && (
                    <button 
                      onClick={() => { setStartDate(''); setEndDate(''); }}
-                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                     className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors bg-white sm:bg-transparent border border-gray-100 sm:border-none"
                      title="Clear Dates"
                    >
-                     <XCircle size={20} />
+                     <XCircle size={20} className="mx-auto" />
                    </button>
                 )}
               </div>

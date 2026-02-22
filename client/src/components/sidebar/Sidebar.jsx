@@ -8,22 +8,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   
   const menuItems = [
     { icon: Home, label: 'Home', path: '/home' },
-    { icon: ShoppingCart, label: 'Orders', path: '/orders' },
-    { icon: Trophy, label: 'Prize', path: '/campaigns' },
+    { icon: ShoppingCart, label: 'All Orders', path: '/orders' },
+    { icon: Trophy, label: 'Prizes', path: '/campaigns' },
     { icon: Package, label: 'Products', path: '/products' },
+    { icon: Trophy, label: 'Draws', path: '/draws' },
+    { icon: Ticket, label: 'Tickets', path: '/tickets' },
+    { icon: Bell, label: 'Notifications', path: '/notifications' },
     { icon: Image, label: 'Banners', path: '/banners' },
     { icon: Tag, label: 'Promos', path: '/promos' },
-    { icon: Ticket, label: 'Tickets', path: '/tickets' },
-    { icon: Users, label: 'Canzey Customers', path: '/customers' },
-    { icon: Trophy, label: 'Lucky Draws', path: '/draws' },
-    { icon: Bell, label: 'Notifications Sender', path: '/notifications' },
-    { icon: Users, label: 'Users', path: '/users' },
+    { icon: Users, label: 'Customers', path: '/customers' },
+    { icon: Users, label: 'Admin Users', path: '/users' },
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
   return (
     <aside
-      className="sidebar sidebar-expanded"
+      className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}
     >
       <div className="sidebar-content">
         
@@ -31,6 +31,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           <h1 className="sidebar-logo">
             Canzey Admin
           </h1>
+          <button 
+            className="sidebar-close-btn"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation */}

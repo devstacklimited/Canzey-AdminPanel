@@ -6,18 +6,17 @@ import './Layout.css';
 
 const Layout = ({ children }) => {
   const { user, logout } = useUser();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Default to closed on mobile, open on desktop
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
     <div className="layout">
       {/* Mobile menu overlay */}
-      {sidebarOpen && (
-        <div 
-          className="layout-mobile-overlay lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      <div 
+        className={`layout-mobile-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
 
       {/* Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -27,6 +26,7 @@ const Layout = ({ children }) => {
         {/* Header */}
         <Header 
           sidebarOpen={sidebarOpen} 
+          setSidebarOpen={setSidebarOpen}
           searchTerm={searchTerm} 
           setSearchTerm={setSearchTerm}
           user={user}

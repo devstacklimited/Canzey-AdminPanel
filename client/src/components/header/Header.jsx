@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, LogOut, Users, Shield, Menu, X, Bell, Search } from 'lucide-react';
 import './Header.css';
 
-const Header = ({ sidebarOpen, searchTerm, setSearchTerm, user, onLogout }) => {
+const Header = ({ sidebarOpen, setSidebarOpen, searchTerm, setSearchTerm, user, onLogout }) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -23,23 +23,20 @@ const Header = ({ sidebarOpen, searchTerm, setSearchTerm, user, onLogout }) => {
 
   return (
     <>
-      <header className="admin-header"
-              style={{ 
-                marginLeft: sidebarOpen ? '16rem' : '5rem',
-                width: sidebarOpen ? 'calc(100% - 16rem)' : 'calc(100% - 5rem)'
-              }}>
+      <header className={`admin-header ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
         <div className="header-container">
-          {/* Left side - Logo and mobile menu */}
+          {/* Left side - Sidebar Toggle and Logo */}
           <div className="header-left">
             <button 
-              className="mobile-menu-btn"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="sidebar-toggle-btn"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle Sidebar"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <Menu size={24} />
             </button>
-            {/* <div className="header-logo">
-              <h1>Canzey Admin</h1>
-            </div> */}
+            <div className="header-logo-mobile">
+              <h1>Canzey</h1>
+            </div>
           </div>
 
           {/* Center - Search Bar */}
