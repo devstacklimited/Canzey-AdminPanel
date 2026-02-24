@@ -103,8 +103,8 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <div className="stats-body">
-                                <h3 className="stats-value">{stat.value}</h3>
                                 <p className="stats-label">{stat.title}</p>
+                                <h3 className="stats-value">{stat.value}</h3>
                             </div>
                             <div className="stats-footer">
                                 <span className={`trend ${stat.trendColor}`}>
@@ -132,7 +132,7 @@ const Dashboard = () => {
                                 <table className="dashboard-table">
                                     <thead>
                                         <tr>
-                                            <th>Order #</th>
+                                            <th>Order ID</th>
                                             <th>Customer</th>
                                             <th>Amount</th>
                                             <th>Status</th>
@@ -141,7 +141,7 @@ const Dashboard = () => {
                                     <tbody>
                                         {recentOrders.map((order) => (
                                             <tr key={order.id}>
-                                                <td className="font-mono text-sm">{order.order_number.split('-')[1]}...</td>
+                                                <td className="font-mono text-sm">#{order.order_number.slice(-8)}</td>
                                                 <td>{order.customer_name}</td>
                                                 <td className="font-bold">${order.total_amount}</td>
                                                 <td>
@@ -171,7 +171,7 @@ const Dashboard = () => {
                             {recentOrders.map((order, index) => (
                                 <div key={index} className="activity-item">
                                     <div className="activity-icon-box">
-                                        <Clock size={16} />
+                                        <Clock size={18} />
                                     </div>
                                     <div className="activity-text">
                                         <p><strong>New Order</strong> placed by {order.customer_name}</p>
