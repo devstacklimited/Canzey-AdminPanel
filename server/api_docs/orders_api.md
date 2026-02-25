@@ -164,7 +164,7 @@ final response = await http.post(
 ---
 
 ### 1.1 Winning/Prize Progress (For Flutter)
-**URL:** `GET /api/v1/public/product-prizes/:productId`
+**URL:** `GET /api/v1/public/products/:id/prize`
 
 Use this to show the "Sold vs Remaining" progress bar on the product page in Flutter.
 
@@ -172,7 +172,7 @@ Use this to show the "Sold vs Remaining" progress bar on the product page in Flu
 ```json
 {
   "success": true,
-  "prize": {
+  "data": {
     "product_id": 1,
     "campaign_id": 5,
     "tickets_required": 1000,
@@ -183,14 +183,6 @@ Use this to show the "Sold vs Remaining" progress bar on the product page in Flu
   }
 }
 ```
-
-**Available Categories:**
-- `exclusive` - Limited edition prizes
-- `cash` - Cash prizes
-- `electronics` - Electronic devices
-- `featured` - Featured prizes (default)
-- `new` - New prizes
-- `premium` - Premium prizes
 
 ---
 
@@ -587,7 +579,7 @@ fetch('https://admin.canzey.com/api/orders', {
 | Order Details | `GET /api/orders/:id` | Customer | View one order |
 | All Orders | `GET /api/orders/admin/all` | Admin | View all orders |
 | Update Status | `PATCH /api/orders/admin/:id/status` | Admin | Change order status |
-| Prize Progress | `GET /api/v1/public/product-prizes/:id` | Public | Show ticket progress |
+| Prize Progress | `GET /api/v1/public/products/:id/prize` | Public | Show ticket progress |
 
 ### Key Points for Flutter Dev
 

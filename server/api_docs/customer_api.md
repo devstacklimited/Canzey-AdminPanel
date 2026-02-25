@@ -18,9 +18,15 @@ There are **two tokens**:
 
 2. **Backend JWT Token** (our token)
    - Returned by `POST /signin`.
-   - Used for:
-     - `GET /info`
-     - `PUT /edit`
+   - Valid for **24 hours**.
+   - Required for ALL of these routes:
+     - `GET  /info`                  — get customer profile
+     - `PUT  /edit`                  — update profile fields
+     - `POST /avatar`                — upload profile photo
+     - `GET  /tickets`               — get campaign tickets
+     - `GET  /credits`               — get credit balance
+     - `GET  /credits/history`       — get credit history
+     - `PUT  /fcm-token`             — update push notification token
 
 ---
 
@@ -156,6 +162,15 @@ Here:
       "status": "active",
       "firebase_uid": "ZiHYZ2jqEGZxlUkNNPcgYRmsyai2"
     }
+  }
+  ```
+
+- **Error Response (if Firebase token invalid):**
+  ```json
+  {
+    "success": false,
+    "message": "Invalid or expired Firebase token",
+    "error_code": "auth/argument-error"
   }
   ```
 

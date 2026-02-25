@@ -148,13 +148,23 @@ export async function firebaseCustomerSignIn(firebaseToken, fcmToken = null) {
 
     // Verify Firebase token
     console.log('🔥 [FIREBASE SIGNIN] Verifying Firebase token...');
+    console.log('   Token length:', firebaseToken.length);
+    console.log('   Token preview:', firebaseToken.substring(0, 20) + '...');
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(firebaseToken);
+      decodedToken = await admin.auth().verifyIdToken(firebaseToken, false);
       console.log('✅ [FIREBASE SIGNIN] Token verified:', decodedToken.uid);
+      console.log('   Firebase project (aud):', decodedToken.aud);
+      console.log('   Token issued at:', new Date(decodedToken.iat * 1000).toISOString());
+      console.log('   Token expires at:', new Date(decodedToken.exp * 1000).toISOString());
     } catch (firebaseError) {
-      console.error('❌ [FIREBASE SIGNIN] Token verification failed:', firebaseError.message);
-      return { success: false, error: 'Invalid or expired Firebase token' };
+      console.error('❌ [FIREBASE SIGNIN] Token verification failed!');
+      console.error('   Error code:', firebaseError.code);
+      console.error('   Error message:', firebaseError.message);
+      console.error('   Server FIREBASE_PROJECT_ID env:', process.env.FIREBASE_PROJECT_ID);
+      console.error('   Hint: If error code is auth/argument-error or auth/project-not-found,');
+      console.error('         the FIREBASE_PROJECT_ID in .env does not match the mobile app project.');
+      return { success: false, error: 'Invalid or expired Firebase token', code: firebaseError.code };
     }
 
     const firebaseUid = decodedToken.uid;

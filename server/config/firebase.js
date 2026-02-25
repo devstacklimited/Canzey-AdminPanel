@@ -4,11 +4,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Firebase Admin SDK Configuration
+// Parse private key robustly — handles \\n, \n, and literal newlines (WHM/cPanel safe)
+const parsePrivateKey = (key) => {
+  if (!key) return undefined;
+  // Replace literal \n sequences (common in cPanel .env) with actual newlines
+  return key.replace(/\\n/g, '\n').replace(/\\r/g, '');
+};
+
 const serviceAccount = {
   type: process.env.FIREBASE_TYPE,
   project_id: process.env.FIREBASE_PROJECT_ID,
   private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  private_key: parsePrivateKey(process.env.FIREBASE_PRIVATE_KEY),
   client_email: process.env.FIREBASE_CLIENT_EMAIL,
   client_id: process.env.FIREBASE_CLIENT_ID,
   auth_uri: process.env.FIREBASE_AUTH_URI,
@@ -22,8 +29,11 @@ try {
     credential: admin.credential.cert(serviceAccount),
   });
   console.log('✅ Firebase Admin SDK initialized');
+  console.log('   🔥 Firebase Project:', process.env.FIREBASE_PROJECT_ID || 'NOT SET - CHECK .env!');
+  console.log('   📧 Service Account:', process.env.FIREBASE_CLIENT_EMAIL || 'NOT SET - CHECK .env!');
 } catch (error) {
   console.error('❌ Firebase initialization error:', error.message);
+  console.error('   Check that FIREBASE_PROJECT_ID and FIREBASE_PRIVATE_KEY are set in your .env');
 }
 
 // Firebase Web Configuration (for Flutter and Web clients)

@@ -5,7 +5,7 @@ The Ticket Statistics API provides comprehensive analytics for ticket sales, rev
 
 ## Base URL
 ```
-https://your-domain.com/api
+https://admin.canzey.com/api
 ```
 
 ## Authentication

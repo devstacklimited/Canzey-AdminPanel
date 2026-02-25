@@ -9,6 +9,48 @@ import { getCustomerTickets, getCustomerCreditBalance, getCustomerCreditHistory 
 const router = express.Router();
 
 /**
+ * GET /api/firebase/customer/debug-firebase
+ * ⚠️ TEMPORARY DIAGNOSTIC ENDPOINT — Remove after fixing live server issue
+ * Shows Firebase config state without exposing secrets
+ */
+router.get('/debug-firebase', (req, res) => {
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+  let keyStatus = 'NOT SET';
+  let keyFormat = 'N/A';
+  let keyStartsWith = 'N/A';
+
+  if (privateKey) {
+    const parsed = privateKey.replace(/\\n/g, '\n').replace(/\\r/g, '');
+    const hasRealNewlines  = parsed.includes('\n');
+    const hasBeginHeader   = parsed.includes('-----BEGIN RSA PRIVATE KEY-----') || parsed.includes('-----BEGIN PRIVATE KEY-----');
+    const hasEndHeader     = parsed.includes('-----END RSA PRIVATE KEY-----')   || parsed.includes('-----END PRIVATE KEY-----');
+
+    keyStatus = 'SET';
+    keyFormat = hasRealNewlines ? 'Has real newlines ✅' : 'Missing real newlines ❌ (still escaped)';
+    keyStartsWith = parsed.substring(0, 30) + '...';
+
+    if (!hasBeginHeader || !hasEndHeader) {
+      keyFormat += ' | Missing PEM headers ❌';
+    } else {
+      keyFormat += ' | PEM headers present ✅';
+    }
+  }
+
+  res.json({
+    firebase_project_id:    process.env.FIREBASE_PROJECT_ID    || '❌ NOT SET',
+    firebase_client_email:  process.env.FIREBASE_CLIENT_EMAIL  || '❌ NOT SET',
+    firebase_type:          process.env.FIREBASE_TYPE          || '❌ NOT SET',
+    firebase_private_key:   keyStatus,
+    private_key_format:     keyFormat,
+    private_key_starts_with: keyStartsWith,
+    node_env:               process.env.NODE_ENV               || 'not set',
+    server_time_utc:        new Date().toISOString(),
+  });
+});
+
+
+/**
  * POST /api/firebase/customer/signup
  * Firebase customer sign up
  * Body: { email, password, first_name, last_name, phone_number? }
@@ -60,10 +102,11 @@ router.post('/signin', async (req, res) => {
   const result = await firebaseCustomerSignIn(firebase_token, fcm_token);
 
   if (!result.success) {
-    console.log('❌ [FIREBASE SIGNIN API] Failed:', result.error);
+    console.log('❌ [FIREBASE SIGNIN API] Failed:', result.error, '| Code:', result.code);
     return res.status(400).json({
       success: false,
       message: result.error,
+      error_code: result.code || 'unknown',
     });
   }
 

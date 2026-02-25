@@ -25,16 +25,19 @@ This API allows managing Firebase Cloud Messaging (FCM) tokens for push notifica
 {
   "success": true,
   "message": "Account created successfully",
-  "token": "jwt_token_here",
   "user": {
     "id": 1,
     "first_name": "John",
     "last_name": "Doe",
     "email": "user@example.com",
-    "fcm_token": "fcm_token_here"
+    "phone_number": "+1234567890",
+    "firebase_uid": "abc123xyz",
+    "status": "active"
   }
 }
 ```
+
+> ⚠️ **Signup does NOT return a JWT token.** After signup, call `POST /signin` with the Firebase ID Token to get the backend JWT.
 
 ### 2. Sign In with FCM Token
 **POST** `/api/firebase/customer/signin`
