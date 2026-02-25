@@ -146,13 +146,41 @@ export async function firebaseCustomerSignIn(firebaseToken, fcmToken = null) {
       return { success: false, error: 'Firebase token is required' };
     }
 
-    // Verify Firebase token
+    // ── Pre-verification token inspection ──────────────────────────────────
+    // Trim any accidental whitespace/newlines from token
+    const cleanToken = firebaseToken.trim().replace(/["']/g, '');
+    if (cleanToken !== firebaseToken) {
+      console.warn('⚠️  [FIREBASE SIGNIN] Token had leading/trailing whitespace or quotes — trimmed!');
+    }
+
     console.log('🔥 [FIREBASE SIGNIN] Verifying Firebase token...');
-    console.log('   Token length:', firebaseToken.length);
-    console.log('   Token preview:', firebaseToken.substring(0, 20) + '...');
+    console.log('   Token length (original):', firebaseToken.length);
+    console.log('   Token length (cleaned):', cleanToken.length);
+    console.log('   Token preview:', cleanToken.substring(0, 30) + '...');
+
+    // Decode WITHOUT verification to inspect claims
+    try {
+      const parts = cleanToken.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+        console.log('   📦 Token aud (audience):', payload.aud);
+        console.log('   📦 Token iss (issuer):', payload.iss);
+        console.log('   📦 Token sub (uid):', payload.sub);
+        console.log('   📦 Token iat:', new Date(payload.iat * 1000).toISOString());
+        console.log('   📦 Token exp:', new Date(payload.exp * 1000).toISOString());
+        console.log('   📦 Server project:', process.env.FIREBASE_PROJECT_ID);
+        console.log('   📦 Audience match:', payload.aud === process.env.FIREBASE_PROJECT_ID ? '✅ YES' : '❌ NO — MISMATCH!');
+      } else {
+        console.error('   ❌ Token does NOT have 3 JWT parts — it is malformed! Parts:', parts.length);
+      }
+    } catch (decodeErr) {
+      console.error('   ❌ Failed to decode token payload:', decodeErr.message);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(firebaseToken, false);
+      decodedToken = await admin.auth().verifyIdToken(cleanToken, false);
       console.log('✅ [FIREBASE SIGNIN] Token verified:', decodedToken.uid);
       console.log('   Firebase project (aud):', decodedToken.aud);
       console.log('   Token issued at:', new Date(decodedToken.iat * 1000).toISOString());
