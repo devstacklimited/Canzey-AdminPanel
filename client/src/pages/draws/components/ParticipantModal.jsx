@@ -1,7 +1,36 @@
-import { X, Trophy, User, Mail, Phone, Calendar, Hash, CheckCircle, Loader } from 'lucide-react';
+import { X, Trophy, User, Mail, Phone, Calendar, Hash, CheckCircle, Loader, Download } from 'lucide-react';
 
 const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, pickingWinner, onPickWinner, activeTab, formatDate }) => {
   if (!isOpen) return null;
+
+  const exportCSV = () => {
+    if (!participants.length) return;
+
+    const headers = ['Ticket Number', 'Order Number', 'Customer Name', 'Email', 'Phone', 'Purchase Date', 'Source'];
+    const rows = participants.map(t => [
+      t.ticket_number  || '',
+      t.order_number   || '',
+      t.customer_name  || '',
+      t.customer_email || '',
+      t.customer_phone || '',
+      t.created_at ? new Date(t.created_at).toLocaleString() : '',
+      t.source || 'purchase'
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    const safeName = `${draw?.product_name || 'draw'}_${draw?.campaign_title || ''}`.replace(/[^a-z0-9]/gi, '_');
+    link.href     = url;
+    link.download = `participants_${safeName}_${date}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="pool-modal">
@@ -47,6 +76,9 @@ const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, pickin
                       {t.ticket_number}
                     </div>
                     <small className="order-link">Order #{t.order_number}</small>
+                    {t.source === 'donation' && (
+                      <span className="donation-ticket-badge">💝 Donation</span>
+                    )}
                   </div>
 
                   <div className="participant-main">
@@ -74,7 +106,6 @@ const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, pickin
                     </div>
                   </div>
 
-                  {/* Mark as Winner button — only visible on upcoming tab */}
                   {activeTab === 'upcoming' && (
                     <div className="participant-action">
                       <button
@@ -98,6 +129,12 @@ const ParticipantModal = ({ isOpen, onClose, draw, participants, loading, pickin
         </div>
 
         <div className="pool-modal-footer">
+          {participants.length > 0 && (
+            <button className="csv-export-btn" onClick={exportCSV} title="Download all participants as CSV">
+              <Download size={16} />
+              Export CSV ({participants.length} tickets)
+            </button>
+          )}
           <button className="cancel-btn" onClick={onClose}>Close</button>
         </div>
       </div>

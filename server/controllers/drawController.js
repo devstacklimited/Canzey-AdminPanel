@@ -119,9 +119,13 @@ export async function getPrizeTicketPool(req, res) {
       FROM campaign_tickets ct
       LEFT JOIN customers cust ON ct.customer_id = cust.id
       LEFT JOIN orders o ON ct.order_id = o.id
-      WHERE ct.product_id = ? AND ct.campaign_id = ?
+      WHERE ct.campaign_id = ?
+        AND (
+          ct.product_id = ?           -- regular purchase tickets for this product
+          OR (ct.source = 'donation' AND ct.product_id IS NULL)  -- donation tickets for this campaign
+        )
       ORDER BY ct.created_at ASC
-    `, [productId, campaignId]);
+    `, [campaignId, productId]);
 
     console.log(`✅ [POOL] Found ${tickets.length} tickets`);
 

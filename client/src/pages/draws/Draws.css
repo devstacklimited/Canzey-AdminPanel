@@ -555,6 +555,45 @@
     cursor: pointer;
 }
 
+/* CSV Export button */
+.csv-export-btn {
+    padding: 0.7rem 1.5rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    margin-right: auto;
+    /* pushes Close to the right */
+}
+
+.csv-export-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Donation ticket badge shown inside participants list */
+.donation-ticket-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.5rem;
+    background: #fdf4ff;
+    color: #9333ea;
+    border: 1px solid #e9d5ff;
+    border-radius: 2rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-top: 0.2rem;
+    width: fit-content;
+}
+
+
 .pick-winner-btn {
     padding: 0.7rem 2rem;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
